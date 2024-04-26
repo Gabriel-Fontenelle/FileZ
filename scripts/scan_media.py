@@ -25,8 +25,8 @@ import pwd
 from os import listdir, getcwd
 from os.path import isdir
 
-from filez import LinuxFileSystem, WindowsFileSystem, JSONSerializer
-from filez.file import File
+from filejacket import LinuxFileSystem, WindowsFileSystem, JSONSerializer
+from filejacket.file import File
 
 HASH_FILES = ['md5', 'sfv']
 
