@@ -22,6 +22,7 @@ Should there be a need for contact the electronic mail
 """
 from __future__ import annotations
 
+from datetime import datetime, time
 from typing import Any, Type
 
 from ...pipelines import Pipeline
@@ -71,6 +72,8 @@ def serialize_attribute(value: object) -> dict[str, Any]:
 
 
 def serialize_hashes(value: FileHashes) -> dict[str, Any]:
+    from filejacket.serializer.specific import FileSerializer
+    
     hashes = value.__serialize__
 
     cache = {}
