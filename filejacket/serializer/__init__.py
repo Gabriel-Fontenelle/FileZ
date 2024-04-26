@@ -22,12 +22,9 @@ Should there be a need for contact the electronic mail
 """
 
 from .generic import JSONSerializer, PickleSerializer
-from .specific import FileSerializer
 
 __all__ = [
     # Generic
     'PickleSerializer',
     'JSONSerializer'
-    # Specific
-    'FileSerializer'
 ]
