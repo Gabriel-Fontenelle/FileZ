@@ -26,7 +26,7 @@ from importlib import import_module
 from inspect import isclass
 from typing import Any, TYPE_CHECKING, Iterator, Type
 
-from ..exception import ValidationError, PipelineError, ImproperlyConfiguredFile
+from ..exception import ImproperlyConfiguredPipeline, ValidationError, PipelineError, ImproperlyConfiguredFile
 from ..file.option import FileOption
 
 if TYPE_CHECKING:

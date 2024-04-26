@@ -22,10 +22,10 @@ Should there be a need for contact the electronic mail
 """
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+# from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from ...file import BaseFile
+# if TYPE_CHECKING:
+#     from ...file import BaseFile
 
 
 __all__ = [
