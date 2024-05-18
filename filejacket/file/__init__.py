@@ -303,6 +303,11 @@ class BaseFile:
             else:
                 additional_kwargs[key] = value
 
+        # Case there is a version, it came from a serialization and deserialization. So
+        # only the attributes must be set.
+        if version:
+            return
+        
         # Validate class creation
         if self.extract_data_pipeline is None:
             raise self.ImproperlyConfiguredFile(
