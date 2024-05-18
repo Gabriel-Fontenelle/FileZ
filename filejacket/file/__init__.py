@@ -817,14 +817,16 @@ class BaseFile:
                     parameters = {**parameters, **element}
 
                 else:
-                    raise ImproperlyConfiguredFile("Each element of `_pipelines_override_keyword_arguments` should be"
-                                                   " either a dictionary or a tuple.")
+                    raise ImproperlyConfiguredFile(
+                        "Each element of `_pipelines_override_keyword_arguments` should be either a dictionary or a tuple."
+                    )
 
             return parameters
 
         raise ImproperlyConfiguredFile(
-            f"Instance of type {type(self._pipelines_override_keyword_arguments)} not allowed."
-            "Allowed types: dict[str, Any] | list[tuple[dict[str, Any], str] | dict[str, Any]]")
+            f"Instance of type {type(self._pipelines_override_keyword_arguments)} not allowed. "
+            "Allowed types: dict[str, Any] | list[tuple[dict[str, Any], str] | dict[str, Any]]"
+        )
 
     def add_valid_filename(self, complete_filename: str, enforce_mimetype: bool = False) -> bool:
         """
