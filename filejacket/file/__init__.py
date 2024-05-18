@@ -72,7 +72,7 @@ class BaseFile:
     Base class for handle File. This class will be used in Files of type Image, Rar, etc.
     This class will behave like Django Model with methods save(), delete(), etc.
 
-    TODO: Add support to moving and copying file avoiding conflict on moving or copying.
+    TODO: Add support to moving and copying file avoiding conflict on moving or copying, but only apply changes when saving.
     """
 
     # Filesystem data
@@ -272,7 +272,7 @@ class BaseFile:
     """
 
     @classmethod
-    def deserialize(cls, source: str) -> dict[str, Any]:
+    def deserialize(cls, source: str) -> BaseFile:
         """
         Class method to deserialize the source and return the instance object.
         """
@@ -977,10 +977,10 @@ class BaseFile:
         """
         # Set-up pipeline to extract data from.
         pipeline: Pipeline = Pipeline(
-            'filez.pipelines.extractor.FilenameAndExtensionFromPathExtractor',
-            'filez.pipelines.extractor.MimeTypeFromFilenameExtractor',
-            'filez.pipelines.extractor.FileSystemDataExtractor',
-            'filez.pipelines.extractor.HashFileExtractor'
+            'filejacket.pipelines.extractor.FilenameAndExtensionFromPathExtractor',
+            'filejacket.pipelines.extractor.MimeTypeFromFilenameExtractor',
+            'filejacket.pipelines.extractor.FileSystemDataExtractor',
+            'filejacket.pipelines.extractor.HashFileExtractor'
         )
 
         # Run the pipeline.
@@ -1143,9 +1143,9 @@ class ContentFile(BaseFile):
     """
 
     extract_data_pipeline: Pipeline = Pipeline(
-        'filez.pipelines.extractor.FilenameFromMetadataExtractor',
-        'filez.pipelines.extractor.MimeTypeFromFilenameExtractor',
-        'filez.pipelines.extractor.MimeTypeFromContentExtractor',
+        'filejacket.pipelines.extractor.FilenameFromMetadataExtractor',
+        'filejacket.pipelines.extractor.MimeTypeFromFilenameExtractor',
+        'filejacket.pipelines.extractor.MimeTypeFromContentExtractor',
     )
     """
     Pipeline to extract data from multiple sources.
@@ -1158,11 +1158,11 @@ class StreamFile(BaseFile):
     """
 
     extract_data_pipeline: Pipeline = Pipeline(
-        'filez.pipelines.extractor.FilenameFromMetadataExtractor',
-        'filez.pipelines.extractor.FilenameFromURLExtractor',
-        'filez.pipelines.extractor.MimeTypeFromFilenameExtractor',
-        'filez.pipelines.extractor.MimeTypeFromContentExtractor',
-        'filez.pipelines.extractor.MetadataExtractor'
+        'filejacket.pipelines.extractor.FilenameFromMetadataExtractor',
+        'filejacket.pipelines.extractor.FilenameFromURLExtractor',
+        'filejacket.pipelines.extractor.MimeTypeFromFilenameExtractor',
+        'filejacket.pipelines.extractor.MimeTypeFromContentExtractor',
+        'filejacket.pipelines.extractor.MetadataExtractor'
     )
     """
     Pipeline to extract data from multiple sources.
@@ -1177,10 +1177,10 @@ class File(BaseFile):
     """
 
     extract_data_pipeline: Pipeline = Pipeline(
-        'filez.pipelines.extractor.FilenameAndExtensionFromPathExtractor',
-        'filez.pipelines.extractor.MimeTypeFromFilenameExtractor',
-        'filez.pipelines.extractor.FileSystemDataExtractor',
-        'filez.pipelines.extractor.HashFileExtractor',
+        'filejacket.pipelines.extractor.FilenameAndExtensionFromPathExtractor',
+        'filejacket.pipelines.extractor.MimeTypeFromFilenameExtractor',
+        'filejacket.pipelines.extractor.FileSystemDataExtractor',
+        'filejacket.pipelines.extractor.HashFileExtractor',
     )
     """
     Pipeline to extract data from multiple sources.
