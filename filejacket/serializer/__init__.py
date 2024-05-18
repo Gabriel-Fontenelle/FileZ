@@ -18,16 +18,19 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 Should there be a need for contact the electronic mail
-`filez <at> gabrielfontenelle.com` can be used.
+`filejacket <at> gabrielfontenelle.com` can be used.
 """
 
 from .generic import JSONSerializer, PickleSerializer
-from .specific import FileSerializer
+from .specific import FileDictionarySerializer, FileJsonSerializer, FileWithContentDictionarySerializer, FileWithContentJsonSerializer
 
 __all__ = [
     # Generic
     'PickleSerializer',
     'JSONSerializer'
     # Specific
-    'FileSerializer'
+    'FileDictionarySerializer',
+    'FileJsonSerializer',
+    'FileWithContentDictionarySerializer',
+    'FileWithContentJsonSerializer',
 ]
