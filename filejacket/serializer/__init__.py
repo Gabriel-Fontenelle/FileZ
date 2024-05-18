@@ -27,7 +27,7 @@ from .specific import FileDictionarySerializer, FileJsonSerializer, FileWithCont
 __all__ = [
     # Generic
     'PickleSerializer',
-    'JSONSerializer'
+    'JSONSerializer',
     # Specific
     'FileDictionarySerializer',
     'FileJsonSerializer',
