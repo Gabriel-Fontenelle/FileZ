@@ -18,7 +18,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 Should there be a need for contact the electronic mail
-`filez <at> gabrielfontenelle.com` can be used.
+`filejacket <at> gabrielfontenelle.com` can be used.
 """
 from __future__ import annotations
 
@@ -413,10 +413,10 @@ class FilePacket:
 
     # Pipelines
     unpack_data_pipeline: Pipeline = Pipeline(
-        'filez.pipelines.extractor.SevenZipCompressedFilesFromPackageExtractor',
-        'filez.pipelines.extractor.RarCompressedFilesFromPackageExtractor',
-        'filez.pipelines.extractor.TarCompressedFilesFromPackageExtractor',
-        'filez.pipelines.extractor.ZipCompressedFilesFromPackageExtractor',
+        'filejacket.pipelines.extractor.SevenZipCompressedFilesFromPackageExtractor',
+        'filejacket.pipelines.extractor.RarCompressedFilesFromPackageExtractor',
+        'filejacket.pipelines.extractor.TarCompressedFilesFromPackageExtractor',
+        'filejacket.pipelines.extractor.ZipCompressedFilesFromPackageExtractor',
     )
     """
     Pipeline to extract data from multiple sources. For it to work, its classes should implement stopper as True.

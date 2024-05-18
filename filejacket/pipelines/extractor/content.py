@@ -18,7 +18,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 Should there be a need for contact the electronic mail
-`filez <at> gabrielfontenelle.com` can be used.
+`filejacket <at> gabrielfontenelle.com` can be used.
 """
 from __future__ import annotations
 
@@ -143,7 +143,7 @@ class DocumentMetadataFromContentExtractor(Extractor):
         buffer = file_object.content_as_buffer
 
         if buffer:
-            # Local import to avoid longer time to load FileZ library.
+            # Local import to avoid longer time to load FileJacket library.
             import fitz
 
             # We don't need to reset the buffer before calling it, because it will be reset
@@ -184,7 +184,7 @@ class AudioMetadataFromContentExtractor(Extractor):
                 "Length for file's object must set before calling `AudioMetadataFromContentExtractor.extract`!"
             )
 
-        # Local import to avoid longer time to load FileZ library.
+        # Local import to avoid longer time to load FileJacket library.
         from tinytag import TinyTag
 
         # We don't need to reset the buffer before calling it, because it will be reset

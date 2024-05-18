@@ -18,7 +18,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 Should there be a need for contact the electronic mail
-`filez <at> gabrielfontenelle.com` can be used.
+`filejacket <at> gabrielfontenelle.com` can be used.
 """
 from __future__ import annotations
 
@@ -160,12 +160,12 @@ class BaseFile:
     """
     mime_type_handler: BaseMimeTyper = LibraryMimeTyper()
     """
-    Mimetype filez that defines the source of know Mimetypes.
+    Mimetype filejacket that defines the source of know Mimetypes.
     This is used to identify mimetype from extension and vice-verse.
     """
     uri_handler: Type[URI] = URI
     """
-    URI filez that defines methods to parser the URL.
+    URI filejacket that defines methods to parser the URL.
     """
 
     # Pipelines
@@ -177,24 +177,24 @@ class BaseFile:
     `extract_data_pipeline.errors`.
     """
     compare_pipeline: Pipeline = Pipeline(
-        'filez.pipelines.comparer.TypeCompare',
-        'filez.pipelines.comparer.SizeCompare',
-        'filez.pipelines.comparer.BinaryCompare',
-        'filez.pipelines.comparer.HashCompare',
-        'filez.pipelines.comparer.DataCompare'
+        'filejacket.pipelines.comparer.TypeCompare',
+        'filejacket.pipelines.comparer.SizeCompare',
+        'filejacket.pipelines.comparer.BinaryCompare',
+        'filejacket.pipelines.comparer.HashCompare',
+        'filejacket.pipelines.comparer.DataCompare'
     )
     """
     Pipeline to compare two files.
     """
     hasher_pipeline: Pipeline = Pipeline(
-        ('filez.pipelines.hasher.MD5Hasher', {'full_check': True}),
-        ('filez.pipelines.hasher.SHA256Hasher', {'full_check': True}),
+        ('filejacket.pipelines.hasher.MD5Hasher', {'full_check': True}),
+        ('filejacket.pipelines.hasher.SHA256Hasher', {'full_check': True}),
     )
     """
     Pipeline to generate hashes from content.
     """
     rename_pipeline: Pipeline = Pipeline(
-        'filez.pipelines.renamer.WindowsRenamer'
+        'filejacket.pipelines.renamer.WindowsRenamer'
     )
     """
     Pipeline to rename file when saving. This pipeline can be 
@@ -280,10 +280,10 @@ class BaseFile:
 
     def __init__(self, **kwargs: Any) -> None:
         """
-        Method to instantiate BaseFile. This method can be used for any child class, ony needing
+        Method to instantiate BaseFile. This method can be used for any child class, only needing
         to change the extract_data_pipeline to be suited for each class.
 
-        Keyword argument `storage` allow to specify a custom file system filez.
+        Keyword argument `storage` allow to specify a custom file system filejacket.
         Keyword argument `extract_data_pipeline` allow to specify a custom file extractor pipeline.
         """
         # In order to allow multiple versions of the serialized object to be correctly parsed with
@@ -316,7 +316,7 @@ class BaseFile:
 
         # Set up resources used for `save` and `update` methods.
         if not self._actions:
-            self._actions: FileActions = FileActions()
+            self._actions = FileActions()
 
         # Set up resources used for controlling the state of file.
         if not self._state:

@@ -18,7 +18,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 Should there be a need for contact the electronic mail
-`filez <at> gabrielfontenelle.com` can be used.
+`filejacket <at> gabrielfontenelle.com` can be used.
 """
 from __future__ import annotations
 
@@ -63,8 +63,8 @@ class AnimatedRender(StaticRender):
         animated_file: BaseFile = object_to_process.__class__(
             path=f"{object_to_process.sanitize_path}.{defaults.format_extension}",
             extract_data_pipeline=Pipeline(
-                'filez.pipelines.extractor.FilenameAndExtensionFromPathExtractor',
-                'filez.pipelines.extractor.MimeTypeFromFilenameExtractor',
+                'filejacket.pipelines.extractor.FilenameAndExtensionFromPathExtractor',
+                'filejacket.pipelines.extractor.MimeTypeFromFilenameExtractor',
             ),
             file_system_handler=object_to_process.storage
         )
@@ -185,7 +185,7 @@ class DocumentAnimatedRender(AnimatedRender):
         if not buffer:
             raise RenderError("There is no content in buffer format available to render.")
 
-        # Local import to avoid longer time to load FileZ library.
+        # Local import to avoid longer time to load FileJacket library.
         import fitz
 
         # Use fitz from PyMuPDF to open the document.
@@ -259,7 +259,7 @@ class PSDAnimatedRender(AnimatedRender):
         if not buffer:
             raise RenderError("There is no content in buffer format available to render.")
 
-        # Local import to avoid longer time to load FileZ library.
+        # Local import to avoid longer time to load FileJacket library.
         from psd_tools import PSDImage
 
         # Load PSD from buffer

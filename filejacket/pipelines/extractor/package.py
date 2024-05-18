@@ -18,7 +18,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 Should there be a need for contact the electronic mail
-`filez <at> gabrielfontenelle.com` can be used.
+`filejacket <at> gabrielfontenelle.com` can be used.
 """
 from __future__ import annotations
 
@@ -326,8 +326,8 @@ class PSDLayersFromPackageExtractor(PackageExtractor):
                 internal_file_object = file_class(
                     path=file_system.join(file_object.save_to, file_object.filename, filename),
                     extract_data_pipeline=Pipeline(
-                        'filez.pipelines.extractor.FilenameAndExtensionFromPathExtractor',
-                        'filez.pipelines.extractor.MimeTypeFromFilenameExtractor',
+                        'filejacket.pipelines.extractor.FilenameAndExtensionFromPathExtractor',
+                        'filejacket.pipelines.extractor.MimeTypeFromFilenameExtractor',
                     ),
                     file_system_handler=file_system
                 )
@@ -490,8 +490,8 @@ class TarCompressedFilesFromPackageExtractor(PackageExtractor):
                     internal_file_object = file_class(
                         path=file_system.join(file_object.save_to, filename),
                         extract_data_pipeline=Pipeline(
-                            'filez.pipelines.extractor.FilenameAndExtensionFromPathExtractor',
-                            'filez.pipelines.extractor.MimeTypeFromFilenameExtractor',
+                            'filejacket.pipelines.extractor.FilenameAndExtensionFromPathExtractor',
+                            'filejacket.pipelines.extractor.MimeTypeFromFilenameExtractor',
                         ),
                         file_system_handler=file_system
                     )
@@ -658,8 +658,8 @@ class ZipCompressedFilesFromPackageExtractor(PackageExtractor):
                     internal_file_object = file_class(
                         path=file_system.join(file_object.save_to, filename),
                         extract_data_pipeline=Pipeline(
-                            'filez.pipelines.extractor.FilenameAndExtensionFromPathExtractor',
-                            'filez.pipelines.extractor.MimeTypeFromFilenameExtractor',
+                            'filejacket.pipelines.extractor.FilenameAndExtensionFromPathExtractor',
+                            'filejacket.pipelines.extractor.MimeTypeFromFilenameExtractor',
                         ),
                         file_system_handler=file_system
                     )
@@ -826,8 +826,8 @@ class RarCompressedFilesFromPackageExtractor(PackageExtractor):
                     internal_file_object = file_class(
                         path=file_system.join(file_object.save_to, filename),
                         extract_data_pipeline=Pipeline(
-                            'filez.pipelines.extractor.FilenameAndExtensionFromPathExtractor',
-                            'filez.pipelines.extractor.MimeTypeFromFilenameExtractor',
+                            'filejacket.pipelines.extractor.FilenameAndExtensionFromPathExtractor',
+                            'filejacket.pipelines.extractor.MimeTypeFromFilenameExtractor',
                         ),
                         file_system_handler=file_system
                     )
@@ -1004,8 +1004,8 @@ class SevenZipCompressedFilesFromPackageExtractor(PackageExtractor):
                     internal_file_object = file_class(
                         path=file_system.join(file_object.save_to, filename),
                         extract_data_pipeline=Pipeline(
-                            'filez.pipelines.extractor.FilenameAndExtensionFromPathExtractor',
-                            'filez.pipelines.extractor.MimeTypeFromFilenameExtractor',
+                            'filejacket.pipelines.extractor.FilenameAndExtensionFromPathExtractor',
+                            'filejacket.pipelines.extractor.MimeTypeFromFilenameExtractor',
                         ),
                         file_system_handler=file_system
                     )
