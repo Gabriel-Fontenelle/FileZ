@@ -18,7 +18,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 Should there be a need for contact the electronic mail
-`filez <at> gabrielfontenelle.com` can be used.
+`filejacket <at> gabrielfontenelle.com` can be used.
 """
 from __future__ import annotations
 
@@ -26,7 +26,7 @@ from importlib import import_module
 from inspect import isclass
 from typing import Any, TYPE_CHECKING, Iterator, Type
 
-from ..exception import ValidationError, PipelineError, ImproperlyConfiguredFile
+from ..exception import ImproperlyConfiguredPipeline, ValidationError, PipelineError, ImproperlyConfiguredFile
 from ..file.option import FileOption
 
 if TYPE_CHECKING:
