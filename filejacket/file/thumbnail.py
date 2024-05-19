@@ -18,7 +18,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 Should there be a need for contact the electronic mail
-`filez <at> gabrielfontenelle.com` can be used.
+`filejacket <at> gabrielfontenelle.com` can be used.
 """
 from __future__ import annotations
 
@@ -101,7 +101,7 @@ class ThumbnailDefaults:
     """
     Attribute that identifies the current engine for composing thumbnails in case there is multiples candidates. If 
     this value is None no composition will be made and the first image found should be used instead.
-    Available composer can be found at `filez.image.composer.merger`.
+    Available composer can be found at `filejacket.image.composer.merger`.
     TODO: Create composer
     """
     default_engine = None
@@ -109,7 +109,7 @@ class ThumbnailDefaults:
     Attribute that identifies the current engine for composing the default image.
     If this value is None no default image will be created and _static_image will be set to False case there is 
     no thumbnail to be created.
-    Available default composers can be found at `filez.image.composer.default`.
+    Available default composers can be found at `filejacket.image.composer.default`.
     TODO: Create composer
     """
 
@@ -196,18 +196,18 @@ class FileThumbnail:
 
     # Pipelines
     render_static_pipeline: Pipeline = Pipeline(
-        "filez.pipelines.render.static.DocumentFirstPageRender",
-        "filez.pipelines.render.static.ImageRender",
-        "filez.pipelines.render.static.PSDRender",
-        "filez.pipelines.render.static.VideoRender",
+        "filejacket.pipelines.render.static.DocumentFirstPageRender",
+        "filejacket.pipelines.render.static.ImageRender",
+        "filejacket.pipelines.render.static.PSDRender",
+        "filejacket.pipelines.render.static.VideoRender",
     )
     """
     Pipeline to render thumbnail representation from multiple source. For it to work, its classes should implement 
     stopper as True.
     """
     render_animated_pipeline: Pipeline = Pipeline(
-        "filez.pipelines.render.animated.StaticAnimatedRender",
-        "filez.pipelines.render.animated.ImageAnimatedRender",
+        "filejacket.pipelines.render.animated.StaticAnimatedRender",
+        "filejacket.pipelines.render.animated.ImageAnimatedRender",
     )
     """
     Pipeline to render animated thumbnail representation from multiple source. For it to work, its classes should 

@@ -18,7 +18,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 Should there be a need for contact the electronic mail
-`filez <at> gabrielfontenelle.com` can be used.
+`filejacket <at> gabrielfontenelle.com` can be used.
 """
 
 # Python internals
@@ -174,8 +174,8 @@ class Hasher:
             path=f"{cls.file_system_handler.sanitize_path(object_to_process.save_to)}"
                  f"{cls.file_system_handler.sep}{object_to_process.complete_filename}.{cls.hasher_name}",
             extract_data_pipeline=Pipeline(
-                'filez.pipelines.extractor.FilenameAndExtensionFromPathExtractor',
-                'filez.pipelines.extractor.MimeTypeFromFilenameExtractor',
+                'filejacket.pipelines.extractor.FilenameAndExtensionFromPathExtractor',
+                'filejacket.pipelines.extractor.MimeTypeFromFilenameExtractor',
             ),
             file_system_handler=object_to_process.storage
         )
@@ -334,7 +334,7 @@ class Hasher:
         object_to_process: BaseFile = kwargs.pop('object_to_process')
         full_check: bool = kwargs.pop('full_check', True)
 
-        # Save current file system filez
+        # Save current file system filejacket
         class_file_system_handler: Type[Storage] = cls.file_system_handler
 
         cls.file_system_handler = object_to_process.storage
@@ -365,9 +365,9 @@ class Hasher:
         hash_file: BaseFile = object_to_process.__class__(
             path=f"{file_system.join(directory_path, hash_filename)}",
             extract_data_pipeline=Pipeline(
-                'filez.pipelines.extractor.FilenameAndExtensionFromPathExtractor',
-                'filez.pipelines.extractor.MimeTypeFromFilenameExtractor',
-                'filez.pipelines.extractor.FileSystemDataExtractor'
+                'filejacket.pipelines.extractor.FilenameAndExtensionFromPathExtractor',
+                'filejacket.pipelines.extractor.MimeTypeFromFilenameExtractor',
+                'filejacket.pipelines.extractor.FileSystemDataExtractor'
             ),
             file_system_handler=file_system
         )

@@ -1,6 +1,6 @@
-# FileZ
+# FileJacket
 
-FileZ is a Python package initially created to handle files, and files from remote resources (downloads), for use in 
+FileJacket is a Python package initially created to handle files, and files from remote resources (downloads), for use in 
 a personal project that automatically crawl and download multimedia content. It evolved from a simple structure 
 paradigm to an orient-object one, as a mean to show some colleagues the advantages in maintainability this paradigm 
 brings. 
@@ -107,7 +107,7 @@ Below I list some examples of how you could use this project.
 ### Loading a file
 
 ```python
-from filez import File
+from filejacket import File
 
 # Load a file from local filesystem
 my_file = File(path='<string: path to my file>')
@@ -124,7 +124,7 @@ my_file = File(
 ### Creating a new file
 
 ```python
-from filez import ContentFile
+from filejacket import ContentFile
 
 # Create a new file manually without extracting data from any source.
 my_file = ContentFile(run_extract_pipeline=False)
@@ -138,7 +138,7 @@ my_file.save()
 ```
 
 ```python
-from filez import StreamFile
+from filejacket import StreamFile
 
 # Create a new file from a stream. 
 my_file = StreamFile(metadata='<dict: my stream metadata>') # metadata is required by the 

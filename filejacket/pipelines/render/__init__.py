@@ -18,7 +18,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 Should there be a need for contact the electronic mail
-`filez <at> gabrielfontenelle.com` can be used.
+`filejacket <at> gabrielfontenelle.com` can be used.
 """
 from .animated import AnimatedRender, StaticAnimatedRender, ImageAnimatedRender
 from .static import StaticRender, DocumentFirstPageRender, ImageRender, PSDRender, VideoRender

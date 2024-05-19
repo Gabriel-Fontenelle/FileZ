@@ -18,7 +18,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 Should there be a need for contact the electronic mail
-`filez <at> gabrielfontenelle.com` can be used.
+`filejacket <at> gabrielfontenelle.com` can be used.
 """
 from __future__ import annotations
 
@@ -72,7 +72,7 @@ class BaseFile:
     Base class for handle File. This class will be used in Files of type Image, Rar, etc.
     This class will behave like Django Model with methods save(), delete(), etc.
 
-    TODO: Add support to moving and copying file avoiding conflict on moving or copying.
+    TODO: Add support to moving and copying file avoiding conflict on moving or copying, but only apply changes when saving.
     """
 
     # Filesystem data
@@ -160,12 +160,12 @@ class BaseFile:
     """
     mime_type_handler: BaseMimeTyper = LibraryMimeTyper()
     """
-    Mimetype filez that defines the source of know Mimetypes.
+    Mimetype filejacket that defines the source of know Mimetypes.
     This is used to identify mimetype from extension and vice-verse.
     """
     uri_handler: Type[URI] = URI
     """
-    URI filez that defines methods to parser the URL.
+    URI filejacket that defines methods to parser the URL.
     """
 
     # Pipelines
@@ -177,24 +177,24 @@ class BaseFile:
     `extract_data_pipeline.errors`.
     """
     compare_pipeline: Pipeline = Pipeline(
-        'filez.pipelines.comparer.TypeCompare',
-        'filez.pipelines.comparer.SizeCompare',
-        'filez.pipelines.comparer.BinaryCompare',
-        'filez.pipelines.comparer.HashCompare',
-        'filez.pipelines.comparer.DataCompare'
+        'filejacket.pipelines.comparer.TypeCompare',
+        'filejacket.pipelines.comparer.SizeCompare',
+        'filejacket.pipelines.comparer.BinaryCompare',
+        'filejacket.pipelines.comparer.HashCompare',
+        'filejacket.pipelines.comparer.DataCompare'
     )
     """
     Pipeline to compare two files.
     """
     hasher_pipeline: Pipeline = Pipeline(
-        ('filez.pipelines.hasher.MD5Hasher', {'full_check': True}),
-        ('filez.pipelines.hasher.SHA256Hasher', {'full_check': True}),
+        ('filejacket.pipelines.hasher.MD5Hasher', {'full_check': True}),
+        ('filejacket.pipelines.hasher.SHA256Hasher', {'full_check': True}),
     )
     """
     Pipeline to generate hashes from content.
     """
     rename_pipeline: Pipeline = Pipeline(
-        'filez.pipelines.renamer.WindowsRenamer'
+        'filejacket.pipelines.renamer.WindowsRenamer'
     )
     """
     Pipeline to rename file when saving. This pipeline can be 
@@ -272,7 +272,7 @@ class BaseFile:
     """
 
     @classmethod
-    def deserialize(cls, source: str) -> dict[str, Any]:
+    def deserialize(cls, source: str) -> BaseFile:
         """
         Class method to deserialize the source and return the instance object.
         """
@@ -280,10 +280,10 @@ class BaseFile:
 
     def __init__(self, **kwargs: Any) -> None:
         """
-        Method to instantiate BaseFile. This method can be used for any child class, ony needing
+        Method to instantiate BaseFile. This method can be used for any child class, only needing
         to change the extract_data_pipeline to be suited for each class.
 
-        Keyword argument `storage` allow to specify a custom file system filez.
+        Keyword argument `storage` allow to specify a custom file system filejacket.
         Keyword argument `extract_data_pipeline` allow to specify a custom file extractor pipeline.
         """
         # In order to allow multiple versions of the serialized object to be correctly parsed with
@@ -303,6 +303,11 @@ class BaseFile:
             else:
                 additional_kwargs[key] = value
 
+        # Case there is a version, it came from a serialization and deserialization. So
+        # only the attributes must be set.
+        if version:
+            return
+        
         # Validate class creation
         if self.extract_data_pipeline is None:
             raise self.ImproperlyConfiguredFile(
@@ -311,7 +316,7 @@ class BaseFile:
 
         # Set up resources used for `save` and `update` methods.
         if not self._actions:
-            self._actions: FileActions = FileActions()
+            self._actions = FileActions()
 
         # Set up resources used for controlling the state of file.
         if not self._state:
@@ -812,14 +817,16 @@ class BaseFile:
                     parameters = {**parameters, **element}
 
                 else:
-                    raise ImproperlyConfiguredFile("Each element of `_pipelines_override_keyword_arguments` should be"
-                                                   " either a dictionary or a tuple.")
+                    raise ImproperlyConfiguredFile(
+                        "Each element of `_pipelines_override_keyword_arguments` should be either a dictionary or a tuple."
+                    )
 
             return parameters
 
         raise ImproperlyConfiguredFile(
-            f"Instance of type {type(self._pipelines_override_keyword_arguments)} not allowed."
-            "Allowed types: dict[str, Any] | list[tuple[dict[str, Any], str] | dict[str, Any]]")
+            f"Instance of type {type(self._pipelines_override_keyword_arguments)} not allowed. "
+            "Allowed types: dict[str, Any] | list[tuple[dict[str, Any], str] | dict[str, Any]]"
+        )
 
     def add_valid_filename(self, complete_filename: str, enforce_mimetype: bool = False) -> bool:
         """
@@ -970,10 +977,10 @@ class BaseFile:
         """
         # Set-up pipeline to extract data from.
         pipeline: Pipeline = Pipeline(
-            'filez.pipelines.extractor.FilenameAndExtensionFromPathExtractor',
-            'filez.pipelines.extractor.MimeTypeFromFilenameExtractor',
-            'filez.pipelines.extractor.FileSystemDataExtractor',
-            'filez.pipelines.extractor.HashFileExtractor'
+            'filejacket.pipelines.extractor.FilenameAndExtensionFromPathExtractor',
+            'filejacket.pipelines.extractor.MimeTypeFromFilenameExtractor',
+            'filejacket.pipelines.extractor.FileSystemDataExtractor',
+            'filejacket.pipelines.extractor.HashFileExtractor'
         )
 
         # Run the pipeline.
@@ -1136,9 +1143,9 @@ class ContentFile(BaseFile):
     """
 
     extract_data_pipeline: Pipeline = Pipeline(
-        'filez.pipelines.extractor.FilenameFromMetadataExtractor',
-        'filez.pipelines.extractor.MimeTypeFromFilenameExtractor',
-        'filez.pipelines.extractor.MimeTypeFromContentExtractor',
+        'filejacket.pipelines.extractor.FilenameFromMetadataExtractor',
+        'filejacket.pipelines.extractor.MimeTypeFromFilenameExtractor',
+        'filejacket.pipelines.extractor.MimeTypeFromContentExtractor',
     )
     """
     Pipeline to extract data from multiple sources.
@@ -1151,11 +1158,11 @@ class StreamFile(BaseFile):
     """
 
     extract_data_pipeline: Pipeline = Pipeline(
-        'filez.pipelines.extractor.FilenameFromMetadataExtractor',
-        'filez.pipelines.extractor.FilenameFromURLExtractor',
-        'filez.pipelines.extractor.MimeTypeFromFilenameExtractor',
-        'filez.pipelines.extractor.MimeTypeFromContentExtractor',
-        'filez.pipelines.extractor.MetadataExtractor'
+        'filejacket.pipelines.extractor.FilenameFromMetadataExtractor',
+        'filejacket.pipelines.extractor.FilenameFromURLExtractor',
+        'filejacket.pipelines.extractor.MimeTypeFromFilenameExtractor',
+        'filejacket.pipelines.extractor.MimeTypeFromContentExtractor',
+        'filejacket.pipelines.extractor.MetadataExtractor'
     )
     """
     Pipeline to extract data from multiple sources.
@@ -1170,10 +1177,10 @@ class File(BaseFile):
     """
 
     extract_data_pipeline: Pipeline = Pipeline(
-        'filez.pipelines.extractor.FilenameAndExtensionFromPathExtractor',
-        'filez.pipelines.extractor.MimeTypeFromFilenameExtractor',
-        'filez.pipelines.extractor.FileSystemDataExtractor',
-        'filez.pipelines.extractor.HashFileExtractor',
+        'filejacket.pipelines.extractor.FilenameAndExtensionFromPathExtractor',
+        'filejacket.pipelines.extractor.MimeTypeFromFilenameExtractor',
+        'filejacket.pipelines.extractor.FileSystemDataExtractor',
+        'filejacket.pipelines.extractor.HashFileExtractor',
     )
     """
     Pipeline to extract data from multiple sources.

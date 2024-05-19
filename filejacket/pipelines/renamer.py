@@ -18,7 +18,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 Should there be a need for contact the electronic mail
-`filez <at> gabrielfontenelle.com` can be used.
+`filejacket <at> gabrielfontenelle.com` can be used.
 """
 
 # Python internals
@@ -128,7 +128,7 @@ class Renamer:
         # Prepare filename from File's object
         filename, extension = cls.prepare_filename(object_to_process.filename, object_to_process.extension)
 
-        # Save current file system filez
+        # Save current file system filejacket
         class_file_system_handler = cls.file_system_handler
 
         # Overwrite File System attribute with File System of File only when running in pipeline.
@@ -271,6 +271,6 @@ class UniqueRenamer(Renamer):
             filename = str(uuid4())
 
         if i == 100:
-            raise BlockingIOError("Too many files being filez simultaneous!")
+            raise BlockingIOError("Too many files being handled simultaneous!")
 
         return filename, extension
