@@ -91,48 +91,74 @@ class Transmuter:
     @classmethod
     def from_data(cls, value: Any) -> Any:
         """
-        
+        Method for the transmuter to serialize a value. 
+        This Method should be override in child classes.
         """
         raise NotImplementedError("The method `from_data` must be implemented in child class.")
     
     @classmethod
     def to_data(cls, value: Any, reference: BaseFile) -> Any:
         """
-        
+        Method for the transmuter to deserialize a value. 
+        This Method should be override in child classes.
         """
         raise NotImplementedError("The method `to_data` must be implemented in child class.")
     
 
 class TransmuterClass(Transmuter):
+    """
+    Transmuter class to handle uninstantiated class. 
+    """
     
     @classmethod
     def from_data(cls, value: Type) -> str:
+        """
+        Method to convert `value` to string for use in dict.
+        """
         return f"{value.__module__}.{value.__name__}"
     
     @classmethod
     def to_data(cls, value: str, reference: BaseFile) -> Type:
+        """
+        Method to reverse the conversion at `from_data`.
+        """
         module_name, class_name = value.rsplit('.', maxsplit=1)
         module = import_module(module_name)
         return getattr(module, class_name)
     
 
 class TransmuterObjectClass(Transmuter):
-
+    """
+    Transmuter class to handle instantiated class. 
+    """
+    
     @classmethod
     def from_data(cls, value: object) -> str:
+        """
+        Method to convert `value` to string for serialization.
+        """
         return f"{value.__class__.__module__}.{value.__class__.__name__}"
 
     @classmethod
     def to_data(cls, value: str, reference: BaseFile) -> object:
+        """
+        Method to reverse the conversion at `from_data`.
+        """
         module_name, class_name = value.rsplit('.', maxsplit=1)
         module = import_module(module_name)
         return getattr(module, class_name)()
 
 
 class TransmuterPipeline(Transmuter):
-
+    """
+    Transmuter class to handle Pipeline objects. 
+    """
+    
     @classmethod
-    def from_data(cls, value: Pipeline) -> dict[str, Any]:
+    def from_data(cls, value: Pipeline) -> dict[str, str | list[str]]:
+        """
+        Method to convert `value` to dict for serialization.
+        """
         return {
             "pipeline": TransmuterClass.from_data(value.__class__),
             "processor": TransmuterClass.from_data(value.processor),
@@ -141,6 +167,9 @@ class TransmuterPipeline(Transmuter):
     
     @classmethod
     def to_data(cls, value: dict[str, Any], reference: BaseFile) -> Pipeline:
+        """
+        Method to reverse the conversion at `from_data`.
+        """
         pipeline = TransmuterClass.to_data(value["pipeline"], reference=reference)(*value["processors_candidate"])
         pipeline.processor = TransmuterClass.to_data(value["processor"], reference=reference)
 
@@ -148,15 +177,24 @@ class TransmuterPipeline(Transmuter):
 
 
 class TransmuterDatetime(Transmuter):
-
+    """
+    Transmuter class to handle datetime or time objects. 
+    """
+    
     @classmethod
     def from_data(cls, value: datetime | time) -> str:
+        """
+        Method to convert `value` to string for serialization.
+        """
         instance_type = "d" if isinstance(value, datetime) else "t"
 
         return f"{instance_type}:{value.isoformat()}"
     
     @classmethod
     def to_data(cls, value: str, reference: BaseFile) -> datetime | time:
+        """
+        Method to reverse the conversion at `from_data`.
+        """
         instance_type, data = value.split(":", maxsplit=1)
 
         data_type = datetime if instance_type == "d" else time
@@ -164,9 +202,15 @@ class TransmuterDatetime(Transmuter):
 
 
 class TransmuterAttribute(Transmuter):
-
+    """
+    Transmuter class to handle attribute that are objects from classes. 
+    """
+    
     @classmethod
     def from_data(cls, value: object) -> dict[str, Any]:
+        """
+        Method to convert `value` to dict for serialization.
+        """
         values = value.__serialize__
 
         if 'related_file_object' in values:
@@ -179,6 +223,9 @@ class TransmuterAttribute(Transmuter):
 
     @classmethod
     def to_data(cls, value: dict[str, Any], reference: BaseFile) -> object:
+        """
+        Method to reverse the conversion at `from_data`.
+        """
         attribute_object = TransmuterClass.to_data(value["__source__"], reference=reference)
         
         values = value["values"]
@@ -190,20 +237,35 @@ class TransmuterAttribute(Transmuter):
     
 
 class TransmuterValue(Transmuter):
-
+    """
+    Transmuter class to handle attributes that don`t need to be converted. 
+    """
+    
     @classmethod
     def from_data(cls, value: Any) -> Any:
+        """
+        Method to return the same `value` for serialization.
+        """
         return value
     
     @classmethod
     def to_data(cls, value: Any, reference: BaseFile) -> Any:
+        """
+        Method to reverse the conversion at `from_data`.
+        """
         return value
     
 
 class TransmuterThumbnail(Transmuter):
-
+    """
+    Transmuter class to handle the FileThumbnail object. 
+    """
+    
     @classmethod
     def from_data(cls, value: FileThumbnail) -> dict[str, Any]:
+        """
+        Method to convert `value` to dict for serialization.
+        """
         thumbnail = value.__serialize__
 
         # Convert _static_file and _animated_file to Base64
@@ -226,6 +288,9 @@ class TransmuterThumbnail(Transmuter):
 
     @classmethod
     def to_data(cls, value: dict[str, Any], reference: BaseFile) -> FileThumbnail:
+        """
+        Method to reverse the conversion at `from_data`.
+        """
         file_thumbnail = FileThumbnail()
         file_thumbnail.related_file_object = reference
 
@@ -248,9 +313,15 @@ class TransmuterThumbnail(Transmuter):
 
 
 class TransmuterHashes(Transmuter):
-
+    """
+    Transmuter class to handle the FileHash object. 
+    """
+    
     @classmethod
-    def from_data(cls, value: FileHashes) -> dict[str, Any]:        
+    def from_data(cls, value: FileHashes) -> dict[str, Any]:       
+        """
+        Method to convert `value` to dict for serialization.
+        """
         hashes = value.__serialize__
 
         cache = {}
@@ -264,6 +335,9 @@ class TransmuterHashes(Transmuter):
     
     @classmethod
     def to_data(cls, value: dict[str, Any], reference: BaseFile) -> FileHashes:
+        """
+        Method to reverse the conversion at `from_data`.
+        """
         file_hashes = FileHashes()
         file_hashes.related_file_object = reference
 
@@ -274,11 +348,14 @@ class TransmuterHashes(Transmuter):
 
 
 class TransmuterContentFiles(Transmuter):
-
+    """
+    Transmuter class to handle the FilePacket object. 
+    """
+    
     @classmethod
     def from_data(cls, value: FilePacket) -> dict[str, Any]:
         """
-        
+        Method to convert `value` to dict for serialization.
         The history attribute of FilePacket will not be serialized. 
         """
         # Case should cache convert to base64
@@ -294,7 +371,9 @@ class TransmuterContentFiles(Transmuter):
     
     @classmethod
     def to_data(cls, value: dict[str, Any], reference: BaseFile) -> FilePacket:
-        
+        """
+        Method to reverse the conversion at `from_data`.
+        """
         return FilePacket(
             _internal_files={
                 key: cls.serializer.deserialize(value)
@@ -305,9 +384,15 @@ class TransmuterContentFiles(Transmuter):
 
 
 class TransmuterContent(Transmuter):
-
+    """
+    Transmuter class to handle the FileTContent object. 
+    """
+    
     @classmethod
     def from_data(cls, value: FileContent) -> dict[str, Any]:
+        """
+        Method to convert `value` to dict for serialization.
+        """
         dict_to_return = value.__serialize__
 
         if value.should_load_to_memory:
@@ -323,6 +408,9 @@ class TransmuterContent(Transmuter):
     
     @classmethod
     def to_data(cls, value: dict[str, Any], reference: BaseFile) -> FileContent:
+        """
+        Method to reverse the conversion at `from_data`.
+        """
         buffer = value.pop("buffer").rsplit(':', 1)
         
         return FileContent(
@@ -334,9 +422,15 @@ class TransmuterContent(Transmuter):
 
 
 class TransmuterContentBase64(Transmuter):
-
+    """
+    Transmuter class to handle the FileContent object as its base64 representation. 
+    """
+    
     @classmethod
     def from_data(cls, value: FileContent) -> str:
+        """
+        Method to convert `value` to string for serialization.
+        """
         dict_to_return = value.__serialize__
 
         del dict_to_return["_cached_content"]
@@ -351,6 +445,9 @@ class TransmuterContentBase64(Transmuter):
 
     @classmethod
     def to_data(cls, value: dict[str, Any], reference: BaseFile) -> FileContent:
+        """
+        Method to reverse the conversion at `from_data`.
+        """
         buffer = value.pop("buffer").rsplit(':', 1)
         content = b64decode(value.pop("content_base64"))
         
@@ -364,13 +461,13 @@ class TransmuterContentBase64(Transmuter):
 
 class SerializerJsonMixin:
     """
-
+    Class helper to convert a serialization class to serialize/deserialize JSON.
     """
 
     @classmethod
     def serialize(cls, source: BaseFile) -> str:
         """
-
+        Method to serialize the input `source` as a JSON string.
         """
         from json import dumps
         dict_to_convert = super().serialize(source=source)
@@ -380,7 +477,7 @@ class SerializerJsonMixin:
     @classmethod
     def deserialize(cls, source: str) -> BaseFile:
         """
-
+        Method to deserialize the JSON string input `source`.
         """
         from json import loads
 
@@ -391,9 +488,10 @@ class SerializerJsonMixin:
 
 class FileDictionarySerializer:
     """
-    Class that allow handling of Serialization/Deserialization from BaseFile instance to and from a json string.
-    This class was created with specificity in mind and would need to be override if the object to be serializaded is
+    Class that allow handling of Serialization/Deserialization from BaseFile instance to and from a Python dictionary.
+    This class was created with specificity in mind and would need to be override if the object to be serialized is
     has a custom class based on BaseFile.
+    The content attribute will not be serialized.
     """
 
     # Datetime serializer/deserializer
@@ -478,14 +576,28 @@ class FileDictionarySerializer:
 
 class FileWithContentDictionarySerializer(FileDictionarySerializer):
     """
-
+    Class that allow handling of Serialization/Deserialization from BaseFile instance to and from a Python dictionary.
+    This class was created with specificity in mind and would need to be override if the object to be serialized is
+    has a custom class based on BaseFile.
+    The content attribute will be serialized. 
     """
+    
     _content = TransmuterContentBase64()
 
 
 class FileJsonSerializer(SerializerJsonMixin, FileDictionarySerializer):
-    pass
+    """
+    Class that allow handling of Serialization/Deserialization from BaseFile instance to and from a json string.
+    This class was created with specificity in mind and would need to be override if the object to be serialized is
+    has a custom class based on BaseFile.
+    The content attribute will not be serialized.
+    """
 
 
 class FileWithContentJsonSerializer(SerializerJsonMixin, FileWithContentDictionarySerializer):
-    pass
+    """
+    Class that allow handling of Serialization/Deserialization from BaseFile instance to and from a json string.
+    This class was created with specificity in mind and would need to be override if the object to be serialized is
+    has a custom class based on BaseFile.
+    The content attribute will be serialized. 
+    """
