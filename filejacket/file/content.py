@@ -23,7 +23,7 @@ Should there be a need for contact the electronic mail
 from __future__ import annotations
 
 from base64 import b64encode
-from io import StringIO, IOBase, BytesIO
+from io import StringIO, BytesIO
 from typing import Iterator, Any, TYPE_CHECKING, IO
 
 from ..exception import SerializerError, EmptyContentError, ImproperlyConfiguredFile
@@ -33,6 +33,7 @@ from ..pipelines.renamer import UniqueRenamer
 
 if TYPE_CHECKING:
     from . import BaseFile
+    from ..pipelines.renamer import Renamer
 
 
 __all__ = [
@@ -41,14 +42,57 @@ __all__ = [
 ]
 
 
+class BufferStr:
+    """
+    """
+    read_mode: str = "r"
+    write_mode: str = ""
+    buffer_class: type = StringIO
+    binary: bool = False
+    
+    @classmethod
+    def to_bytes(cls, value: str, encoding: str) -> bytes:
+        """"""
+        return value.encode(encoding)
+    
+    @classmethod
+    def to_base64(cls, value: str, encoding: str) -> bytes:
+        """"""
+        return b64encode(cls.to_bytes(value, encoding))
+    
+    @classmethod
+    def to_buffer(cls, value) -> StringIO:
+        """"""
+        return cls.buffer_class(value)
+
+
+class BufferBytes:
+    """
+    """
+    read_mode: str = "rb"
+    write_mode: str = "b"
+    buffer_class: type = BytesIO
+    binary: bool = True
+
+    @classmethod
+    def to_bytes(cls, value: bytes, encoding: str) -> bytes:
+        """"""
+        return value
+    
+    @classmethod
+    def to_base64(cls, value: bytes, encoding: str) -> bytes:
+        """"""
+        return b64encode(cls.to_bytes(value, encoding))
+
+    @classmethod
+    def to_buffer(cls, value) -> BytesIO:
+        """"""
+        return cls.buffer_class(value)
+
+
 class FileContent:
     """
     Class that store file instance content.
-    """
-    # Properties
-    is_binary: bool = False
-    """
-    Type of stream used in buffer for content.
     """
 
     # Buffer handles
@@ -56,6 +100,11 @@ class FileContent:
     buffer = None
     """
     Stream for file`s content.
+    """
+    buffer_helper: BufferStr | BufferBytes
+    buffer_helper = None
+    """
+    Helper to facilitate conversion of stream for saving and loading the file`s content.
     """
     related_file_object: BaseFile
     related_file_object = None
@@ -93,6 +142,10 @@ class FileContent:
     Whether the content as whole was cached. Being True the current buffer will point to a stream
     of `_cached_content`.
     """
+    cache_in_file_renamer: type[Renamer] = UniqueRenamer
+    """
+    Class that handle the renaming of a file when using the cache in file option.
+    """
     _cached_content: str | bytes
     _cached_content = None
     """
@@ -102,6 +155,18 @@ class FileContent:
     """
     Complete path for temporary file used as cache.
     """
+    
+    @classmethod
+    def from_str(cls, value: str, force_cache) -> FileContent:
+        obj = cls.__new__(cls)  # Does not call __init__
+        super(FileContent, obj).__init__()  # Don't forget to call any polymorphic base class initializers
+        
+        obj.buffer_class = BufferStr
+        obj.buffer = BufferStr.to_buffer(value)
+        
+        ...
+    
+        return obj
 
     def __init__(
         self,
@@ -131,22 +196,31 @@ class FileContent:
         # Binary value of related_file_object should be be set up here, as it came from attribute is_binary from
         # content.
         if isinstance(raw_value, str):
+            # Convert raw content to buffer
             raw_value = StringIO(raw_value)
+            self.buffer_helper = BufferStr
         elif isinstance(raw_value, bytes):
+            # Convert raw content to buffer
             raw_value = BytesIO(raw_value)
-        elif isinstance(raw_value, IOBase):
-            if (
-                not hasattr(raw_value, "mode")
-                and not isinstance(raw_value, (StringIO, BytesIO, PackageExtractor.ContentBuffer))
-            ):
-                raise ValueError(f"The value specified for content of type {type(raw_value)} don't have the attribute"
-                                 f"mode that allow for identification of type of content: binary or text.")
+            self.buffer_helper = BufferBytes
+        elif isinstance(raw_value, StringIO):
+            # Content is buffered, so don't need to convert it.
+            self.buffer_helper = BufferStr
+        elif isinstance(raw_value, BytesIO):
+            # Content is buffered, so don't need to convert it.
+            self.buffer_helper = BufferBytes
+        elif not (hasattr(raw_value, "seekable") or hasattr(raw_value, "read")):           
+            raise ValueError(
+                f"The parameter `raw_value` informed in FileContent is not a valid type {type(raw_value)}! "
+                "We were expecting str, bytes or a class that implements `seekable`, `read` and `mode` like `IOBase`."
+            )
+        elif not hasattr(raw_value, "mode"):   
+            raise ValueError(
+                f"The value specified for content of type {type(raw_value)} don't have the attribute"
+                "mode that allow for identification of type of content: binary or text."
+            )
         else:
-            raise ValueError(f"parameter `value` informed in FileContent is not a valid type"
-                             f" {type(raw_value)}! We were expecting str, bytes or IOBase.")
-
-        # Set attribute is_binary based on instance type.
-        self.is_binary = isinstance(raw_value, BytesIO) or 'b' in getattr(raw_value, 'mode', '')
+            self.buffer_helper = BufferBytes if 'b' in getattr(raw_value, 'mode', '') else BufferStr
 
         # Add content (or content converted to Stream) as buffer
         self.buffer = raw_value
@@ -183,16 +257,14 @@ class FileContent:
             # Change buffer to be cached content
             if self.cache_content and not self.cached:
                 if self.cache_in_memory:
-                    class_name = BytesIO if self.is_binary else StringIO
-                    self.buffer = class_name(self._cached_content)
+                    self.buffer = self.buffer_helper.to_buffer(self._cached_content)
                     self.cached = True
                 elif self.cache_in_file:
                     if not self._cached_path:
                         raise ImproperlyConfiguredFile("The attribute `file.content._cached_path` is missing.")
 
                     # Buffer receive stream from file
-                    mode = 'r' if self.is_binary else 'rb'
-                    self.buffer = self.related_file_object.storage.open_file(self._cached_path, mode=mode)
+                    self.buffer = self.related_file_object.storage.open_file(self._cached_path, mode=self.buffer_helper.read_mode)
                     self.cached = True
 
             # Reset buffer to begin from first position
@@ -217,7 +289,7 @@ class FileContent:
                     # a unique filename for temporary file. The parameter filename is not really used
                     # so it can be str(None) that it will not affect the result.
                     temp = self.related_file_object.storage.get_temp_directory()
-                    filename, extension = UniqueRenamer.get_name(
+                    filename, extension = self.cache_in_file_renamer.get_name(
                         directory_path=temp,
                         filename=str(self.related_file_object.filename),
                         extension=self.related_file_object.extension
@@ -229,20 +301,19 @@ class FileContent:
                     self._cached_path = temp + filename + formatted_extension
 
                 # Open file, append block to file and close file.
-                write_mode: str = 'b' if self.is_binary else ''
                 self.related_file_object.storage.save_file(self._cached_path, block, file_mode='a',
-                                                           write_mode=write_mode)
+                                                           write_mode=self.buffer_helper.write_mode)
 
         return block
-
+    
     @property
     def __serialize__(self) -> dict[str, Any]:
         """
         Method to allow dir and vars to work with the class simplifying the serialization of object.
         """
         attributes = {
-            "is_binary",
             "buffer",
+            "buffer_helper",
             "related_file_object",
             "_block_size",
             "_buffer_encoding",
@@ -301,8 +372,7 @@ class FileContent:
 
         # Override `content` with content from file.
         if self.cache_in_file and self._cached_path:
-            mode = 'rb' if self.is_binary else 'r'
-            buffer = self.related_file_object.storage.open_file(self._cached_path, mode=mode)
+            buffer = self.related_file_object.storage.open_file(self._cached_path, mode=self.buffer_helper.read_mode)
             content = buffer.read()
             self.related_file_object.storage.close_file(buffer)
 
@@ -319,8 +389,7 @@ class FileContent:
         if self.should_load_to_memory:
             # We should load the current buffer to memory before using it.
             # Load content to memory with `self.content` and return the adequate buffer.
-            buffer_class = BytesIO if self.is_binary else StringIO
-            return buffer_class(self.content)
+            return self.buffer_helper.to_buffer(self.content)
         else:
             # Should not reach here if object is not seekable, but
             # to avoid problems with override of `should_load_to_memory` property
@@ -335,10 +404,8 @@ class FileContent:
         Method to obtain the content as bytes.
         This method should not be used to convert a content buffered and not cached to byte.
         """
-        content = self.content.encode("uft-8") if isinstance(self.content, str) else self.content
-
-        return content
-
+        return self.buffer_helper.to_bytes(self.content)
+    
     @property
     def content_as_base64(self) -> bytes | None:
         """
@@ -347,17 +414,21 @@ class FileContent:
         TODO: Change the code to work with BaseIO to avoid loading all content to memory for larger files.
         """
         try:
-            content = self.content_as_bytes
+            return self.buffer_helper.to_base64(self.content)
         except (EmptyContentError, ImproperlyConfiguredFile):
             if not self.cache_content:
                 # load content from buffer
-                content = self.content_as_buffer.read()
+                return self.buffer_helper.to_base64(self.content_as_buffer.read())
+        
+        return None
 
-        if content is None:
-            return None
-
-        return b64encode(content)
-
+    @property
+    def is_binary(self):
+        """
+        Type of stream used in buffer for content.
+        """
+        return self.buffer_helper.binary
+    
     def reset(self) -> None:
         """
         Method to reset the content cached or buffer if allowed.
