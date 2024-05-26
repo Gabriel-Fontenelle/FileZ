@@ -710,7 +710,7 @@ class BaseFile:
         Method to return a list of Pipelines available to the current object. Pipelines are instances that inherent
         from Pipeline class.
 
-        For this method to work with BaseFile overriden classes those need to implement the method __serialize__
+        For this method to work with BaseFile overridden classes need to implement the method __serialize__
         in it and its attributes (when those are custom classes).
         """
 

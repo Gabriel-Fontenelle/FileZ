@@ -265,7 +265,7 @@ class PSDLayersFromPackageExtractor(PackageExtractor):
     @classmethod
     def decompress(cls, file_object: BaseFile, overrider: bool, **kwargs: Any) -> bool:
         """
-        Method to uncompress the content from a file_object.
+        Method to decompress the content from a file_object.
         """
         try:
             # We need to create the directory because there is no extractor for handling PSD.
