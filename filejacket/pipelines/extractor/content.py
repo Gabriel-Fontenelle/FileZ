@@ -26,8 +26,8 @@ from io import StringIO
 from typing import TYPE_CHECKING, Any
 
 from .extractor import Extractor
-from ...image import WandImage
-from ...video import MoviePyVideo
+from ...adapters.image import WandImage
+from ...adapters.video import MoviePyVideo
 
 if TYPE_CHECKING:
     from fitz import Document

@@ -40,7 +40,7 @@ from ...utils import LazyImportClass
 if TYPE_CHECKING:
 
     from ...file import BaseFile
-    from ...storage import Storage
+    from ...engines.storage import Storage
     from psd_tools import PSDImage
     from py7zr import SevenZipFile
 

@@ -31,7 +31,7 @@ from typing import Type, Pattern, TYPE_CHECKING
 from uuid import uuid4
 
 # modules
-from ..storage import Storage
+from ..engines.storage import Storage
 
 if TYPE_CHECKING:
     from ..file import BaseFile

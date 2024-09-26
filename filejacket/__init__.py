@@ -30,7 +30,7 @@ from .exception import (
 )
 from .file import BaseFile
 from .handler import System, URI
-from .mimetype import LibraryMimeTyper, APIMimeTyper
+from .adapters.mimetype import LibraryMimeTyper, APIMimeTyper
 # Module with classes that define the pipelines and its processors classes.
 # A Pipeline is a sequence that loop processors to be run.
 from .pipelines import Processor, Pipeline
@@ -70,7 +70,8 @@ from .pipelines.hasher import Hasher, CRC32Hasher, MD5Hasher, SHA256Hasher
 from .pipelines.renamer import Renamer, WindowsRenamer, LinuxRenamer, UniqueRenamer
 # Module with classes for serializing/deserializing objects.
 from .serializer import PickleSerializer, JSONSerializer
-from .storage import WindowsFileSystem, LinuxFileSystem, Storage
+from .engines.storage import StorageEngine
+from .adapters.storage import WindowsFileSystem, LinuxFileSystem
 
 __all__ = [
     'APIMimeTyper', 'AudioMetadataFromContentExtractor', 'BaseFile', 'BinaryCompare',
@@ -84,7 +85,7 @@ __all__ = [
     'OperationNotAllowed', 'PathFromURLExtractor', 'PickleSerializer', 'PillowImage', 'Pipeline',
     'Processor', 'RarCompressedFilesFromPackageExtractor', 'Renamer', 'ReservedFilenameError',
     'SHA256Hasher', 'SevenZipCompressedFilesFromPackageExtractor',
-    'SizeCompare', 'Storage', 'StreamFile', 'System', 'TypeCompare', 'URI', 'UniqueRenamer',
+    'SizeCompare', 'StorageEngine', 'StreamFile', 'System', 'TypeCompare', 'URI', 'UniqueRenamer',
     'ValidationError', 'WandImage', 'WindowsFileSystem', 'WindowsRenamer',
     'ZipCompressedFilesFromPackageExtractor',
 ]

@@ -26,7 +26,7 @@ from __future__ import annotations
 import mimetypes
 from os.path import dirname, realpath, join
 
-from .engines.mimetype import MimeTypeEngine
+from ..engines.mimetype import MimeTypeEngine
 
 
 __all__ = [
@@ -280,7 +280,7 @@ class LibraryMimeTyper(MimeTypeEngine):
         return bool(self.get_mimetype(extension))
 
 
-class APIMimeTyper(BaseMimeTyper):
+class APIMimeTyper(MimeTypeEngine):
     """
     Class for handling MimeTypes using an external API. This class should use a cache to avoid consuming the API
     every time that a mimetype or extension must be guessed.

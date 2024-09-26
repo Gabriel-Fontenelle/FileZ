@@ -36,7 +36,7 @@ from psutil import (
 )
 
 if TYPE_CHECKING:
-    from .storage import Storage
+    from .engines.storage import StorageEngine
     from urllib.parse import ParseResult
 
 
@@ -147,7 +147,7 @@ class URI:
         return urlparse(value)
 
     @classmethod
-    def process_path(cls, value: str, file_system: Type[Storage]) -> None:
+    def process_path(cls, value: str, file_system: Type[StorageEngine]) -> None:
         """
         This method caches the processed value to allow for dynamic programming.
         """
@@ -201,7 +201,7 @@ class URI:
         return cls.cache.get(value, None)
 
     @classmethod
-    def get_paths(cls, value: str, file_system: Type[Storage]) -> list[URI.Path]:
+    def get_paths(cls, value: str, file_system: Type[StorageEngine]) -> list[URI.Path]:
         """
         Method to return a list of paths found in URI.
         This method convert the URI to path keeping filename if there is any.
@@ -228,7 +228,7 @@ class URI:
         return paths
 
     @classmethod
-    def get_filenames(cls, value: str, file_system: Type[Storage]) -> list[URI.Filename]:
+    def get_filenames(cls, value: str, file_system: Type[StorageEngine]) -> list[URI.Filename]:
         """
         Method to return a list of filenames found in URI.
         This method try to find a filename in path if there is any.

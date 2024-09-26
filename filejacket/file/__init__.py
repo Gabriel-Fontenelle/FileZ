@@ -47,15 +47,15 @@ from ..exception import (
     ValidationError,
 )
 from ..handler import URI
-from ..mimetype import LibraryMimeTyper
+from ..adapters.mimetype import LibraryMimeTyper
 from ..pipelines import Pipeline
 from ..serializer import JSONSerializer
-from ..storage import LinuxFileSystem, WindowsFileSystem
+from ..adapters.storage import LinuxFileSystem, WindowsFileSystem
 
 if TYPE_CHECKING:
     from ..serializer import PickleSerializer
-    from ..mimetype import BaseMimeTyper
-    from ..storage import Storage
+    from ..adapters.mimetype import MimeTypeEngine
+    from ..adapters.storage import StorageEngine
     from ..pipelines.extractor.package import PackageExtractor
 
 
@@ -147,7 +147,7 @@ class BaseFile:
     """
 
     # Handler
-    storage: Type[Storage]
+    storage: Type[StorageEngine]
     storage = None
     """
     Storage or file system currently in use for File.
@@ -158,7 +158,7 @@ class BaseFile:
     Serializer available to make the object portable. 
     This can be changed to any class that implements serialize and deserialize method.
     """
-    mime_type_handler: BaseMimeTyper = LibraryMimeTyper()
+    mime_type_handler: MimeTypeEngine = LibraryMimeTyper()
     """
     Mimetype filejacket that defines the source of know Mimetypes.
     This is used to identify mimetype from extension and vice-verse.

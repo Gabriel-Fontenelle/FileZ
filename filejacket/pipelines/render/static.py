@@ -31,8 +31,8 @@ from ...exception import RenderError
 if TYPE_CHECKING:
     from ...file import BaseFile
     from ...file.thumbnail import ThumbnailDefaults
-    from ...image.engine import ImageEngine
-    from ...video.engine import VideoEngine
+    from ...engines.image import ImageEngine
+    from ...engines.video import VideoEngine
 
 
 __all__ = [

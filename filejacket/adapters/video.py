@@ -23,7 +23,7 @@ Should there be a need for contact the electronic mail
 from __future__ import annotations
 
 from typing import Any, TYPE_CHECKING
-from .engines.video import VideoEngine
+from ..engines.video import VideoEngine
 
 if TYPE_CHECKING:
     from imageio.core.v3_plugin_api import PluginV3

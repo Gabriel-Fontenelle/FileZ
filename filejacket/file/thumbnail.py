@@ -29,12 +29,12 @@ from ..exception import SerializerError
 from ..image import WandImage
 from ..pipelines import Pipeline
 from ..pipelines.extractor.package import PSDLayersFromPackageExtractor
-from ..video import MoviePyVideo
+from ..adapters.video import MoviePyVideo
 
 if TYPE_CHECKING:
     from . import BaseFile
     from ..image import ImageEngine
-    from ..video import VideoEngine
+    from ..adapters.video import VideoEngine
 
 __all__ = [
     "FileThumbnail",

@@ -32,7 +32,7 @@ if TYPE_CHECKING:
     from io import BytesIO, StringIO
 
     from ...file import BaseFile
-    from ...storage import Storage
+    from ...engines.storage import StorageEngine
     from ...handler import URI
 
 __all__ = [
@@ -80,7 +80,7 @@ class FilenameAndExtensionFromPathExtractor(Extractor):
         if not (file_object.filename is None or overrider):
             return
 
-        file_system_handler: Type[Storage] = file_object.storage
+        file_system_handler: Type[StorageEngine] = file_object.storage
 
         # Set-up save_to and relative_path
         file_object.save_to = file_system_handler.get_directory_from_path(file_object.path)
@@ -197,7 +197,7 @@ class FileSystemDataExtractor(Extractor):
         if not file_object.type:
             raise ValueError("Attribute `type` must be settled before calling `FileSystemDataExtractor.extract`.")
 
-        file_system_handler: Type[Storage] = file_object.storage
+        file_system_handler: Type[StorageEngine] = file_object.storage
 
         # Check if path exists
         if not file_system_handler.exists(file_object.path):

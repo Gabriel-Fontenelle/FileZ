@@ -33,7 +33,7 @@ from ..exception import ImproperlyConfiguredFile
 # core modules
 from ..pipelines import Pipeline
 # modules
-from ..storage import Storage
+from ..engines.storage import StorageEngine
 
 if TYPE_CHECKING:
     from ..file import BaseFile
@@ -51,7 +51,7 @@ class Hasher:
     Base class to be inherent to define class to be used on Hasher pipelines.
     """
 
-    file_system_handler: Type[Storage] = Storage
+    file_system_handler: Type[StorageEngine] = StorageEngine
     """
     File System Handler currently in use by class.
     """
