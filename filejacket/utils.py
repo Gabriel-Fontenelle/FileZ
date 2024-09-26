@@ -53,7 +53,7 @@ class LazyImportClass:
     def __getattr__(self, value: str) -> Any:
         """
         Method to interface the attribute from the imported module or imported module`s attribute.
-        It will evaluate the import in order to retrive its attribute.
+        It will evaluate the import in order to retrieve its attribute.
         """
         if not self.imported_class:
             self.load_imported_class()
@@ -63,7 +63,7 @@ class LazyImportClass:
     def __call__(self, *args: Any, **kwargs: Any) -> Any:
         """
         Method to interface a call from the imported module or imported module`s attribute.
-        It will evaluate the import in order to retrive its attribute.
+        It will evaluate the import in order to retrieve its attribute.
         """
         if not self.imported_class:
             self.load_imported_class()
