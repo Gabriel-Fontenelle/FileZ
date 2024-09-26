@@ -109,6 +109,7 @@ class Processor:
 
         return object_to_set
 
+
 class Pipeline:
     """
     Class to initiate a pipelines with given processors to be run.
