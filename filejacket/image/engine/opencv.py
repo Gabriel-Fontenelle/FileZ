@@ -24,7 +24,7 @@ from __future__ import annotations
 
 from typing import Any, TYPE_CHECKING
 
-from . import ImageEngine
+from ...engines.image import ImageEngine
 from ...utils import LazyImportClass
 
 if TYPE_CHECKING:

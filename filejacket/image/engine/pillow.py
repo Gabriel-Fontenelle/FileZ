@@ -25,7 +25,7 @@ from __future__ import annotations
 from io import BytesIO
 from typing import Any, Type, Iterator, TYPE_CHECKING
 
-from . import ImageEngine
+from ...engines.image import ImageEngine
 from ...utils import LazyImportClass
 
 if TYPE_CHECKING:

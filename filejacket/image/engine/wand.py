@@ -26,7 +26,7 @@ from __future__ import annotations
 from typing import Any, Type
 
 # modules
-from . import ImageEngine
+from ...engines.image import ImageEngine
 from ...utils import LazyImportClass
 
 __all__ = [
