@@ -28,7 +28,7 @@ from .exception import (
     ReservedFilenameError,
     ValidationError,
 )
-from .file import BaseFile, File, ContentFile, StreamFile
+from .file import BaseFile
 from .handler import System, URI
 from .mimetype import LibraryMimeTyper, APIMimeTyper
 # Module with classes that define the pipelines and its processors classes.
@@ -88,3 +88,56 @@ __all__ = [
     'ValidationError', 'WandImage', 'WindowsFileSystem', 'WindowsRenamer',
     'ZipCompressedFilesFromPackageExtractor',
 ]
+
+
+class ContentFile(BaseFile):
+    """
+    Class to create a file from an in memory content.
+    It can load a file already saved as BaseFile allow it, but is recommended to use `File` instead
+    because it will have a more complete pipeline for data extraction.
+    a new one from memory using `ContentFile`.
+    """
+
+    extract_data_pipeline: Pipeline = Pipeline(
+        'filejacket.pipelines.extractor.FilenameFromMetadataExtractor',
+        'filejacket.pipelines.extractor.MimeTypeFromFilenameExtractor',
+        'filejacket.pipelines.extractor.MimeTypeFromContentExtractor',
+    )
+    """
+    Pipeline to extract data from multiple sources.
+    """
+
+
+class StreamFile(BaseFile):
+    """
+    Class to create a file from an HTTP stream that has a header with metadata.
+    """
+
+    extract_data_pipeline: Pipeline = Pipeline(
+        'filejacket.pipelines.extractor.FilenameFromMetadataExtractor',
+        'filejacket.pipelines.extractor.FilenameFromURLExtractor',
+        'filejacket.pipelines.extractor.MimeTypeFromFilenameExtractor',
+        'filejacket.pipelines.extractor.MimeTypeFromContentExtractor',
+        'filejacket.pipelines.extractor.MetadataExtractor'
+    )
+    """
+    Pipeline to extract data from multiple sources.
+    """
+
+
+class File(BaseFile):
+    """
+    Class to create a file from an already saved path in filesystem.
+    It can create a new file as BaseFile allow it, but is recommended to create
+    a new one from memory using `ContentFile`.
+    """
+
+    extract_data_pipeline: Pipeline = Pipeline(
+        'filejacket.pipelines.extractor.FilenameAndExtensionFromPathExtractor',
+        'filejacket.pipelines.extractor.MimeTypeFromFilenameExtractor',
+        'filejacket.pipelines.extractor.FileSystemDataExtractor',
+        'filejacket.pipelines.extractor.HashFileExtractor',
+    )
+    """
+    Pipeline to extract data from multiple sources.
+    """
