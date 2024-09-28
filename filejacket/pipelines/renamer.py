@@ -37,14 +37,14 @@ if TYPE_CHECKING:
     from ..file import BaseFile
 
 __all__ = [
-    'Renamer',
+    'BaseRenamer',
     'WindowsRenamer',
     'LinuxRenamer',
     'UniqueRenamer'
 ]
 
 
-class Renamer:
+class BaseRenamer:
     """
     Base class to be inherent to define class to be used on Renamer pipeline.
     """
@@ -189,7 +189,7 @@ class Renamer:
         logging.error(str(error))
 
 
-class WindowsRenamer(Renamer):
+class WindowsRenamer(BaseRenamer):
     """
     Class following Windows style of renaming existing file to be used on Renamer pipelines.
     """
@@ -218,9 +218,9 @@ class WindowsRenamer(Renamer):
         return filename, extension
 
 
-class LinuxRenamer(Renamer):
+class LinuxRenamer(BaseRenamer):
     """
-    Class following Linux style of renaming existing file to be used on Renamer pipelines.
+    Class following Linux style of renaming existing file to be used on BaseRenamer pipelines.
     """
     enumeration_pattern: Pattern = re.compile(r'( +)?\- +[0-9]+$|$')
 
@@ -247,7 +247,7 @@ class LinuxRenamer(Renamer):
         return filename, extension
 
 
-class UniqueRenamer(Renamer):
+class UniqueRenamer(BaseRenamer):
 
     @classmethod
     def get_name(cls, directory_path: str, filename: str, extension: str | None) -> tuple[str, str | None]:

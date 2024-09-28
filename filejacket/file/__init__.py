@@ -856,8 +856,8 @@ class BaseFile:
                 if possible_extension not in self.mime_type_handler.get_extensions(self.mime_type):
                     return False
 
-            # Use first class Renamer declared in pipeline because `prepare_filename` is a class method from base
-            # Renamer class, and we don't require any other specialized methods from Renamer children.
+            # Use first class BaseRenamer declared in pipeline because `prepare_filename` is a class method from base
+            # BaseRenamer class, and we don't require any other specialized methods from BaseRenamer children.
             processor: object = self.rename_pipeline[0]
             if not hasattr(processor, 'prepare_filename'):
                 raise ImproperlyConfiguredPipeline("The rename pipeline first processor class don't implement the "

@@ -67,7 +67,7 @@ from .pipelines.extractor import (
 # Module with pipeline classes for generating or extracting hashed data related to file.
 from .pipelines.hasher import Hasher, CRC32Hasher, MD5Hasher, SHA256Hasher
 # Module with pipeline classes for renaming files.
-from .pipelines.renamer import Renamer, WindowsRenamer, LinuxRenamer, UniqueRenamer
+from .pipelines.renamer import BaseRenamer, WindowsRenamer, LinuxRenamer, UniqueRenamer
 # Module with classes for serializing/deserializing objects.
 from .serializer import PickleSerializer, JSONSerializer
 from .engines.storage import StorageEngine
@@ -83,7 +83,7 @@ __all__ = [
     'MetadataExtractor', 'MimeTypeCompare', 'MimeTypeFromContentExtractor',
     'MimeTypeFromFilenameExtractor', 'NameCompare', 'NoInternalContentError', 'OpenCVImage',
     'OperationNotAllowed', 'PathFromURLExtractor', 'PickleSerializer', 'PillowImage', 'Pipeline',
-    'Processor', 'RarCompressedFilesFromPackageExtractor', 'Renamer', 'ReservedFilenameError',
+    'Processor', 'RarCompressedFilesFromPackageExtractor', 'BaseRenamer', 'ReservedFilenameError',
     'SHA256Hasher', 'SevenZipCompressedFilesFromPackageExtractor',
     'SizeCompare', 'StorageEngine', 'StreamFile', 'System', 'TypeCompare', 'URI', 'UniqueRenamer',
     'ValidationError', 'WandImage', 'WindowsFileSystem', 'WindowsRenamer',
