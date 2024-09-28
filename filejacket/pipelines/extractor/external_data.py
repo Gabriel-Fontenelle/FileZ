@@ -26,7 +26,7 @@ from datetime import datetime
 from time import strptime, mktime
 from typing import Any, TYPE_CHECKING, Type, IO
 
-from .extractor import Extractor
+from ..base import BaseExtractor
 
 if TYPE_CHECKING:
     from io import BytesIO, StringIO
@@ -47,7 +47,7 @@ __all__ = [
 ]
 
 
-class FilenameAndExtensionFromPathExtractor(Extractor):
+class FilenameAndExtensionFromPathExtractor(BaseExtractor):
     """
     Class that define the extraction of data from `path` defined in file_object.
     """
@@ -100,7 +100,7 @@ class FilenameAndExtensionFromPathExtractor(Extractor):
         file_object.extension = ''
 
 
-class FilenameFromMetadataExtractor(Extractor):
+class FilenameFromMetadataExtractor(BaseExtractor):
     """
     Class that define the extraction of filename from metadata passed to extract.
     """
@@ -172,7 +172,7 @@ class FilenameFromMetadataExtractor(Extractor):
             return
 
 
-class FileSystemDataExtractor(Extractor):
+class FileSystemDataExtractor(BaseExtractor):
 
     @classmethod
     def extract(cls, file_object: BaseFile, overrider: bool, **kwargs: Any) -> None:
@@ -240,7 +240,7 @@ class FileSystemDataExtractor(Extractor):
         file_object._actions.saved()
 
 
-class HashFileExtractor(Extractor):
+class HashFileExtractor(BaseExtractor):
     """
     Class that define the extraction of data from hash files for hashers' processors defined in file_object.
     """
@@ -276,7 +276,7 @@ class HashFileExtractor(Extractor):
             processor.process_from_file(object_to_process=file_object, full_check=full_check)
 
 
-class MimeTypeFromFilenameExtractor(Extractor):
+class MimeTypeFromFilenameExtractor(BaseExtractor):
     """
     Class that define the extraction of mimetype data from filename defined in file_object.
     """
@@ -322,7 +322,7 @@ class MimeTypeFromFilenameExtractor(Extractor):
         file_object._actions.to_list()
 
 
-class MetadataExtractor(Extractor):
+class MetadataExtractor(BaseExtractor):
     """
     Class that define the extraction of multiple file's data from metadata passed to extract.
     """
@@ -541,7 +541,7 @@ class MetadataExtractor(Extractor):
                              '`MetadataExtractor.extract`.')
 
 
-class FilenameFromURLExtractor(Extractor):
+class FilenameFromURLExtractor(BaseExtractor):
     """
     Class that define the extraction of complete_filename from URL passed to Extractor Pipeline.
     """
@@ -616,7 +616,7 @@ class FilenameFromURLExtractor(Extractor):
                              '`FilenameFromURLExtractor.extract`.')
 
 
-class PathFromURLExtractor(Extractor):
+class PathFromURLExtractor(BaseExtractor):
     """
     Class that define the extraction of relative_path and complete_filename from URL.
     Its recommend to use this Processor after FilenameFromURLExtractor, else it will not be guaranteed that

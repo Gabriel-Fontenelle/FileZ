@@ -25,7 +25,7 @@ from __future__ import annotations
 from io import StringIO
 from typing import TYPE_CHECKING, Any
 
-from .extractor import Extractor
+from ..base import BaseExtractor
 from ...adapters.image import WandImage
 from ...adapters.video import MoviePyVideo
 
@@ -42,7 +42,7 @@ __all__ = [
 ]
 
 
-class VideoMetadataFromContentExtractor(Extractor):
+class VideoMetadataFromContentExtractor(BaseExtractor):
     """
     Extractor class created for extracting metadata contained in videos using MoviePy.
     This class don't validate any extensions to see if it's video, so any exception that this class output will
@@ -82,7 +82,7 @@ class VideoMetadataFromContentExtractor(Extractor):
                 setattr(file_object.meta, attribute, value)
 
 
-class ImageMetadataFromContentExtractor(Extractor):
+class ImageMetadataFromContentExtractor(BaseExtractor):
     """
     Extractor class created for extracting metadata contained in images using Wand.
     This class don't validate any extensions to see if it's image, so any exception that this class output will
@@ -116,7 +116,7 @@ class ImageMetadataFromContentExtractor(Extractor):
                 setattr(file_object.meta, attribute, value)
 
 
-class DocumentMetadataFromContentExtractor(Extractor):
+class DocumentMetadataFromContentExtractor(BaseExtractor):
     """
     Extractor class created for extracting metadata contained in PDF, ePub and other documents that
     pyMuPDF can open.
@@ -160,7 +160,7 @@ class DocumentMetadataFromContentExtractor(Extractor):
                 setattr(file_object.meta, attribute, value)
 
 
-class AudioMetadataFromContentExtractor(Extractor):
+class AudioMetadataFromContentExtractor(BaseExtractor):
     """
     Extractor class created for extracting metadata contained audio files that can be opened through
     TinyTag.
@@ -220,5 +220,5 @@ class AudioMetadataFromContentExtractor(Extractor):
                 setattr(file_object.meta, attribute, tinytag_attribute)
 
 
-class MimeTypeFromContentExtractor(Extractor):
+class MimeTypeFromContentExtractor(BaseExtractor):
     pass

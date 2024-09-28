@@ -25,7 +25,8 @@ from __future__ import annotations
 from io import BytesIO, StringIO
 from typing import Any, TYPE_CHECKING, Type
 
-from .. import ValidationError, Pipeline
+from .. import Pipeline
+from ..base import BaseRender
 from ...exception import RenderError
 
 if TYPE_CHECKING:
@@ -39,26 +40,14 @@ __all__ = [
     "DocumentFirstPageRender",
     "ImageRender",
     "PSDRender",
-    "StaticRender",
+    "BaseStaticRender",
     "VideoRender",
 ]
 
 
-class StaticRender:
+class BaseStaticRender(BaseRender):
     """
     Render class with focus to processing information from file's content to create a static representation of it.
-    """
-
-    extensions: set[str]
-    extensions = None
-    """
-    Attribute to store allowed extensions for use in `validator`.
-    This attribute should be override in children classes.
-    """
-
-    stopper: bool = True
-    """
-    Variable that define if this class used as processor should stop the pipeline.
     """
 
     @classmethod
@@ -90,53 +79,8 @@ class StaticRender:
 
         return static_file
 
-    @classmethod
-    def process(cls, **kwargs: Any) -> bool:
-        """
-        Method used to run this class on Processor`s Pipeline for Rendering images from Data.
-        This process method is created exclusively to pipeline for objects inherent from BaseFile.
 
-        This method can throw ValueError and IOError when trying to render the content. The `Pipeline.run` method will
-        catch those errors.
-        """
-        object_to_process: BaseFile = kwargs.pop('object_to_process', None)
-        try:
-            # Validate whether the extension for the current class is compatible with the render.
-            cls.validate(file_object=object_to_process)
-
-            # Render the static image for the FileThumbnail.
-            cls.render(file_object=object_to_process, **kwargs)
-
-        except ValidationError:
-            # We consume and don't register validation error because it is a expected error case the extension is
-            # not compatible with the method.
-            return False
-
-        return True
-
-    @classmethod
-    def render(cls, file_object: BaseFile, **kwargs: Any) -> None:
-        """
-        Method to render the image representation of the file_object.
-        This method must be override in child class.
-        """
-        raise NotImplementedError("Method render must be overwritten on child class.")
-
-    @classmethod
-    def validate(cls, file_object: BaseFile) -> None:
-        """
-        Method to validate if content can be rendered to given extension.
-        """
-        if cls.extensions is None:
-            raise NotImplementedError(f"The attribute extensions is not overwritten in child class {cls.__name__}")
-
-        # The ValidationError should be captured in children classes else it will not register as an error and
-        # the pipeline will break.
-        if file_object.extension not in cls.extensions:
-            raise ValidationError(f"Extension {file_object.extension} not allowed in validate for class {cls.__name__}")
-
-
-class DocumentFirstPageRender(StaticRender):
+class DocumentFirstPageRender(BaseStaticRender):
     """
     Render class for processing information from file's content focusing in rendering the representation of the first
     page of document.
@@ -200,7 +144,7 @@ class DocumentFirstPageRender(StaticRender):
         )
 
 
-class ImageRender(StaticRender):
+class ImageRender(BaseStaticRender):
     """
     Render class for processing information from file's content focusing in rendering the whole image.
     """
@@ -236,7 +180,7 @@ class ImageRender(StaticRender):
         )
 
 
-class PSDRender(StaticRender):
+class PSDRender(BaseStaticRender):
     """
     Render class for processing information from file's content focusing in rendering the whole PSD image.
     """
@@ -284,7 +228,7 @@ class PSDRender(StaticRender):
         )
 
 
-class VideoRender(StaticRender):
+class VideoRender(BaseStaticRender):
     """
     Render class for processing information from file's content focusing in rendering the few first seconds of the
     video.

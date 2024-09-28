@@ -25,7 +25,7 @@ from __future__ import annotations
 from io import BytesIO
 from typing import Any, TYPE_CHECKING, Type
 
-from .static import StaticRender
+from ..base import BaseRender
 from .. import Pipeline
 from ...exception import RenderError
 
@@ -33,11 +33,11 @@ if TYPE_CHECKING:
     from io import StringIO
     from ...file import BaseFile
     from ...file.thumbnail import PreviewDefaults
-    from ...image.engine import ImageEngine
-    from ...video.engine import VideoEngine
+    from ...engines.image import ImageEngine
+    from ...engines.video import VideoEngine
 
 __all__ = [
-    'AnimatedRender',
+    'BaseAnimatedRender',
     'DocumentAnimatedRender',
     'ImageAnimatedRender',
     'PSDAnimatedRender',
@@ -46,7 +46,7 @@ __all__ = [
 ]
 
 
-class AnimatedRender(StaticRender):
+class BaseAnimatedRender(BaseRender):
     """
     Render class with focus to processing information from file's content to create an animated representation of it.
     """
@@ -81,7 +81,7 @@ class AnimatedRender(StaticRender):
         return animated_file
 
 
-class StaticAnimatedRender(AnimatedRender):
+class StaticAnimatedRender(BaseAnimatedRender):
     """
     Render class for processing information from file's content focusing in rendering the whole image.
     This class not make use of sequences.
@@ -120,7 +120,7 @@ class StaticAnimatedRender(AnimatedRender):
         )
 
 
-class ImageAnimatedRender(AnimatedRender):
+class ImageAnimatedRender(BaseAnimatedRender):
     """
     Render class for processing information from file's content focusing in rendering a sample of the whole animated
     image.
@@ -160,7 +160,7 @@ class ImageAnimatedRender(AnimatedRender):
         )
 
 
-class DocumentAnimatedRender(AnimatedRender):
+class DocumentAnimatedRender(BaseAnimatedRender):
     """
     Render class for processing information from file's content focusing in rendering a sample of the document's pages.
     This class make use of sequences.
@@ -234,7 +234,7 @@ class DocumentAnimatedRender(AnimatedRender):
         )
 
 
-class PSDAnimatedRender(AnimatedRender):
+class PSDAnimatedRender(BaseAnimatedRender):
     """
     Render class for processing information from file's content focusing in rendering a sample of the PSD layers.
     This class make use of sequences.
@@ -297,7 +297,7 @@ class PSDAnimatedRender(AnimatedRender):
         )
 
 
-class VideoAnimatedRender(AnimatedRender):
+class VideoAnimatedRender(BaseAnimatedRender):
     """
     Render class for processing information from file's content focusing in rendering a sample of the video frames.
     This class make use of sequences.

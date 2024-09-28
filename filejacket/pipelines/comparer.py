@@ -22,14 +22,15 @@ Should there be a need for contact the electronic mail
 """
 from __future__ import annotations
 
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING
+
+from .base import BaseComparer
 
 if TYPE_CHECKING:
     from ..file import BaseFile
 
 
 __all__ = [
-    'BaseComparer',
     'BinaryCompare',
     'DataCompare',
     'HashCompare',
@@ -39,53 +40,6 @@ __all__ = [
     'SizeCompare',
     'TypeCompare'
 ]
-
-
-class BaseComparer:
-    """
-    Base class to be inherent to define classes for use on Comparer pipeline.
-    """
-
-    stopper: bool = True
-    """
-    Variable that define if this class used as processor should stop the pipeline.
-    """
-
-    @classmethod
-    def is_the_same(cls, file_1: BaseFile, file_2: BaseFile) -> None | bool:
-        """
-        Method used to check if two files are the same in memory using the File object.
-        This method must be overwrite on child class to work correctly.
-        """
-        raise NotImplementedError("The method is_the_same needs to be overwrite on child class.")
-
-    @classmethod
-    def process(cls, **kwargs: Any) -> None | bool:
-        """
-        Method used to run this class on Processor`s Pipeline for Files.
-        This method and to_processor() is not need to compare files outside a pipeline.
-        This process method is created exclusively to pipeline for objects inherent from BaseFile.
-
-        The processor for comparer uses only one list of objects that must be settled through first argument
-        or through key work `objects`.
-
-        This processor return boolean whether files are the same, different of others processors that return boolean
-        to indicate that process was ran successfully.
-        """
-        object_to_process: BaseFile = kwargs.pop('object_to_process')
-        objects_to_compare: list | tuple = kwargs.pop('objects_to_compare')
-
-        if not objects_to_compare or not isinstance(objects_to_compare, (list, tuple)):
-            raise ValueError("There must be at least one object to compare at `objects_to_compare`s kwargs for "
-                             "`BaseComparer.process`.")
-
-        for element in objects_to_compare:
-            is_the_same = cls.is_the_same(object_to_process, element)
-            if not is_the_same:
-                # This can return None or False
-                return is_the_same
-
-        return True
 
 
 class DataCompare(BaseComparer):
