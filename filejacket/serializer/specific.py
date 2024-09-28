@@ -40,7 +40,7 @@ if TYPE_CHECKING:
 
 __all__ = [
     # Transmuters
-    'Transmuter',
+    'BaseTransmuter',
     'TransmuterClass',
     'TransmuterObjectClass',
     'TransmuterPipeline',
@@ -60,7 +60,7 @@ __all__ = [
 ]
 
 
-class Transmuter:
+class BaseTransmuter:
     """
     Class helper for converting values at serializer/deserializer classes that made use of it in its declareted attributes.
     This class uses __set_name__ as a way to organize the code and reference to those classes.
@@ -69,13 +69,13 @@ class Transmuter:
     def __set_name__(self, owner, name):
         """
         Method to automatically set the attribute name in which it was declared and register it in owner list of attributes.
-        The owner list of attributes will be created at the first call of a class that inherent Transmuter.
+        The owner list of attributes will be created at the first call of a class that inherent BaseTransmuter.
 
         Usage:
         
         ```
         class Serializer:
-            my_attribute = Transmuter()
+            my_attribute = BaseTransmuter()
         
         ```
         """
@@ -105,9 +105,9 @@ class Transmuter:
         raise NotImplementedError("The method `to_data` must be implemented in child class.")
     
 
-class TransmuterClass(Transmuter):
+class TransmuterClass(BaseTransmuter):
     """
-    Transmuter class to handle uninstantiated class. 
+    Transmuter class to handle non instantiated class. 
     """
     
     @classmethod
@@ -127,7 +127,7 @@ class TransmuterClass(Transmuter):
         return getattr(module, class_name)
     
 
-class TransmuterObjectClass(Transmuter):
+class TransmuterObjectClass(BaseTransmuter):
     """
     Transmuter class to handle instantiated class. 
     """
@@ -149,7 +149,7 @@ class TransmuterObjectClass(Transmuter):
         return getattr(module, class_name)()
 
 
-class TransmuterPipeline(Transmuter):
+class TransmuterPipeline(BaseTransmuter):
     """
     Transmuter class to handle Pipeline objects. 
     """
@@ -176,7 +176,7 @@ class TransmuterPipeline(Transmuter):
         return pipeline
 
 
-class TransmuterDatetime(Transmuter):
+class TransmuterDatetime(BaseTransmuter):
     """
     Transmuter class to handle datetime or time objects. 
     """
@@ -201,7 +201,7 @@ class TransmuterDatetime(Transmuter):
         return data_type.fromisoformat(data)
 
 
-class TransmuterAttribute(Transmuter):
+class TransmuterAttribute(BaseTransmuter):
     """
     Transmuter class to handle attribute that are objects from classes. 
     """
@@ -236,7 +236,7 @@ class TransmuterAttribute(Transmuter):
         return attribute_object(**values)
     
 
-class TransmuterValue(Transmuter):
+class TransmuterValue(BaseTransmuter):
     """
     Transmuter class to handle attributes that don`t need to be converted. 
     """
@@ -256,7 +256,7 @@ class TransmuterValue(Transmuter):
         return value
     
 
-class TransmuterThumbnail(Transmuter):
+class TransmuterThumbnail(BaseTransmuter):
     """
     Transmuter class to handle the FileThumbnail object. 
     """
@@ -312,7 +312,7 @@ class TransmuterThumbnail(Transmuter):
         return file_thumbnail
 
 
-class TransmuterHashes(Transmuter):
+class TransmuterHashes(BaseTransmuter):
     """
     Transmuter class to handle the FileHash object. 
     """
@@ -347,7 +347,7 @@ class TransmuterHashes(Transmuter):
         return file_hashes
 
 
-class TransmuterContentFiles(Transmuter):
+class TransmuterContentFiles(BaseTransmuter):
     """
     Transmuter class to handle the FilePacket object. 
     """
@@ -383,7 +383,7 @@ class TransmuterContentFiles(Transmuter):
         )
 
 
-class TransmuterContent(Transmuter):
+class TransmuterContent(BaseTransmuter):
     """
     Transmuter class to handle the FileTContent object. 
     """
@@ -421,7 +421,7 @@ class TransmuterContent(Transmuter):
         )
 
 
-class TransmuterContentBase64(Transmuter):
+class TransmuterContentBase64(BaseTransmuter):
     """
     Transmuter class to handle the FileContent object as its base64 representation. 
     """
