@@ -335,7 +335,7 @@ class BaseHasher:
         full_check: bool = kwargs.pop('full_check', True)
 
         # Save current file system filejacket
-        class_file_system_handler: Type[Storage] = cls.file_system_handler
+        class_file_system_handler: Type[StorageEngine] = cls.file_system_handler
 
         cls.file_system_handler = object_to_process.storage
 
@@ -359,7 +359,7 @@ class BaseHasher:
             # Restore File System attribute to original.
             cls.file_system_handler = class_file_system_handler
 
-        file_system: Type[Storage] = object_to_process.storage
+        file_system: Type[StorageEngine] = object_to_process.storage
 
         # Add hash to file. The content will be obtained from file pointer.
         hash_file: BaseFile = object_to_process.__class__(
