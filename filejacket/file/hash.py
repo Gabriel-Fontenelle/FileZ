@@ -28,7 +28,7 @@ from ..exception import ImproperlyConfiguredFile, SerializerError, ValidationErr
 
 if TYPE_CHECKING:
     from . import BaseFile
-    from ..pipelines.hasher import Hasher
+    from ..pipelines.hasher import BaseHasher
 
 __all__ = [
     "FileHashes"
@@ -40,7 +40,7 @@ class FileHashes:
     Class that store file instance digested hashes.
     """
 
-    _cache: dict[str, tuple[str, BaseFile, Type[Hasher]]]
+    _cache: dict[str, tuple[str, BaseFile, Type[BaseHasher]]]
     """
     Descriptor to storage the digested hashes for the file instance.
     This must be instantiated at `__init__` class. 
@@ -71,7 +71,7 @@ class FileHashes:
             else:
                 raise SerializerError(f"Class {self.__class__.__name__} doesn't have an attribute called {key}.")
 
-    def __setitem__(self, hasher_name: str, value: tuple[str, BaseFile, Type[Hasher]]) -> None:
+    def __setitem__(self, hasher_name: str, value: tuple[str, BaseFile, Type[BaseHasher]]) -> None:
         """
         Method to set up values for file hash as dict item.
         This method expects a tuple as value to set up the hash hexadecimal value and hash file related
@@ -90,7 +90,7 @@ class FileHashes:
             # Add `hash_file` loaded from external source in a list for easy retrieval of loaded hashes.
             self._loaded.append(hasher_name)
 
-    def __getitem__(self, hasher_name) -> tuple[str, BaseFile, Type[Hasher]]:
+    def __getitem__(self, hasher_name) -> tuple[str, BaseFile, Type[BaseHasher]]:
         """
         Method to get the hasher value and file associated saved in self._cache.
         """
