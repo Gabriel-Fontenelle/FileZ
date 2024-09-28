@@ -33,7 +33,7 @@ from ..pipelines.renamer import UniqueRenamer
 
 if TYPE_CHECKING:
     from . import BaseFile
-    from ..pipelines.renamer import Renamer
+    from ..pipelines.renamer import BaseRenamer
 
 
 __all__ = [
@@ -142,7 +142,7 @@ class FileContent:
     Whether the content as whole was cached. Being True the current buffer will point to a stream
     of `_cached_content`.
     """
-    cache_in_file_renamer: type[Renamer] = UniqueRenamer
+    cache_in_file_renamer: type[BaseRenamer] = UniqueRenamer
     """
     Class that handle the renaming of a file when using the cache in file option.
     """

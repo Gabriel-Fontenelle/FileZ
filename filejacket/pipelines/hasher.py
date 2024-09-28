@@ -39,14 +39,14 @@ if TYPE_CHECKING:
     from ..file import BaseFile
 
 __all__ = [
-    'Hasher',
+    'BaseHasher',
     'CRC32Hasher',
     'MD5Hasher',
     'SHA256Hasher'
 ]
 
 
-class Hasher:
+class BaseHasher:
     """
     Base class to be inherent to define class to be used on Hasher pipelines.
     """
@@ -110,7 +110,7 @@ class Hasher:
     def get_hash_objects(cls) -> dict:
         """
         Method to get the `hash_object` filtering the `hasher_name` considering that `hash_objects` is a dictionary
-        shared between all classes that inherent from `Hasher`.
+        shared between all classes that inherent from `BaseHasher`.
         """
         hash_object: dict = cls.hash_objects.get(cls.hasher_name, {})
         cls.hash_objects[cls.hasher_name] = hash_object
@@ -389,7 +389,7 @@ class Hasher:
         return True
 
 
-class MD5Hasher(Hasher):
+class MD5Hasher(BaseHasher):
     """
     Class specifying algorithm MD5 to be used on Hasher pipelines.
     """
@@ -407,7 +407,7 @@ class MD5Hasher(Hasher):
         return hashlib.md5()
 
 
-class SHA256Hasher(Hasher):
+class SHA256Hasher(BaseHasher):
     """
     Class specifying algorithm SHA256 to be used on Hasher pipelines.
     """
@@ -425,7 +425,7 @@ class SHA256Hasher(Hasher):
         return hashlib.sha256()
 
 
-class CRC32Hasher(Hasher):
+class CRC32Hasher(BaseHasher):
     """
     Class specifying algorithm CRC32 to be used on Hasher pipelines.
     """

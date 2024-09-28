@@ -65,7 +65,7 @@ from .pipelines.extractor import (
     MimeTypeFromContentExtractor
 )
 # Module with pipeline classes for generating or extracting hashed data related to file.
-from .pipelines.hasher import Hasher, CRC32Hasher, MD5Hasher, SHA256Hasher
+from .pipelines.hasher import BaseHasher, CRC32Hasher, MD5Hasher, SHA256Hasher
 # Module with pipeline classes for renaming files.
 from .pipelines.renamer import BaseRenamer, WindowsRenamer, LinuxRenamer, UniqueRenamer
 # Module with classes for serializing/deserializing objects.
@@ -78,7 +78,7 @@ __all__ = [
     'Comparer', 'PackageExtractor', 'ContentFile', 'CRC32Hasher', 'DataCompare',
     'Extractor', 'File', 'FileSystemDataExtractor', 'FilenameAndExtensionFromPathExtractor',
     'FilenameFromMetadataExtractor', 'FilenameFromURLExtractor', 'HashCompare', 'HashFileExtractor',
-    'Hasher', 'ImageEngine', 'ImproperlyConfiguredFile', 'JSONSerializer', 'LibraryMimeTyper',
+    'BaseHasher', 'ImageEngine', 'ImproperlyConfiguredFile', 'JSONSerializer', 'LibraryMimeTyper',
     'LinuxFileSystem',  'LinuxRenamer', 'LousyNameCompare', 'MD5Hasher',
     'MetadataExtractor', 'MimeTypeCompare', 'MimeTypeFromContentExtractor',
     'MimeTypeFromFilenameExtractor', 'NameCompare', 'NoInternalContentError', 'OpenCVImage',
