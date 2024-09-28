@@ -36,7 +36,7 @@ from .adapters.mimetype import LibraryMimeTyper, APIMimeTyper
 from .pipelines import Processor, Pipeline
 # Module with pipeline classes for comparing Files.
 from .pipelines.comparer import (
-    Comparer,
+    BaseComparer,
     BinaryCompare,
     DataCompare,
     HashCompare,
@@ -75,7 +75,7 @@ from .adapters.storage import WindowsFileSystem, LinuxFileSystem
 
 __all__ = [
     'APIMimeTyper', 'AudioMetadataFromContentExtractor', 'BaseFile', 'BinaryCompare',
-    'Comparer', 'PackageExtractor', 'ContentFile', 'CRC32Hasher', 'DataCompare',
+    'BaseComparer', 'PackageExtractor', 'ContentFile', 'CRC32Hasher', 'DataCompare',
     'Extractor', 'File', 'FileSystemDataExtractor', 'FilenameAndExtensionFromPathExtractor',
     'FilenameFromMetadataExtractor', 'FilenameFromURLExtractor', 'HashCompare', 'HashFileExtractor',
     'BaseHasher', 'ImageEngine', 'ImproperlyConfiguredFile', 'JSONSerializer', 'LibraryMimeTyper',

@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 
 
 __all__ = [
-    'Comparer',
+    'BaseComparer',
     'BinaryCompare',
     'DataCompare',
     'HashCompare',
@@ -41,7 +41,7 @@ __all__ = [
 ]
 
 
-class Comparer:
+class BaseComparer:
     """
     Base class to be inherent to define classes for use on Comparer pipeline.
     """
@@ -77,7 +77,7 @@ class Comparer:
 
         if not objects_to_compare or not isinstance(objects_to_compare, (list, tuple)):
             raise ValueError("There must be at least one object to compare at `objects_to_compare`s kwargs for "
-                             "`Comparer.process`.")
+                             "`BaseComparer.process`.")
 
         for element in objects_to_compare:
             is_the_same = cls.is_the_same(object_to_process, element)
@@ -88,7 +88,7 @@ class Comparer:
         return True
 
 
-class DataCompare(Comparer):
+class DataCompare(BaseComparer):
     """
     Class that define comparing of data between two Files for use in Comparer Pipeline.
     """
@@ -185,7 +185,7 @@ class DataCompare(Comparer):
             return False
 
 
-class SizeCompare(Comparer):
+class SizeCompare(BaseComparer):
     """
     Class that define comparing of size of content between two Files for use in Comparer Pipeline.
     """
@@ -207,7 +207,7 @@ class SizeCompare(Comparer):
         return len(file_1) == len(file_2)
 
 
-class HashCompare(Comparer):
+class HashCompare(BaseComparer):
     """
     Class that define comparing of hash between two Files for use in Comparer Pipeline.
     """
@@ -233,7 +233,7 @@ class HashCompare(Comparer):
         return True
 
 
-class LousyNameCompare(Comparer):
+class LousyNameCompare(BaseComparer):
     """
     Class that define comparing of filename between two Files for use in Comparer Pipeline.
     """
@@ -264,7 +264,7 @@ class LousyNameCompare(Comparer):
         return file_1.complete_filename == file_2.complete_filename and extension
 
 
-class NameCompare(Comparer):
+class NameCompare(BaseComparer):
     """
     Class that define comparing of filename between two Files for use in Comparer Pipeline.
     """
@@ -286,7 +286,7 @@ class NameCompare(Comparer):
         return file_1.complete_filename == file_2.complete_filename
 
 
-class MimeTypeCompare(Comparer):
+class MimeTypeCompare(BaseComparer):
     """
     Class that define comparing of mimetype between two Files for use in Comparer Pipeline.
     """
@@ -308,7 +308,7 @@ class MimeTypeCompare(Comparer):
         return file_1.mime_type == file_2.mime_type
 
 
-class BinaryCompare(Comparer):
+class BinaryCompare(BaseComparer):
     """
     Class that define comparing of binary attribute between two Files for use in Comparer Pipeline.
     """
@@ -333,7 +333,7 @@ class BinaryCompare(Comparer):
         return file_1_is_binary == file_2_is_binary
 
 
-class TypeCompare(Comparer):
+class TypeCompare(BaseComparer):
     """
     Class that define comparing of type between two Files for use in Comparer Pipeline.
     """
