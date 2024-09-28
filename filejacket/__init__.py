@@ -34,9 +34,17 @@ from .adapters.mimetype import LibraryMimeTyper, APIMimeTyper
 # Module with classes that define the pipelines and its processors classes.
 # A Pipeline is a sequence that loop processors to be run.
 from .pipelines import Processor, Pipeline
+# Module with base classes for pipeline classes.
+from .pipelines.base import (
+    BaseComparer,
+    BaseExtractor,
+    BaseHasher,
+    BaseRenamer,
+    BaseRender
+)
+
 # Module with pipeline classes for comparing Files.
 from .pipelines.comparer import (
-    BaseComparer,
     BinaryCompare,
     DataCompare,
     HashCompare,
@@ -48,7 +56,6 @@ from .pipelines.comparer import (
 )
 # Module with pipeline classes for extracting data for files from multiple sources.
 from .pipelines.extractor import (
-    Extractor,
     PackageExtractor,
     FileSystemDataExtractor,
     FilenameAndExtensionFromPathExtractor,
@@ -65,9 +72,20 @@ from .pipelines.extractor import (
     MimeTypeFromContentExtractor
 )
 # Module with pipeline classes for generating or extracting hashed data related to file.
-from .pipelines.hasher import BaseHasher, CRC32Hasher, MD5Hasher, SHA256Hasher
+from .pipelines.hasher import CRC32Hasher, MD5Hasher, SHA256Hasher
 # Module with pipeline classes for renaming files.
-from .pipelines.renamer import BaseRenamer, WindowsRenamer, LinuxRenamer, UniqueRenamer
+from .pipelines.renamer import WindowsRenamer, LinuxRenamer, UniqueRenamer
+# module with pipeline classes for render content representation.
+from .pipelines.render import (
+    BaseAnimatedRender,
+    BaseStaticRender,
+    DocumentFirstPageRender,
+    ImageAnimatedRender,
+    ImageRender,
+    PSDRender,
+    StaticAnimatedRender,
+    VideoRender
+)
 # Module with classes for serializing/deserializing objects.
 from .serializer import PickleSerializer, JSONSerializer
 from .engines.storage import StorageEngine
@@ -76,18 +94,19 @@ from .adapters.storage import WindowsFileSystem, LinuxFileSystem
 __all__ = [
     'APIMimeTyper', 'AudioMetadataFromContentExtractor', 'BaseFile', 'BinaryCompare',
     'BaseComparer', 'PackageExtractor', 'ContentFile', 'CRC32Hasher', 'DataCompare',
-    'Extractor', 'File', 'FileSystemDataExtractor', 'FilenameAndExtensionFromPathExtractor',
+    'BaseExtractor', 'File', 'FileSystemDataExtractor', 'FilenameAndExtensionFromPathExtractor',
     'FilenameFromMetadataExtractor', 'FilenameFromURLExtractor', 'HashCompare', 'HashFileExtractor',
     'BaseHasher', 'ImageEngine', 'ImproperlyConfiguredFile', 'JSONSerializer', 'LibraryMimeTyper',
-    'LinuxFileSystem',  'LinuxRenamer', 'LousyNameCompare', 'MD5Hasher',
-    'MetadataExtractor', 'MimeTypeCompare', 'MimeTypeFromContentExtractor',
-    'MimeTypeFromFilenameExtractor', 'NameCompare', 'NoInternalContentError', 'OpenCVImage',
-    'OperationNotAllowed', 'PathFromURLExtractor', 'PickleSerializer', 'PillowImage', 'Pipeline',
-    'Processor', 'RarCompressedFilesFromPackageExtractor', 'BaseRenamer', 'ReservedFilenameError',
-    'SHA256Hasher', 'SevenZipCompressedFilesFromPackageExtractor',
-    'SizeCompare', 'StorageEngine', 'StreamFile', 'System', 'TypeCompare', 'URI', 'UniqueRenamer',
-    'ValidationError', 'WandImage', 'WindowsFileSystem', 'WindowsRenamer',
-    'ZipCompressedFilesFromPackageExtractor',
+    'LinuxFileSystem',  'LinuxRenamer', 'LousyNameCompare', 'MD5Hasher', 'MetadataExtractor', 
+    'MimeTypeCompare', 'MimeTypeFromContentExtractor', 'MimeTypeFromFilenameExtractor', 
+    'NameCompare', 'NoInternalContentError', 'OpenCVImage', 'OperationNotAllowed',
+    'PathFromURLExtractor', 'PickleSerializer', 'PillowImage', 'Pipeline', 'Processor',
+    'RarCompressedFilesFromPackageExtractor', 'BaseRenamer', 'BaseRender', 'BaseAnimatedRender',
+    'BaseStaticRender', 'DocumentFirstPageRender', 'ImageAnimatedRender', 'ImageRender', 
+    'PSDRender', 'StaticAnimatedRender', 'VideoRender', 'ReservedFilenameError', 'SHA256Hasher',
+    'SevenZipCompressedFilesFromPackageExtractor', 'SizeCompare', 'StorageEngine', 'StreamFile',
+    'System', 'TypeCompare', 'URI', 'UniqueRenamer', 'ValidationError', 'WandImage', 
+    'WindowsFileSystem', 'WindowsRenamer', 'ZipCompressedFilesFromPackageExtractor'
 ]
 
 
