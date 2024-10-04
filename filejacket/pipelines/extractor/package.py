@@ -573,7 +573,7 @@ class ZipCompressedFilesFromPackageExtractor(PackageExtractor):
                 """
                 if not hasattr(self, "buffer"):
                     # Instantiate the buffer of inner content
-                    compressed: ZipFile = cls.compressor(file=self.source_file_object.buffer)
+                    compressed: ZipFile = cls.compressor(file=self.source_file_object.content_as_buffer)
 
                     self.buffer = compressed.open(name=self.filename)
 
