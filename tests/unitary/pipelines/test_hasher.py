@@ -17,7 +17,7 @@ from filejacket.pipelines.hasher import (
         CRC32Hasher,
     ]
 )
-def test_class_for_unpacking_has_required_attribute(package_class):
+def test_class_for_hashing_has_required_attribute(package_class):
     assert hasattr(package_class, 'check_hash')
     assert hasattr(package_class, 'digest_hash')
     assert hasattr(package_class, 'digest_hex_hash')

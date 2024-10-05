@@ -21,7 +21,7 @@ from filejacket.pipelines.render import (
         VideoRender
     ]
 )
-def test_class_for_unpacking_has_required_attribute(package_class):
+def test_class_for_rendering_has_required_attribute(package_class):
     assert hasattr(package_class, 'create_file')
     assert hasattr(package_class, 'process')
     assert hasattr(package_class, 'render')

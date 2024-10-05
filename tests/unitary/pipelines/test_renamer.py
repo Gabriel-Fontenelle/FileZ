@@ -17,7 +17,7 @@ from filejacket.pipelines.renamer import (
         UniqueRenamer,
     ]
 )
-def test_class_for_unpacking_has_required_attribute(package_class):
+def test_class_for_renaming_has_required_attribute(package_class):
     assert hasattr(package_class, 'prepare_filename')
     assert hasattr(package_class, 'add_reserved_name')
     assert hasattr(package_class, 'clean_reserved_names')
