@@ -52,7 +52,7 @@ def test_class_for_unpacking_has_required_attribute(package_class):
         "file_mp4"
     ],
 )
-def test_base_class_for_unpacking_raise_not_implemented_error_in_some_attributes(request, file_fixture):
+def test_base_class_for_extracting_raise_not_implemented_error_in_some_attributes(request, file_fixture):
     file_object = request.getfixturevalue(file_fixture)
     
     with pytest.raises(NotImplementedError):
