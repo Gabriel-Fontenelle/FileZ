@@ -234,7 +234,16 @@ class VideoRender(BaseStaticRender):
     video.
     """
 
-    extensions: set[str] = {"avi", "mkv", "mpg", "mpeg", "mp4", "flv"}
+    extensions: set[str] = {
+        "avi",
+        "mkv",
+        "mpg",
+        "mpeg",
+        "mp4",
+        "flv",
+        "wmv",
+        "3gp"
+    }
     """
     Attribute to store allowed extensions for use in `validator`.
     """
