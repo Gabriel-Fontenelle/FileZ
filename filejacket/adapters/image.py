@@ -456,9 +456,14 @@ class WandImage(ImageEngine):
 
     def clone(self) -> Any:
         """
-        Method to copy the current image object and return it.
+        Method to copy the current image object and return it wrapped in an ImageEngine class.
         """
-        return self.image.clone()
+        cloned = self.__class__()
+        cloned.image = self.image.clone()
+        cloned.metadata = cloned.image.metadata
+        cloned.source_buffer = self.source_buffer
+        
+        return cloned
 
     def crop(self, width: int, height: int, **kwargs: Any) -> None:
         """
@@ -524,7 +529,7 @@ class WandImage(ImageEngine):
         Method to display the image for debugging purposes.
         """
         from wand.display import display as wand_display
-
+    
         if self.has_sequence():
             for image in self.image.sequence:
                 wand_display(self.class_image(image))
