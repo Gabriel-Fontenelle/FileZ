@@ -349,7 +349,7 @@ class PillowImage(ImageEngine):
         if total_frames <= 1:
             return
 
-        steps: int = total_frames // (total_frames * percentual // 100)
+        steps: int = total_frames // int(total_frames / 100 * percentual)
 
         duration: int | None
         try:
@@ -513,7 +513,7 @@ class WandImage(ImageEngine):
 
         total_frames: int = len(self.image.sequence)
 
-        steps: int = total_frames // (total_frames * percentual // 100)
+        steps: int = total_frames // int(total_frames / 100 * percentual)
 
         for index in list(set(range(0, total_frames, 1)) - set(range(0, total_frames, steps)))[::-1]:
             del self.image.sequence[index]
