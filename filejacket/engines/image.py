@@ -82,7 +82,7 @@ class ImageEngine:
 
     def clone(self) -> Any:
         """
-        Method to copy the current image object and return it.
+        Method to copy the current image object and return it wrapped in an ImageEngine class.
         This method should be overwritten in child class.
         """
         raise NotImplementedError("The method clone should be override in child class.")
@@ -132,7 +132,7 @@ class ImageEngine:
         """
         Method to obtain the base64 representation for the content of the current image object.
         """
-        content = self.get_bytes(encode_format)
+        content = self.get_bytes(encode_format=encode_format)
 
         # Convert buffer to base64 string representation in ASCII
         return base64.b64encode(content).decode('ascii')
