@@ -57,13 +57,17 @@ class MoviePyVideo(VideoEngine):
         """
         Method to return content of the frame at index as bytes.
         TODO: Test that buffer is really bytes.
+        TODO: Expand the formats dict to allow more types of media. 
         """
         formats: dict[str, str] = {
-            "jpeg": ".jpg"
+            "jpeg": ".jpg",
+            "webp": ".webp"
         }
 
-        from cv2 import imencode
-        success, buffer = imencode(formats[encode_format], self.video.get_frame(index))
+        from cv2 import imencode, cvtColor, COLOR_BGR2RGB
+        
+        # Fix the color from BGR -> RGB.
+        success, buffer = imencode(formats[encode_format], cvtColor(self.video.get_frame(index), COLOR_BGR2RGB))
 
         if not success:
             raise ValueError(f"Could not convert image to format {encode_format} in MoviePyVideo.get_frame_as_bytes.")
