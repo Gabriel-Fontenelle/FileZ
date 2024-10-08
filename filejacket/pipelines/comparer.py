@@ -86,6 +86,10 @@ class DataCompare(BaseComparer):
             # Comparing data between binary and string should return False, they are not the same anyway.
             if file_1.is_binary != file_2.is_binary:
                 return False
+            
+            # Check if the iterator being compared is the same, to avoid consuming unequal parts of the same iterator.             
+            if id(content_1) == id(content_2):
+                return True
 
             # Set-up initial data for additional buffer
             value_1: str | bytes | None
