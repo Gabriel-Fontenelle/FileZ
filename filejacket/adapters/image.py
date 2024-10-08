@@ -438,7 +438,8 @@ class WandImage(ImageEngine):
         this method should convert it to a sequence.
         """
 
-        self.image.sequence.append(images)
+        for image in images:
+            self.image.sequence.append(image)
 
     def change_color(self, colorspace: str = "gray", **kwargs: Any) -> None:
         """
