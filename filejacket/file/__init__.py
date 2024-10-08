@@ -30,7 +30,7 @@ from typing import Type, Any, Iterator, TYPE_CHECKING, Sequence
 # modules
 from .action import FileActions
 from .content import FilePacket, FileContent
-from .hash import FileHashes
+from .hasher import FileHashes
 from .meta import FileMetadata
 from .name import FileNaming
 from .option import FileOption

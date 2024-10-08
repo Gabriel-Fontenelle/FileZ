@@ -29,7 +29,7 @@ from importlib import import_module
 
 from filejacket.exception import SerializerError
 from filejacket.file.content import FileContent, FilePacket
-from filejacket.file.hash import FileHashes
+from filejacket.file.hasher import FileHashes
 from filejacket.file.thumbnail import FileThumbnail
 
 from ..pipelines import Pipeline

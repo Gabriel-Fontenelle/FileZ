@@ -192,7 +192,7 @@ class FileHashes:
         """
         Method to save all hashes files if it was not saved already.
         """
-        if not self.related_file_object:
+        if self.related_file_object is None:
             raise ImproperlyConfiguredFile("A related file object must be specified for hashes before saving.")
 
         for hex_value, hash_file, processor in self._cache.values():
