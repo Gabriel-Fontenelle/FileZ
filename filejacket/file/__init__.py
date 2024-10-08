@@ -1133,5 +1133,4 @@ class BaseFile:
         """
         write_mode: str = 'b' if self.is_binary else 't'
 
-        self.storage.save_file(path, self.content, file_mode='w', write_mode=write_mode)
-
+        self.storage.save_file(path, self._content, file_mode='w', write_mode=write_mode)

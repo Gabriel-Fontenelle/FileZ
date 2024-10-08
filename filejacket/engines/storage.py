@@ -187,7 +187,8 @@ class StorageEngine:
             for chunk in content:
                 file_pointer.write(chunk)
                 file_pointer.flush()
-                os.fsync(file_pointer.fileno())
+            
+            os.fsync(file_pointer.fileno())
 
     @classmethod
     def backup(cls, file_path_origin: str, force: bool = False) -> bool:
