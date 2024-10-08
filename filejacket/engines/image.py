@@ -55,7 +55,7 @@ class ImageEngine:
     Attribute used to store image metadata if available.
     """
 
-    def __init__(self, buffer: StringIO | BytesIO | PackageExtractor.ContentBuffer | None) -> None:
+    def __init__(self, buffer: StringIO | BytesIO | PackageExtractor.ContentBuffer | None = None) -> None:
         """
         Method to instantiate the current class using a buffer for the image content as a source
         for manipulation by the class to be used.
