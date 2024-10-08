@@ -1116,8 +1116,8 @@ class BaseFile:
             raise self.ValidationError("The attribute `save_to` must be set for the file!")
 
         # Raise if not content provided.
-        if self.content is None:
-            raise self.ValidationError("The attribute `content` must be set for the file!")
+        if self._content is None:
+            raise self.ValidationError("The attribute `content` or `content_as_buffer` must be set for the file!")
 
         # Check if mimetype is compatible with extension
         if self.extension and self.mime_type and self.extension not in self.mime_type_handler.get_extensions(
