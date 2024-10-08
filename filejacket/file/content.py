@@ -237,7 +237,7 @@ class FileContent:
         """
         return self
 
-    def __next__(self) -> bytes | str | None:
+    def __next__(self) -> bytes | str:
         """
         Method that defines the behavior of iterable blocks of current object.
         This method has the potential to double the memory size of current object storing
