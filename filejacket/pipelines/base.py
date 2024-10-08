@@ -645,6 +645,7 @@ class BaseRender:
         catch those errors.
         """
         object_to_process: BaseFile = kwargs.pop('object_to_process', None)
+        
         try:
             # Validate whether the extension for the current class is compatible with the render.
             cls.validate(file_object=object_to_process)
