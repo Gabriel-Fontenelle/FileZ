@@ -30,7 +30,16 @@ from .exception import (
 )
 from .file import BaseFile
 from .handler import System, URI
+# Module with engines for adapters
+from .engines.storage import StorageEngine
+from .engines.image import ImageEngine
+from .engines.video import VideoEngine
+
+# Module with classes adapted from engines
 from .adapters.mimetype import LibraryMimeTyper, APIMimeTyper
+from .adapters.image import OpenCVImage, PillowImage, WandImage
+from .adapters.video import MoviePyVideo
+from .adapters.storage import WindowsFileSystem, LinuxFileSystem
 # Module with classes that define the pipelines and its processors classes.
 # A Pipeline is a sequence that loop processors to be run.
 from .pipelines import Processor, Pipeline
@@ -42,7 +51,6 @@ from .pipelines.base import (
     BaseRenamer,
     BaseRender
 )
-
 # Module with pipeline classes for comparing Files.
 from .pipelines.comparer import (
     BinaryCompare,
@@ -88,8 +96,7 @@ from .pipelines.render import (
 )
 # Module with classes for serializing/deserializing objects.
 from .serializer import PickleSerializer, JSONSerializer
-from .engines.storage import StorageEngine
-from .adapters.storage import WindowsFileSystem, LinuxFileSystem
+
 
 __all__ = [
     'APIMimeTyper', 'AudioMetadataFromContentExtractor', 'BaseFile', 'BinaryCompare',
@@ -105,8 +112,8 @@ __all__ = [
     'BaseStaticRender', 'DocumentFirstPageRender', 'ImageAnimatedRender', 'ImageRender', 
     'PSDRender', 'StaticAnimatedRender', 'VideoRender', 'ReservedFilenameError', 'SHA256Hasher',
     'SevenZipCompressedFilesFromPackageExtractor', 'SizeCompare', 'StorageEngine', 'StreamFile',
-    'System', 'TypeCompare', 'URI', 'UniqueRenamer', 'ValidationError', 'WandImage', 
-    'WindowsFileSystem', 'WindowsRenamer', 'ZipCompressedFilesFromPackageExtractor'
+    'System', 'TypeCompare', 'URI', 'UniqueRenamer', 'ValidationError', 'MoviePyVideo', 'WandImage', 
+    'WindowsFileSystem', 'WindowsRenamer', 'ZipCompressedFilesFromPackageExtractor', 'VideoEngine'
 ]
 
 
