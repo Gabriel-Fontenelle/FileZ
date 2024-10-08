@@ -79,9 +79,13 @@ class OpenCVImage(ImageEngine):
 
     def clone(self) -> Any:
         """
-        Method to copy the current image object and return it.
+        Method to copy the current image object and return it wrapped in an ImageEngine class.
         """
-        return self.image.copy()
+        cloned = self.__class__()
+        cloned.image = self.image.copy()
+        cloned.source_buffer = self.source_buffer
+        
+        return cloned
 
     def crop(self, width: int, height: int, **kwargs: Any) -> None:
         """
