@@ -563,17 +563,17 @@ class FilePacket:
         """
         self.history = []
 
-    def files(self) -> set[BaseFile]:
+    def files(self) -> list[BaseFile]:
         """
         Method to obtain the list of objects File stored at `_internal_files`.
         """
-        return set(self._internal_files.values())
+        return list(self._internal_files.values())
 
-    def names(self) -> set[str]:
+    def names(self) -> list[str]:
         """
         Method to obtain the list of names of internal files stored at `_internal_files`.
         """
-        return set(self._internal_files.keys())
+        return list(self._internal_files.keys())
 
     def reset(self) -> None:
         """
