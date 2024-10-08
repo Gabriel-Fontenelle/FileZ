@@ -24,7 +24,6 @@ from __future__ import annotations
 
 # first-party
 from datetime import datetime
-from io import BytesIO, StringIO
 from os import name
 from typing import Type, Any, Iterator, TYPE_CHECKING, Sequence
 
@@ -53,10 +52,13 @@ from ..serializer import JSONSerializer
 from ..adapters.storage import LinuxFileSystem, WindowsFileSystem
 
 if TYPE_CHECKING:
+    from io import BytesIO, StringIO
+    
     from ..serializer import PickleSerializer
     from ..adapters.mimetype import MimeTypeEngine
     from ..adapters.storage import StorageEngine
     from ..pipelines.extractor.package import PackageExtractor
+    
 
 
 __all__ = [
