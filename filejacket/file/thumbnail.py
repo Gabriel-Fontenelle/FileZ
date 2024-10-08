@@ -26,14 +26,14 @@ import itertools
 from typing import Any, Type, TYPE_CHECKING
 
 from ..exception import SerializerError
-from ..image import WandImage
+from ..adapters.image import WandImage
 from ..pipelines import Pipeline
 from ..pipelines.extractor.package import PSDLayersFromPackageExtractor
 from ..adapters.video import MoviePyVideo
 
 if TYPE_CHECKING:
     from . import BaseFile
-    from ..image import ImageEngine
+    from ..engines.image import ImageEngine
     from ..adapters.video import VideoEngine
 
 __all__ = [
@@ -208,6 +208,9 @@ class FileThumbnail:
     render_animated_pipeline: Pipeline = Pipeline(
         "filejacket.pipelines.render.animated.StaticAnimatedRender",
         "filejacket.pipelines.render.animated.ImageAnimatedRender",
+        "filejacket.pipelines.render.animated.PSDAnimatedRender",
+        "filejacket.pipelines.render.animated.VideoAnimatedRender",
+        "filejacket.pipelines.render.animated.DocumentAnimatedRender",
     )
     """
     Pipeline to render animated thumbnail representation from multiple source. For it to work, its classes should 
@@ -313,7 +316,7 @@ class FileThumbnail:
         files: list[BaseFile] = self._get_files_to_process(defaults)
 
         to_be_processed: list[BaseFile] = []
-
+        
         for file_object in files:
             # Call processor for each file running the pipeline to render an animated image
             # of the file, files that don't have a processor will result in None
@@ -324,7 +327,7 @@ class FileThumbnail:
                 **file_object._get_kwargs_for_pipeline(f"render_{name}_pipeline")
             )
 
-            # Check if animated image was generated
+            # Check if animated/static image was generated
             file_processed: BaseFile = getattr(file_object._thumbnail, f"_{name}_file")
 
             if file_processed is not None:
