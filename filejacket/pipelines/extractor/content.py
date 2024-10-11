@@ -57,7 +57,7 @@ class VideoMetadataFromContentExtractor(BaseExtractor):
         Method to extract additional metadata information from content.
         """
         # Use MoviePy to get additional metadata.
-        if not file_object.content:
+        if file_object._content is None:
             raise ValueError(
                 "Attribute `content` or `content_as_buffer` must be settled before calling "
                 "`VideoMetadataFromContentExtractor.extract`!"
@@ -97,7 +97,7 @@ class ImageMetadataFromContentExtractor(BaseExtractor):
         Method to extract additional metadata information from content.
         """
         # Use Wand to get additional metadata.
-        if not file_object.content:
+        if file_object._content is None:
             raise ValueError(
                 "Attribute `content` or `content_as_buffer` must be settled before calling "
                 "`VideoMetadataFromContentExtractor.extract`!"
@@ -132,7 +132,7 @@ class DocumentMetadataFromContentExtractor(BaseExtractor):
         Method to extract additional metadata information from content.
         """
         # Use fitz to get additional metadata.
-        if not file_object.content:
+        if file_object._content is None:
             raise ValueError(
                 "Attribute `content` or `content_as_buffer` must be settled before calling "
                 "`DocumentMetadataFromContentExtractor.extract`!"
@@ -176,7 +176,7 @@ class AudioMetadataFromContentExtractor(BaseExtractor):
         Method to extract additional metadata information from content.
         """
         # Use tinytag to get additional metadata.
-        if not file_object.content:
+        if file_object._content is None:
             raise ValueError(
                 "Attribute `content` or `content_as_buffer` must be settled before calling "
                 "`AudioMetadataFromContentExtractor.extract`!"
