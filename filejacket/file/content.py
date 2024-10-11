@@ -429,6 +429,13 @@ class FileContent:
         """
         return self.buffer_helper.binary
     
+    @property
+    def is_seekable(self):
+        """
+        If content cached or buffered support seek.
+        """
+        return self.buffer.seekable()
+        
     def reset(self) -> None:
         """
         Method to reset the content cached or buffer if allowed.
