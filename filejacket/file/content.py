@@ -440,9 +440,9 @@ class FileContent:
         """
         Method to reset the content cached or buffer if allowed.
         """
-        if self.buffer.seekable():
+        if self.is_seekable:
             self.buffer.seek(0)
-
+    
     def read(self, size: int | None = None) -> bytes | str | None:
         """
         Method to return part or whole content cached or buffered.
