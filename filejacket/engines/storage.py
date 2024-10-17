@@ -373,7 +373,17 @@ class StorageEngine:
             return path
 
         return dirname(path)
+    
+    @classmethod
+    def get_parent_directory_from_path(cls, path: str) -> str:
+        """
+        Method used to get the parent path from a complete path.
+        """
+        if cls.is_dir(path):
+            return dirname(path)
 
+        return dirname(dirname(path))
+    
     @classmethod
     def get_relative_path(cls, path: str, relative_to: str) -> str:
         """
