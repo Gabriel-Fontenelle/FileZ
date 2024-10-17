@@ -95,7 +95,7 @@ from .pipelines.render import (
     VideoRender
 )
 # Module with classes for serializing/deserializing objects.
-from .serializer import PickleSerializer, JSONSerializer
+from .serializer import PickleSerializer, JSONSerializer, FileJsonSerializer
 
 
 __all__ = [
@@ -113,7 +113,8 @@ __all__ = [
     'PSDRender', 'StaticAnimatedRender', 'VideoRender', 'ReservedFilenameError', 'SHA256Hasher',
     'SevenZipCompressedFilesFromPackageExtractor', 'SizeCompare', 'StorageEngine', 'StreamFile',
     'System', 'TypeCompare', 'URI', 'UniqueRenamer', 'ValidationError', 'MoviePyVideo', 'WandImage', 
-    'WindowsFileSystem', 'WindowsRenamer', 'ZipCompressedFilesFromPackageExtractor', 'VideoEngine'
+    'WindowsFileSystem', 'WindowsRenamer', 'ZipCompressedFilesFromPackageExtractor', 'VideoEngine',
+    'FileJsonSerializer'
 ]
 
 
