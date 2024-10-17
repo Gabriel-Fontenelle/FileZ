@@ -283,7 +283,8 @@ class BaseHasher:
         directory_path: str,
         filename: str,
         extension: str | None,
-        full_check: bool = False
+        full_check: bool = False,
+        full_loop_check: bool = False
     ) -> tuple[str, str]:
         """
         Method to find and load the hash value from a file named <filename>.<hasher name> or CHECKSUM.<hasher name>
