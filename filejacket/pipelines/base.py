@@ -291,6 +291,10 @@ class BaseHasher:
         or <directory_path>.<hasher_name>.
         Both names will be used if `full_check` is True, else only <filename>.<hasher name> will be searched.
         """
+        def generator_join_folder_name(folder_name, iterator):
+            for value in iterator:
+                yield cls.file_system_handler.join(folder_name, value)
+            
         extension = f'.{extension}' if extension else ''
         full_name: str = filename + extension
 
@@ -310,24 +314,43 @@ class BaseHasher:
 
         files_to_check: list[str] = [
             # Check checksum files that contain the full name of file plus `cls.hasher_name`
-            full_name + '.' + cls.hasher_name,
+            cls.file_system_handler.join(directory_path, full_name + '.' + cls.hasher_name),
             # Check checksum files that removed the extension from filename plus `cls.hasher_name`.
-            filename + '.' + cls.hasher_name,
+            cls.file_system_handler.join(directory_path, filename + '.' + cls.hasher_name),
             # Check checksum files that literally are named `CHECKSUM`.
-            'CHECKSUM.' + cls.hasher_name,
+            cls.file_system_handler.join(directory_path, 'CHECKSUM.' + cls.hasher_name),
             # Check checksum files that are named after its directory
-            cls.file_system_handler.get_filename_from_path(directory_path) + '.' + cls.hasher_name
+            cls.file_system_handler.join(directory_path, cls.file_system_handler.get_filename_from_path(directory_path) + '.' + cls.hasher_name)
         ]
 
-        if full_check:
+        if full_loop_check:
+            # Iterate through directory to find all files of type `cls.hasher_name` in order to load all available
+            # checksums loop until hash is found or root reached.
+            
+            list_checksums = list(generator_join_folder_name(directory_path, cls.file_system_handler.list_files(directory_path, f'*.{cls.hasher_name}')))
+            parent = cls.file_system_handler.get_parent_directory_from_path(directory_path)
+            
+            while (not list_checksums):
+                list_checksums = list(generator_join_folder_name(parent, cls.file_system_handler.list_files(parent, f'*.{cls.hasher_name}')))
+                
+                new_parent = cls.file_system_handler.get_parent_directory_from_path(parent)
+                
+                # If root reached break loop
+                if new_parent == parent:
+                    break
+                
+                parent = new_parent
+
+            files_to_check += list_checksums
+        
+        elif full_check:
             # Iterate through directory to find all files of type `cls.hasher_name` in order to load all available
             # checksums.
-            files_to_check += list(cls.file_system_handler.list_files(directory_path, f'*.{cls.hasher_name}'))
+            files_to_check += list(generator_join_folder_name(directory_path, cls.file_system_handler.list_files(directory_path, f'*.{cls.hasher_name}')))
 
         # Try to find filename with hasher_name in directory_path or
         # try to find filename in CHECKSUM.<hasher_name> in directory_path
-        for hash_filename in set(files_to_check):
-            file_path = cls.file_system_handler.join(directory_path, hash_filename)
+        for file_path in set(files_to_check):
             if cls.file_system_handler.exists(file_path):
                 for line in cls.file_system_handler.read_lines(file_path):
                     # We ignore lines that begin with comment describer `;`.
@@ -338,9 +361,9 @@ class BaseHasher:
                         hashed_value: str = line.lstrip().split(maxsplit=1)[0]
 
                         # Add hash to cache
-                        hash_directories[directory_path] = hashed_value
+                        hash_directories[directory_path] = hashed_value, file_path
 
-                        return hashed_value, hash_filename
+                        return hashed_value, file_path
 
         raise FileNotFoundError(f"{full_name} not found!")
 
@@ -362,7 +385,6 @@ class BaseHasher:
         """
         object_to_process: BaseFile = kwargs['object_to_process']
         try_loading_from_file: bool = kwargs.get('try_loading_from_file', False)
-        full_check: bool = kwargs.get('full_check', False)
 
         # Check if there is already a hash previously loaded on file,
         # so that we don't try to digest it again.
@@ -370,7 +392,7 @@ class BaseHasher:
 
             if try_loading_from_file:
                 # Check if hash loaded from file and if so exit with success.
-                if cls.process_from_file(full_check=full_check, **kwargs):
+                if cls.process_from_file(**kwargs):
                     return True
 
             file_id: str = str(id(object_to_process))
@@ -414,6 +436,7 @@ class BaseHasher:
         """
         object_to_process: BaseFile = kwargs.pop('object_to_process')
         full_check: bool = kwargs.pop('full_check', True)
+        full_loop_check: bool = kwargs.pop('full_loop_check', False)
 
         # Save current file system filejacket
         class_file_system_handler: Type[StorageEngine] = cls.file_system_handler
@@ -428,11 +451,12 @@ class BaseHasher:
         directory_path: str = cls.file_system_handler.get_directory_from_path(path)
 
         try:
-            hex_value, hash_filename = cls.load_from_file(
+            hex_value, hash_file_path = cls.load_from_file(
                 directory_path=directory_path,
                 filename=object_to_process.filename,
                 extension=object_to_process.extension,
-                full_check=full_check
+                full_check=full_check,
+                full_loop_check=full_loop_check
             )
         except FileNotFoundError:
             return False
@@ -444,7 +468,7 @@ class BaseHasher:
 
         # Add hash to file. The content will be obtained from file pointer.
         hash_file: BaseFile = object_to_process.__class__(
-            path=f"{file_system.join(directory_path, hash_filename)}",
+            path=hash_file_path,
             extract_data_pipeline=Pipeline(
                 'filejacket.pipelines.extractor.FilenameAndExtensionFromPathExtractor',
                 'filejacket.pipelines.extractor.MimeTypeFromFilenameExtractor',
@@ -454,7 +478,7 @@ class BaseHasher:
         )
         # Set-up metadata checksum as boolean to indicate whether the source
         # of the hash is a CHECKSUM.hasher_name file (contains multiple files) or not.
-        hash_file.meta.checksum = 'CHECKSUM.' in hash_filename
+        hash_file.meta.checksum = 'CHECKSUM.' in hash_file_path
 
         # Set-up metadata loaded as boolean to indicate whether the source
         # of the hash was loaded from a file or not.
