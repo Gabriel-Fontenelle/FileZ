@@ -24,7 +24,7 @@ Should there be a need for contact the electronic mail
 from __future__ import annotations
 
 import mimetypes
-from os.path import dirname, realpath, join
+from os.path import dirname, realpath, join, exists
 
 from ..engines.mimetype import MimeTypeEngine
 
@@ -41,7 +41,7 @@ class LibraryMimeTyper(MimeTypeEngine):
     from an updated `mime.types` file in data directory.
     """
 
-    _known_mimetypes_file: str = join(dirname(realpath(__file__)), 'data', 'mime.types')
+    _known_mimetypes_file: str = join(dirname(dirname(realpath(__file__))), 'data', 'mime.types')
     """
     Path of file `mime.types` to be loaded of known mimetypes.
     """
@@ -51,6 +51,7 @@ class LibraryMimeTyper(MimeTypeEngine):
         Method that instantiate the mimetype library and load to it the file of known mimetypes.
         It will output a IOError, that must be caught in stack above, if file don't exists.
         """
+        assert exists(self._known_mimetypes_file)
         mimetypes.init(files=[self._known_mimetypes_file])
 
     @property
