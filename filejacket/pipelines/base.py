@@ -354,7 +354,7 @@ class BaseHasher:
             if cls.file_system_handler.exists(file_path):
                 for line in cls.file_system_handler.read_lines(file_path):
                     # We ignore lines that begin with comment describer `;`.
-                    if ';' != line[0] and full_name in line:
+                    if ';' != line[0] and '#' != line[0] and full_name in line:
                         # Get hash from line and return it.
                         # It's assuming that first argument until first white space if the hash and second
                         # is the filename.
