@@ -49,16 +49,17 @@ class BufferStr:
     write_mode: str = ""
     buffer_class: type = StringIO
     binary: bool = False
+    encoding: str = "utf-8"
     
     @classmethod
-    def to_bytes(cls, value: str, encoding: str) -> bytes:
+    def to_bytes(cls, value: str) -> bytes:
         """"""
-        return value.encode(encoding)
+        return value.encode(cls.encoding)
     
     @classmethod
-    def to_base64(cls, value: str, encoding: str) -> bytes:
+    def to_base64(cls, value: str) -> bytes:
         """"""
-        return b64encode(cls.to_bytes(value, encoding))
+        return b64encode(cls.to_bytes(value)).decode('ascii')
     
     @classmethod
     def to_buffer(cls, value) -> StringIO:
@@ -75,14 +76,14 @@ class BufferBytes:
     binary: bool = True
 
     @classmethod
-    def to_bytes(cls, value: bytes, encoding: str) -> bytes:
+    def to_bytes(cls, value: bytes) -> bytes:
         """"""
         return value
     
     @classmethod
-    def to_base64(cls, value: bytes, encoding: str) -> bytes:
+    def to_base64(cls, value: bytes) -> bytes:
         """"""
-        return b64encode(cls.to_bytes(value, encoding))
+        return b64encode(cls.to_bytes(value)).decode('ascii')
 
     @classmethod
     def to_buffer(cls, value) -> BytesIO:
