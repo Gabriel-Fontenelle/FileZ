@@ -223,13 +223,16 @@ class FileSystemDataExtractor(BaseExtractor):
             file_object.update_date = file_system_handler.get_modified_date(file_object.path)
 
         # Define mode from file type
-        mode: str = 'r'
-
-        if file_object.type != 'text':
-            mode += 'b'
+        mode: str = 'rb'
+        encoding = None
+        
+        if file_object.type == 'text':
+            # Find charset for non unicode files
+            encoding = file_object.storage.get_charset(file_object.path)
+            mode = 'r'
 
         # Get buffer io
-        buffer: BytesIO | StringIO | IO = file_object.storage.open_file(file_object.path, mode=mode)
+        buffer: BytesIO | StringIO | IO = file_object.storage.open_file(file_object.path, mode=mode, encoding=encoding)
 
         # Set content with buffer, as content is a property it will validate the buffer and
         # add it as a generator allowing to just loop through chunks of content.

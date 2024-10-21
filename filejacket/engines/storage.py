@@ -154,12 +154,12 @@ class StorageEngine:
         return True
 
     @classmethod
-    def open_file(cls, path: str, mode: str = 'rb') -> StringIO | BytesIO | IO:
+    def open_file(cls, path: str, mode: str = 'rb', encoding: str | None = None) -> StringIO | BytesIO | IO:
         """
         Method to return a buffer to a file. This method don't automatically closes file buffer.
         Override this method if that’s not appropriate for your storage.
         """
-        return open(path, mode=mode)
+        return open(path, mode=mode, encoding=encoding)
 
     @classmethod
     def close_file(cls, file_buffer: StringIO | BytesIO | IO) -> None:
