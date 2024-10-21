@@ -269,8 +269,8 @@ class TransmuterThumbnail(BaseTransmuter):
         # static_file = thumbnail["_static_file"].content_as_base64 if thumbnail["_static_file"] else None
         # animated_file = thumbnail["_animated_file"].content_as_base64 if thumbnail["_animated_file"] else None
         # TODO: Simplify usage of serializer instead of whole file to save only the content as base64.
-        static_file = FileWithContentDictionarySerializer.serialize(thumbnail["_static_file"]) if thumbnail["_static_file"] else None
-        animated_file = FileWithContentDictionarySerializer.serialize(thumbnail["_animated_file"]) if thumbnail["_animated_file"] else None
+        static_file = FileWithContentDictionarySerializer.serialize(thumbnail["_static_file"]) if thumbnail["_static_file"] is not None and thumbnail["_static_file"] is not False else None
+        animated_file = FileWithContentDictionarySerializer.serialize(thumbnail["_animated_file"]) if thumbnail["_animated_file"] is not None and thumbnail["_animated_file"] is not False else None
         
         transmuter_class = TransmuterClass()
         transmuter_class.serializer = self.serializer
@@ -347,7 +347,7 @@ class TransmuterHashes(BaseTransmuter):
                 serialized = {
                     "path": cache_file.sanitize_path,
                     "class": transmuter_class.from_data(cache_file.__class__),
-                    "content": self.serializer._content.from_data(cache_file._content)
+                    "content": self.serializer._content.from_data(cache_file._content) if cache_file._content else None
                 }
                 
             cache[hash_name] = (
@@ -371,7 +371,7 @@ class TransmuterHashes(BaseTransmuter):
             cache_file_class = transmuter_class.to_data(hash_tuple[1]["class"], reference=reference)
             if "content" in hash_tuple[1]:
                 hash_file: BaseFile = cache_file_class(path=hash_tuple[1]["path"])
-                hash_file._content = self.serializer._content.to_data(hash_tuple[1]["content"])
+                hash_file._content = self.serializer._content.to_data(hash_tuple[1]["content"]) if hash_tuple[1]["content"] else None
                 
                 # Set up metadata checksum as boolean to indicate whether the source
                 # of the hash is a CHECKSUM.hasher_name file (contains multiple files) or not.
@@ -456,7 +456,7 @@ class TransmuterContent(BaseTransmuter):
     def from_data(self, value: FileContent) -> dict[str, Any] | None:
         """
         Method to convert `value`source to dict for serialization.
-        """
+        """        
         dict_to_return = value.__serialize__
 
         if value.should_load_to_memory:
@@ -471,6 +471,7 @@ class TransmuterContent(BaseTransmuter):
         # If no buffer available, it should return None.
         buffer_name = getattr(dict_to_return['buffer'], 'name', '')
         buffer_mode = getattr(dict_to_return['buffer'], 'mode', '')
+        
         if not buffer_name and not buffer_mode:
             return None
         
@@ -522,6 +523,11 @@ class TransmuterContentBase64(BaseTransmuter):
 
         # Convert buffer to a structure that can be used to instantiate a new buffer later.
         dict_to_return["buffer"] = f"{getattr(dict_to_return['buffer'], 'name', '')}:{getattr(dict_to_return['buffer'], 'mode', '')}"
+        
+        transmuter_class = TransmuterClass()
+        transmuter_class.serializer = self.serializer
+        
+        dict_to_return["buffer_helper"] = transmuter_class.from_data(dict_to_return["buffer_helper"])
 
         return dict_to_return
 
@@ -530,11 +536,17 @@ class TransmuterContentBase64(BaseTransmuter):
         Method to reverse the conversion at `from_data`.
         """
         buffer = value.pop("buffer").rsplit(':', 1)
+        buffer_helper = value.pop("buffer_helper")
+        
         content = b64decode(value.pop("content_base64"))
+        
+        transmuter_class = TransmuterClass()
+        transmuter_class.serializer = self.serializer
         
         return FileContent(
             related_file_object=reference,
             buffer=reference.storage.open_file(path=buffer[0], mode=buffer[1]),
+            buffer_helper=transmuter_class.to_data(buffer_helper, reference=reference),
             _cached_content=content,
             **value
         )
