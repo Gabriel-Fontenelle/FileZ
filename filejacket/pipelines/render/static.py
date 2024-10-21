@@ -242,7 +242,8 @@ class VideoRender(BaseStaticRender):
         "mp4",
         "flv",
         "wmv",
-        "3gp"
+        "3gp",
+        "m2ts"
     }
     """
     Attribute to store allowed extensions for use in `validator`.

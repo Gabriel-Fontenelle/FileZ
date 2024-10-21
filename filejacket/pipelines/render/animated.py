@@ -304,7 +304,7 @@ class VideoAnimatedRender(BaseAnimatedRender):
     This class make use of sequences.
     """
 
-    extensions: set[str] = {"avi", "mkv", "mpg", "mpeg", "mp4", "flv", "3gp", "m4a"}
+    extensions: set[str] = {"avi", "mkv", "mpg", "mpeg", "mp4", "flv", "3gp", "m4a", "m2ts"}
     """
     Attribute to store allowed extensions for use in `validator`.
     """
