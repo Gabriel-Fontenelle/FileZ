@@ -51,6 +51,7 @@ from shutil import copyfile, rmtree
 from sys import version_info
 from typing import Any, TYPE_CHECKING, Generator, Iterator, Pattern, IO
 
+from charset_normalizer import from_path
 from send2trash import send2trash
 
 if TYPE_CHECKING:
@@ -449,6 +450,17 @@ class StorageEngine:
         This method should be overwritten in child specific for Operational System.
         """
         raise NotImplementedError("Method get_created_date(path) should be accessed through inherent class.")
+
+    @classmethod
+    def get_charset(cls, path: str) -> str | None:
+        """
+        Method to get the charset from a given file."""
+        guessed = from_path(path).best()
+        
+        if not guessed:
+            return None
+        
+        return guessed.encoding
 
     @classmethod
     def get_renamed_path(cls, path: str, sequence: int = 1) -> str:
