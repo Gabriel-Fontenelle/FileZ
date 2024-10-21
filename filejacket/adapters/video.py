@@ -93,7 +93,7 @@ class MoviePyVideo(VideoEngine):
         from moviepy.editor import VideoClip
         from imageio import imopen
 
-        video_array: PluginV3 = imopen(self.source_buffer, io_mode="r") # type: ignore
+        video_array: PluginV3 = imopen(self.source_buffer, io_mode="r", plugin="pyav") # type: ignore
         self.metadata: dict[str, Any] = video_array.metadata()
 
         def make_frame(t):
@@ -103,7 +103,13 @@ class MoviePyVideo(VideoEngine):
             """
             return video_array.read(index=t)
 
-        self.video = VideoClip(make_frame, duration=self.metadata['duration'])
+        try:
+            duration = self.metadata["duration"]
+        except KeyError:
+            duration = int(float(video_array._container.duration * video_array._video_stream.time_base) // 1000)
+            self.metadata["duration"] = duration
+        
+        self.video = VideoClip(make_frame, duration=duration)
         self.video.fps = self.metadata['fps']
 
     def show(self) -> None:
