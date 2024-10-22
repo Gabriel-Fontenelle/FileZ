@@ -5,6 +5,7 @@ from filejacket import File
 from .data.images import DATA_DIR as IMAGE_DATA_DIR
 from .data.videos import DATA_DIR as VIDEO_DATA_DIR
 from .data.packets import DATA_DIR as PACKET_DATA_DIR
+from .data.text import DATA_DIR as TEXT_DATA_DIR
 
 
 @pytest.fixture
@@ -15,6 +16,11 @@ def file_jpg():
 @pytest.fixture
 def file_png():
     return File(path="")
+
+
+@pytest.fixture
+def file_txt():
+    return File(path=f"{TEXT_DATA_DIR}/content_for_test.txt")
 
 
 @pytest.fixture
