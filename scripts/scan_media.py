@@ -25,8 +25,9 @@ import pwd
 from os import listdir, getcwd
 from os.path import isdir
 
-from filejacket import LinuxFileSystem, WindowsFileSystem, JSONSerializer
+from filejacket import LinuxFileSystem, WindowsFileSystem
 from filejacket.file import File
+from filejacket.serializer import FileJsonSerializer
 
 HASH_FILES = ['md5', 'sfv']
 
@@ -101,7 +102,7 @@ def process_hash_file(directory, file_path):
 def process_file(directory, file_path):
     # Load file and hashes` files.
     file_object = File(path=file_path)
-    file_object.serializer = JSONSerializer
+    file_object.serializer = FileJsonSerializer
 
     # Get filename with base in is_content_wholesome attribute that process loaded hashes files.
     filename_to_save = get_filename(file_object)

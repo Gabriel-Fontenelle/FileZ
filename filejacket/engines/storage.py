@@ -35,12 +35,10 @@ from os.path import (
     basename,
     dirname,
     exists,
-    getctime,
     getmtime,
     getsize,
     isdir,
     join,
-    normcase,
     normpath,
 )
 from pathlib import (
