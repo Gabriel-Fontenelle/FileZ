@@ -430,6 +430,13 @@ class BaseFile:
         """
         return self.__gt__(other_instance) or self.__eq__(other_instance)
 
+    def __bool__(self):
+        """
+        Method to allow evaluation of BaseFile to return True.
+        Without this method `if BaseFile` will return False.
+        """
+        return True
+    
     @property
     def __version__(self) -> str:
         """
