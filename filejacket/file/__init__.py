@@ -24,14 +24,13 @@ from __future__ import annotations
 
 # first-party
 from datetime import datetime
-from io import BytesIO, StringIO
 from os import name
 from typing import Type, Any, Iterator, TYPE_CHECKING, Sequence
 
 # modules
 from .action import FileActions
 from .content import FilePacket, FileContent
-from .hash import FileHashes
+from .hasher import FileHashes
 from .meta import FileMetadata
 from .name import FileNaming
 from .option import FileOption
@@ -47,16 +46,19 @@ from ..exception import (
     ValidationError,
 )
 from ..handler import URI
-from ..mimetype import LibraryMimeTyper
+from ..adapters.mimetype import LibraryMimeTyper
 from ..pipelines import Pipeline
 from ..serializer import JSONSerializer
-from ..storage import LinuxFileSystem, WindowsFileSystem
+from ..adapters.storage import LinuxFileSystem, WindowsFileSystem
 
 if TYPE_CHECKING:
+    from io import BytesIO, StringIO
+    
     from ..serializer import PickleSerializer
-    from ..mimetype import BaseMimeTyper
-    from ..storage import Storage
+    from ..adapters.mimetype import MimeTypeEngine
+    from ..adapters.storage import StorageEngine
     from ..pipelines.extractor.package import PackageExtractor
+    
 
 
 __all__ = [
@@ -147,7 +149,7 @@ class BaseFile:
     """
 
     # Handler
-    storage: Type[Storage]
+    storage: Type[StorageEngine]
     storage = None
     """
     Storage or file system currently in use for File.
@@ -158,7 +160,7 @@ class BaseFile:
     Serializer available to make the object portable. 
     This can be changed to any class that implements serialize and deserialize method.
     """
-    mime_type_handler: BaseMimeTyper = LibraryMimeTyper()
+    mime_type_handler: MimeTypeEngine = LibraryMimeTyper()
     """
     Mimetype filejacket that defines the source of know Mimetypes.
     This is used to identify mimetype from extension and vice-verse.
@@ -428,6 +430,13 @@ class BaseFile:
         """
         return self.__gt__(other_instance) or self.__eq__(other_instance)
 
+    def __bool__(self):
+        """
+        Method to allow evaluation of BaseFile to return True.
+        Without this method `if BaseFile` will return False.
+        """
+        return True
+    
     @property
     def __version__(self) -> str:
         """
@@ -856,8 +865,8 @@ class BaseFile:
                 if possible_extension not in self.mime_type_handler.get_extensions(self.mime_type):
                     return False
 
-            # Use first class Renamer declared in pipeline because `prepare_filename` is a class method from base
-            # Renamer class, and we don't require any other specialized methods from Renamer children.
+            # Use first class BaseRenamer declared in pipeline because `prepare_filename` is a class method from base
+            # BaseRenamer class, and we don't require any other specialized methods from BaseRenamer children.
             processor: object = self.rename_pipeline[0]
             if not hasattr(processor, 'prepare_filename'):
                 raise ImproperlyConfiguredPipeline("The rename pipeline first processor class don't implement the "
@@ -1114,8 +1123,8 @@ class BaseFile:
             raise self.ValidationError("The attribute `save_to` must be set for the file!")
 
         # Raise if not content provided.
-        if self.content is None:
-            raise self.ValidationError("The attribute `content` must be set for the file!")
+        if self._content is None:
+            raise self.ValidationError("The attribute `content` or `content_as_buffer` must be set for the file!")
 
         # Check if mimetype is compatible with extension
         if self.extension and self.mime_type and self.extension not in self.mime_type_handler.get_extensions(
@@ -1131,57 +1140,4 @@ class BaseFile:
         """
         write_mode: str = 'b' if self.is_binary else 't'
 
-        self.storage.save_file(path, self.content, file_mode='w', write_mode=write_mode)
-
-
-class ContentFile(BaseFile):
-    """
-    Class to create a file from an in memory content.
-    It can load a file already saved as BaseFile allow it, but is recommended to use `File` instead
-    because it will have a more complete pipeline for data extraction.
-    a new one from memory using `ContentFile`.
-    """
-
-    extract_data_pipeline: Pipeline = Pipeline(
-        'filejacket.pipelines.extractor.FilenameFromMetadataExtractor',
-        'filejacket.pipelines.extractor.MimeTypeFromFilenameExtractor',
-        'filejacket.pipelines.extractor.MimeTypeFromContentExtractor',
-    )
-    """
-    Pipeline to extract data from multiple sources.
-    """
-
-
-class StreamFile(BaseFile):
-    """
-    Class to create a file from an HTTP stream that has a header with metadata.
-    """
-
-    extract_data_pipeline: Pipeline = Pipeline(
-        'filejacket.pipelines.extractor.FilenameFromMetadataExtractor',
-        'filejacket.pipelines.extractor.FilenameFromURLExtractor',
-        'filejacket.pipelines.extractor.MimeTypeFromFilenameExtractor',
-        'filejacket.pipelines.extractor.MimeTypeFromContentExtractor',
-        'filejacket.pipelines.extractor.MetadataExtractor'
-    )
-    """
-    Pipeline to extract data from multiple sources.
-    """
-
-
-class File(BaseFile):
-    """
-    Class to create a file from an already saved path in filesystem.
-    It can create a new file as BaseFile allow it, but is recommended to create
-    a new one from memory using `ContentFile`.
-    """
-
-    extract_data_pipeline: Pipeline = Pipeline(
-        'filejacket.pipelines.extractor.FilenameAndExtensionFromPathExtractor',
-        'filejacket.pipelines.extractor.MimeTypeFromFilenameExtractor',
-        'filejacket.pipelines.extractor.FileSystemDataExtractor',
-        'filejacket.pipelines.extractor.HashFileExtractor',
-    )
-    """
-    Pipeline to extract data from multiple sources.
-    """
+        self.storage.save_file(path, self._content, file_mode='w', write_mode=write_mode)

@@ -31,7 +31,7 @@ from typing import Any, Type, TYPE_CHECKING
 import pytz
 from dill import dumps, loads, HIGHEST_PROTOCOL
 
-from ..storage import LinuxFileSystem
+from ..adapters.storage import LinuxFileSystem
 
 if TYPE_CHECKING:
     from .storage import Storage

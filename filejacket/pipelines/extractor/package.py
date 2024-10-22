@@ -31,7 +31,7 @@ from zipfile import BadZipFile, ZipFile
 
 from rarfile import BadRarFile, RarFile, NotRarFile
 
-from .extractor import Extractor
+from ..base import BaseExtractor
 from .. import Pipeline
 from ..hasher import CRC32Hasher
 from ...exception import ValidationError
@@ -40,7 +40,7 @@ from ...utils import LazyImportClass
 if TYPE_CHECKING:
 
     from ...file import BaseFile
-    from ...storage import Storage
+    from ...engines.storage import StorageEngine
     from psd_tools import PSDImage
     from py7zr import SevenZipFile
 
@@ -54,7 +54,7 @@ __all__ = [
 ]
 
 
-class PackageExtractor(Extractor):
+class PackageExtractor(BaseExtractor):
     """
     Extractor class with focus to processing information from file's content.
     This class was created to allow parsing and extraction of data designated to
@@ -198,7 +198,7 @@ class PackageExtractor(Extractor):
         Method used to run this class on Processor`s Pipeline for Extracting info from Data.
         This process method is created exclusively to pipeline for objects inherent from BaseFile.
 
-        The processor for package extraction override the method `Extractor.process` in order to validate
+        The processor for package extraction override the method `BaseExtractor.process` in order to validate
         the extension before processing the `object_to_process`.
         """
         try:
@@ -308,7 +308,7 @@ class PSDLayersFromPackageExtractor(PackageExtractor):
             return False
 
         try:
-            file_system: Type[Storage] = file_object.storage
+            file_system: Type[StorageEngine] = file_object.storage
             file_class: Type[BaseFile] = file_object.__class__
 
             # We don't need to reset the buffer before calling it, because it will be reset
@@ -463,7 +463,7 @@ class TarCompressedFilesFromPackageExtractor(PackageExtractor):
             return False
 
         try:
-            file_system: Type[Storage] = file_object.storage
+            file_system: Type[StorageEngine] = file_object.storage
             file_class: Type[BaseFile] = file_object.__class__
 
             # We don't need to reset the buffer before calling it, because it will be reset
@@ -573,7 +573,7 @@ class ZipCompressedFilesFromPackageExtractor(PackageExtractor):
                 """
                 if not hasattr(self, "buffer"):
                     # Instantiate the buffer of inner content
-                    compressed: ZipFile = cls.compressor(file=self.source_file_object.buffer)
+                    compressed: ZipFile = cls.compressor(file=self.source_file_object.content_as_buffer)
 
                     self.buffer = compressed.open(name=self.filename)
 
@@ -631,7 +631,7 @@ class ZipCompressedFilesFromPackageExtractor(PackageExtractor):
             return False
 
         try:
-            file_system: Type[Storage] = file_object.storage
+            file_system: Type[StorageEngine] = file_object.storage
             file_class: Type[BaseFile] = file_object.__class__
 
             # We don't need to reset the buffer before calling it, because it will be reset
@@ -799,7 +799,7 @@ class RarCompressedFilesFromPackageExtractor(PackageExtractor):
             return False
 
         try:
-            file_system: Type[Storage] = file_object.storage
+            file_system: Type[StorageEngine] = file_object.storage
             file_class: Type[BaseFile] = file_object.__class__
 
             # We don't need to reset the buffer before calling it, because it will be reset
@@ -977,7 +977,7 @@ class SevenZipCompressedFilesFromPackageExtractor(PackageExtractor):
         try:
             cls.validate(file_object)
 
-            file_system: Type[Storage] = file_object.storage
+            file_system: Type[StorageEngine] = file_object.storage
             file_class: Type[BaseFile] = file_object.__class__
 
             # We don't need to reset the buffer before calling it, because it will be reset

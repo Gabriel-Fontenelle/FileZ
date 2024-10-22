@@ -14,7 +14,6 @@ from .external_data import (
     FilenameFromURLExtractor,
     PathFromURLExtractor
 )
-from .extractor import Extractor
 from .package import (
     PackageExtractor,
     SevenZipCompressedFilesFromPackageExtractor,
@@ -25,7 +24,6 @@ from .package import (
 
 __all__ = [
     # Parent classes
-    "Extractor",
     "PackageExtractor",
     # Parsing from storage
     "FileSystemDataExtractor",

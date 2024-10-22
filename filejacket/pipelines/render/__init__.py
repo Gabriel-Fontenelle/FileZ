@@ -20,18 +20,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 Should there be a need for contact the electronic mail
 `filejacket <at> gabrielfontenelle.com` can be used.
 """
-from .animated import AnimatedRender, StaticAnimatedRender, ImageAnimatedRender
-from .static import StaticRender, DocumentFirstPageRender, ImageRender, PSDRender, VideoRender
+from .animated import BaseAnimatedRender, StaticAnimatedRender, ImageAnimatedRender
+from .static import BaseStaticRender, DocumentFirstPageRender, ImageRender, PSDRender, VideoRender
 
 __all__ = [
     # Static
+    "BaseStaticRender",
     "DocumentFirstPageRender",
     "ImageRender",
     "PSDRender",
     "StaticRender",
     "VideoRender",
     # Animated
-    "AnimatedRender",
+    "BaseAnimatedRender",
     "ImageAnimatedRender",
     "StaticAnimatedRender",
 ]

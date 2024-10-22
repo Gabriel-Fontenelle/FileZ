@@ -25,9 +25,11 @@ from __future__ import annotations
 from io import StringIO
 from typing import TYPE_CHECKING, Any
 
-from .extractor import Extractor
-from ...image import WandImage
-from ...video import MoviePyVideo
+from filejacket.exception import OperationNotAllowed
+
+from ..base import BaseExtractor
+from ...adapters.image import WandImage
+from ...adapters.video import MoviePyVideo
 
 if TYPE_CHECKING:
     from fitz import Document
@@ -42,7 +44,7 @@ __all__ = [
 ]
 
 
-class VideoMetadataFromContentExtractor(Extractor):
+class VideoMetadataFromContentExtractor(BaseExtractor):
     """
     Extractor class created for extracting metadata contained in videos using MoviePy.
     This class don't validate any extensions to see if it's video, so any exception that this class output will
@@ -55,7 +57,7 @@ class VideoMetadataFromContentExtractor(Extractor):
         Method to extract additional metadata information from content.
         """
         # Use MoviePy to get additional metadata.
-        if not file_object.content:
+        if file_object._content is None:
             raise ValueError(
                 "Attribute `content` or `content_as_buffer` must be settled before calling "
                 "`VideoMetadataFromContentExtractor.extract`!"
@@ -82,7 +84,7 @@ class VideoMetadataFromContentExtractor(Extractor):
                 setattr(file_object.meta, attribute, value)
 
 
-class ImageMetadataFromContentExtractor(Extractor):
+class ImageMetadataFromContentExtractor(BaseExtractor):
     """
     Extractor class created for extracting metadata contained in images using Wand.
     This class don't validate any extensions to see if it's image, so any exception that this class output will
@@ -95,7 +97,7 @@ class ImageMetadataFromContentExtractor(Extractor):
         Method to extract additional metadata information from content.
         """
         # Use Wand to get additional metadata.
-        if not file_object.content:
+        if file_object._content is None:
             raise ValueError(
                 "Attribute `content` or `content_as_buffer` must be settled before calling "
                 "`VideoMetadataFromContentExtractor.extract`!"
@@ -116,7 +118,7 @@ class ImageMetadataFromContentExtractor(Extractor):
                 setattr(file_object.meta, attribute, value)
 
 
-class DocumentMetadataFromContentExtractor(Extractor):
+class DocumentMetadataFromContentExtractor(BaseExtractor):
     """
     Extractor class created for extracting metadata contained in PDF, ePub and other documents that
     pyMuPDF can open.
@@ -130,7 +132,7 @@ class DocumentMetadataFromContentExtractor(Extractor):
         Method to extract additional metadata information from content.
         """
         # Use fitz to get additional metadata.
-        if not file_object.content:
+        if file_object._content is None:
             raise ValueError(
                 "Attribute `content` or `content_as_buffer` must be settled before calling "
                 "`DocumentMetadataFromContentExtractor.extract`!"
@@ -160,7 +162,7 @@ class DocumentMetadataFromContentExtractor(Extractor):
                 setattr(file_object.meta, attribute, value)
 
 
-class AudioMetadataFromContentExtractor(Extractor):
+class AudioMetadataFromContentExtractor(BaseExtractor):
     """
     Extractor class created for extracting metadata contained audio files that can be opened through
     TinyTag.
@@ -174,7 +176,7 @@ class AudioMetadataFromContentExtractor(Extractor):
         Method to extract additional metadata information from content.
         """
         # Use tinytag to get additional metadata.
-        if not file_object.content:
+        if file_object._content is None:
             raise ValueError(
                 "Attribute `content` or `content_as_buffer` must be settled before calling "
                 "`AudioMetadataFromContentExtractor.extract`!"
@@ -220,5 +222,33 @@ class AudioMetadataFromContentExtractor(Extractor):
                 setattr(file_object.meta, attribute, tinytag_attribute)
 
 
-class MimeTypeFromContentExtractor(Extractor):
-    pass
+class MimeTypeFromContentExtractor(BaseExtractor):
+    
+    @classmethod
+    def extract(cls, file_object: BaseFile, overrider: bool, **kwargs: Any) -> None:
+        """
+        Method to extract mimetype information from content.
+        """
+        if file_object._content is None:
+            raise ValueError(
+                "Attribute `content` or `content_as_buffer` must be settled before calling "
+                "`AudioMetadataFromContentExtractor.extract`!"
+            )
+        
+        # Check if already there is a mimetype, if exists do nothing.
+        if file_object.mime_type and not overrider:
+            return
+        
+        if not file_object._content.is_seekable:
+            raise OperationNotAllowed("The MimeTypeFromContentExtractor extractor cannot be used with a file_object`s content that is not seekable.")
+        
+        from polyfile.magic import MagicMatcher
+
+        mime_types = []
+        
+        # We only need the first 32 
+        for match in MagicMatcher.DEFAULT_INSTANCE.match(file_object.content_as_buffer.read(32)):
+            mime_types += list(match.mimetypes)        
+        
+        # This will throw KeyError if no mime_type is found. 
+        file_object.mime_type = mime_types[0]

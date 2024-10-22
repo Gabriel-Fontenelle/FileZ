@@ -61,7 +61,7 @@ class Processor:
                               f"{dotted_path} is a python string with dotted path to a processor class.")
 
     @classmethod
-    def instantialize(self, processor: object, parameters: dict[str, Any]) -> object:
+    def instantiate(self, processor: object, parameters: dict[str, Any]) -> object:
         """
         Method to set initial parameters required for processor to work.
         Current parameters: stopper <False>, stop_value <True>.
@@ -108,6 +108,7 @@ class Processor:
                 setattr(object_to_set, attribute, value)
 
         return object_to_set
+
 
 class Pipeline:
     """
@@ -220,7 +221,7 @@ class Pipeline:
                 candidate_class = processor.import_class(candidate_path)
 
             # Add additional attributes with option to override some parameters.
-            processor_object = processor.instantialize(candidate_class, parameters=parameters_to_override)
+            processor_object = processor.instantiate(candidate_class, parameters=parameters_to_override)
 
             # Validate that all attributes and methods required for `run` exist in the class.
             # A ValidationError will be raised if there is a problem.

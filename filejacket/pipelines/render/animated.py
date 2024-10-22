@@ -22,22 +22,21 @@ Should there be a need for contact the electronic mail
 """
 from __future__ import annotations
 
-from io import BytesIO
+from io import BytesIO, StringIO
 from typing import Any, TYPE_CHECKING, Type
 
-from .static import StaticRender
+from ..base import BaseRender
 from .. import Pipeline
 from ...exception import RenderError
 
 if TYPE_CHECKING:
-    from io import StringIO
     from ...file import BaseFile
     from ...file.thumbnail import PreviewDefaults
-    from ...image.engine import ImageEngine
-    from ...video.engine import VideoEngine
+    from ...engines.image import ImageEngine
+    from ...engines.video import VideoEngine
 
 __all__ = [
-    'AnimatedRender',
+    'BaseAnimatedRender',
     'DocumentAnimatedRender',
     'ImageAnimatedRender',
     'PSDAnimatedRender',
@@ -46,7 +45,7 @@ __all__ = [
 ]
 
 
-class AnimatedRender(StaticRender):
+class BaseAnimatedRender(BaseRender):
     """
     Render class with focus to processing information from file's content to create an animated representation of it.
     """
@@ -81,7 +80,7 @@ class AnimatedRender(StaticRender):
         return animated_file
 
 
-class StaticAnimatedRender(AnimatedRender):
+class StaticAnimatedRender(BaseAnimatedRender):
     """
     Render class for processing information from file's content focusing in rendering the whole image.
     This class not make use of sequences.
@@ -120,7 +119,7 @@ class StaticAnimatedRender(AnimatedRender):
         )
 
 
-class ImageAnimatedRender(AnimatedRender):
+class ImageAnimatedRender(BaseAnimatedRender):
     """
     Render class for processing information from file's content focusing in rendering a sample of the whole animated
     image.
@@ -160,7 +159,7 @@ class ImageAnimatedRender(AnimatedRender):
         )
 
 
-class DocumentAnimatedRender(AnimatedRender):
+class DocumentAnimatedRender(BaseAnimatedRender):
     """
     Render class for processing information from file's content focusing in rendering a sample of the document's pages.
     This class make use of sequences.
@@ -202,8 +201,10 @@ class DocumentAnimatedRender(AnimatedRender):
         images: list[ImageEngine] = []
 
         total_frames: int = doc.page_count
-        steps: int = total_frames // (total_frames * defaults.duration // 100)
+        steps: int = total_frames // int(total_frames / 100 * defaults.duration)
 
+        image: ImageEngine
+        
         for page in doc.pages(0, total_frames, steps):
             bitmap = page.get_pixmap(dpi=defaults.format_dpi)
 
@@ -212,7 +213,7 @@ class DocumentAnimatedRender(AnimatedRender):
             bitmap.pil_save(fp=buffer, format=defaults.format)
             buffer.seek(0)
 
-            image: ImageEngine = image_engine(buffer=buffer)
+            image = image_engine(buffer=buffer)
 
             # Trim white space originated from epub.
             image.trim(color=defaults.color_to_trim)
@@ -224,17 +225,17 @@ class DocumentAnimatedRender(AnimatedRender):
             images.append(image)
 
         # Create sequence image.
-        image = images[0].clone()
-        image.append_to_sequence(images=[image.image for image in images[1:]], encode_format=defaults.format)
+        image_sequence = images[0].clone()
+        image_sequence.append_to_sequence(images=[engine.image for engine in images[1:]], encode_format=defaults.format)
 
         # Set static file for current file_object.
         file_object._thumbnail._animated_file = cls.create_file(
             file_object,
-            content=image.get_buffer(encode_format=defaults.format)
+            content=image_sequence.get_buffer(encode_format=defaults.format)
         )
 
 
-class PSDAnimatedRender(AnimatedRender):
+class PSDAnimatedRender(BaseAnimatedRender):
     """
     Render class for processing information from file's content focusing in rendering a sample of the PSD layers.
     This class make use of sequences.
@@ -268,7 +269,7 @@ class PSDAnimatedRender(AnimatedRender):
         images: list[ImageEngine] = []
 
         total_frames: int = len(psd.layers)
-        steps: int = total_frames // (total_frames * defaults.duration // 100)
+        steps: int = total_frames // int(total_frames / 100 * defaults.duration)
 
         # Compose image from PSD visible layers and
         # convert it to RGB to remove alpha channel before saving it to buffer.
@@ -287,23 +288,23 @@ class PSDAnimatedRender(AnimatedRender):
             images.append(image)
 
         # Create sequence image.
-        image = images[0].clone()
-        image.append_to_sequence(images=[image.image for image in images[1:]], encode_format=defaults.format)
+        image_sequence = images[0].clone()
+        image_sequence.append_to_sequence(images=[engine.image for engine in images[1:]], encode_format=defaults.format)
 
         # Set static file for current file_object.
         file_object._thumbnail._animated_file = cls.create_file(
             file_object,
-            content=image.get_buffer(encode_format=defaults.format)
+            content=image_sequence.get_buffer(encode_format=defaults.format)
         )
 
 
-class VideoAnimatedRender(AnimatedRender):
+class VideoAnimatedRender(BaseAnimatedRender):
     """
     Render class for processing information from file's content focusing in rendering a sample of the video frames.
     This class make use of sequences.
     """
 
-    extensions: set[str] = {"avi", "mkv", "mpg", "mpeg", "mp4", "flv"}
+    extensions: set[str] = {"avi", "mkv", "mpg", "mpeg", "mp4", "flv", "3gp", "m4a", "m2ts"}
     """
     Attribute to store allowed extensions for use in `validator`.
     """
@@ -326,7 +327,8 @@ class VideoAnimatedRender(AnimatedRender):
         video: VideoEngine = video_engine(buffer=buffer)
 
         total_frames: int = video.get_frame_amount()
-        steps: int = total_frames // (total_frames * defaults.duration // 100)
+        
+        steps: int = total_frames // int(total_frames / 100 * defaults.duration)
 
         images: list[ImageEngine] = []
 
@@ -341,11 +343,11 @@ class VideoAnimatedRender(AnimatedRender):
             images.append(image)
 
         # Create sequence image.
-        image = images[0].clone()
-        image.append_to_sequence(images=[image.image for image in images[1:]], encode_format=defaults.format)
+        image_sequence = images[0].clone()
+        image_sequence.append_to_sequence(images=[engine.image for engine in images[1:]], encode_format=defaults.format)
 
         # Set static file for current file_object.
         file_object._thumbnail._animated_file = cls.create_file(
             file_object,
-            content=image.get_buffer(encode_format=defaults.format)
+            content=image_sequence.get_buffer(encode_format=defaults.format)
         )

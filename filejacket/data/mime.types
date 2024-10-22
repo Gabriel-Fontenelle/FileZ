@@ -1935,7 +1935,7 @@ text/vnd.curl.scurl				scurl
 # text/vnd.debian.copyright
 # text/vnd.dmclientscript
 # text/vnd.DMClientScript
-text/vnd.dvb.subtitle				sub
+# text/vnd.dvb.subtitle				sub # We should consider it image/vnd.dvb.subtitle instead	
 # text/vnd.esmertec.theme-descriptor
 text/vnd.fly				fly
 text/vnd.fmi.flexstor				flx

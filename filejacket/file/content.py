@@ -33,7 +33,7 @@ from ..pipelines.renamer import UniqueRenamer
 
 if TYPE_CHECKING:
     from . import BaseFile
-    from ..pipelines.renamer import Renamer
+    from ..pipelines.renamer import BaseRenamer
 
 
 __all__ = [
@@ -44,30 +44,41 @@ __all__ = [
 
 class BufferStr:
     """
+    Class to abstract conversion from a type of buffer to another in the FileContent.
+    This class is used for handling buffer for strings.
     """
     read_mode: str = "r"
     write_mode: str = ""
     buffer_class: type = StringIO
     binary: bool = False
+    encoding: str = "utf-8"
     
     @classmethod
-    def to_bytes(cls, value: str, encoding: str) -> bytes:
-        """"""
-        return value.encode(encoding)
+    def to_bytes(cls, value: str) -> bytes:
+        """
+        Method to convert the value to bytes.
+        """
+        return value.encode(cls.encoding)
     
     @classmethod
-    def to_base64(cls, value: str, encoding: str) -> bytes:
-        """"""
-        return b64encode(cls.to_bytes(value, encoding))
+    def to_base64(cls, value: str) -> bytes:
+        """
+        Method to convert the value to representation of Base64 in string ASCII.
+        """
+        return b64encode(cls.to_bytes(value)).decode('ascii')
     
     @classmethod
-    def to_buffer(cls, value) -> StringIO:
-        """"""
+    def to_buffer(cls, value: str) -> StringIO:
+        """
+        Method to initialize the buffer to handle string.
+        """
         return cls.buffer_class(value)
 
 
 class BufferBytes:
     """
+    Class to abstract conversion from a type of buffer to another in the FileContent.
+    This class is used for handling buffer for bytes.
     """
     read_mode: str = "rb"
     write_mode: str = "b"
@@ -75,18 +86,24 @@ class BufferBytes:
     binary: bool = True
 
     @classmethod
-    def to_bytes(cls, value: bytes, encoding: str) -> bytes:
-        """"""
+    def to_bytes(cls, value: bytes) -> bytes:
+        """
+        Method to convert the value to bytes.
+        """
         return value
     
     @classmethod
-    def to_base64(cls, value: bytes, encoding: str) -> bytes:
-        """"""
-        return b64encode(cls.to_bytes(value, encoding))
+    def to_base64(cls, value: bytes) -> bytes:
+        """
+        Method to convert the value to representation of Base64 in string ASCII.
+        """
+        return b64encode(cls.to_bytes(value)).decode('ascii')
 
     @classmethod
-    def to_buffer(cls, value) -> BytesIO:
-        """"""
+    def to_buffer(cls, value: bytes) -> BytesIO:
+        """
+        Method to initialize the buffer to handle bytes.
+        """
         return cls.buffer_class(value)
 
 
@@ -142,7 +159,7 @@ class FileContent:
     Whether the content as whole was cached. Being True the current buffer will point to a stream
     of `_cached_content`.
     """
-    cache_in_file_renamer: type[Renamer] = UniqueRenamer
+    cache_in_file_renamer: type[BaseRenamer] = UniqueRenamer
     """
     Class that handle the renaming of a file when using the cache in file option.
     """
@@ -237,7 +254,7 @@ class FileContent:
         """
         return self
 
-    def __next__(self) -> bytes | str | None:
+    def __next__(self) -> bytes | str:
         """
         Method that defines the behavior of iterable blocks of current object.
         This method has the potential to double the memory size of current object storing
@@ -429,13 +446,20 @@ class FileContent:
         """
         return self.buffer_helper.binary
     
+    @property
+    def is_seekable(self):
+        """
+        If content cached or buffered support seek.
+        """
+        return self.buffer.seekable()
+        
     def reset(self) -> None:
         """
         Method to reset the content cached or buffer if allowed.
         """
-        if self.buffer.seekable():
+        if self.is_seekable:
             self.buffer.seek(0)
-
+    
     def read(self, size: int | None = None) -> bytes | str | None:
         """
         Method to return part or whole content cached or buffered.
@@ -563,17 +587,17 @@ class FilePacket:
         """
         self.history = []
 
-    def files(self) -> set[BaseFile]:
+    def files(self) -> list[BaseFile]:
         """
         Method to obtain the list of objects File stored at `_internal_files`.
         """
-        return set(self._internal_files.values())
+        return list(self._internal_files.values())
 
-    def names(self) -> set[str]:
+    def names(self) -> list[str]:
         """
         Method to obtain the list of names of internal files stored at `_internal_files`.
         """
-        return set(self._internal_files.keys())
+        return list(self._internal_files.keys())
 
     def reset(self) -> None:
         """
