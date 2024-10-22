@@ -44,6 +44,8 @@ __all__ = [
 
 class BufferStr:
     """
+    Class to abstract conversion from a type of buffer to another in the FileContent.
+    This class is used for handling buffer for strings.
     """
     read_mode: str = "r"
     write_mode: str = ""
@@ -53,22 +55,30 @@ class BufferStr:
     
     @classmethod
     def to_bytes(cls, value: str) -> bytes:
-        """"""
+        """
+        Method to convert the value to bytes.
+        """
         return value.encode(cls.encoding)
     
     @classmethod
     def to_base64(cls, value: str) -> bytes:
-        """"""
+        """
+        Method to convert the value to representation of Base64 in string ASCII.
+        """
         return b64encode(cls.to_bytes(value)).decode('ascii')
     
     @classmethod
-    def to_buffer(cls, value) -> StringIO:
-        """"""
+    def to_buffer(cls, value: str) -> StringIO:
+        """
+        Method to initialize the buffer to handle string.
+        """
         return cls.buffer_class(value)
 
 
 class BufferBytes:
     """
+    Class to abstract conversion from a type of buffer to another in the FileContent.
+    This class is used for handling buffer for bytes.
     """
     read_mode: str = "rb"
     write_mode: str = "b"
@@ -77,17 +87,23 @@ class BufferBytes:
 
     @classmethod
     def to_bytes(cls, value: bytes) -> bytes:
-        """"""
+        """
+        Method to convert the value to bytes.
+        """
         return value
     
     @classmethod
     def to_base64(cls, value: bytes) -> bytes:
-        """"""
+        """
+        Method to convert the value to representation of Base64 in string ASCII.
+        """
         return b64encode(cls.to_bytes(value)).decode('ascii')
 
     @classmethod
-    def to_buffer(cls, value) -> BytesIO:
-        """"""
+    def to_buffer(cls, value: bytes) -> BytesIO:
+        """
+        Method to initialize the buffer to handle bytes.
+        """
         return cls.buffer_class(value)
 
 
