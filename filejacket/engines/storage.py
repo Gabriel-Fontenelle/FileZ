@@ -152,7 +152,7 @@ class StorageEngine:
 
         cls.create_directory(basedir)
 
-        open(path, 'a', newline=cls.new_line).close()
+        open(path, 'a').close()
 
         return True
 
@@ -162,7 +162,11 @@ class StorageEngine:
         Method to return a buffer to a file. This method don't automatically closes file buffer.
         Override this method if that’s not appropriate for your storage.
         """
-        newline = "" if disable_newline_parse else cls.new_line
+        if 'b' in mode:
+            # Binary don't support newline.
+            newline = None
+        else:
+            newline = "" if disable_newline_parse else cls.new_line
             
         return open(path, mode=mode, encoding=encoding, newline=newline)
 
@@ -188,8 +192,14 @@ class StorageEngine:
 
         if 'write_mode' not in kwargs:
             kwargs['write_mode'] = 'b'
+            
+        if "b" in kwargs["write_mode"]:
+            # Binary don't support newline argument.
+            newline = None
+        else:
+            newline=cls.new_line
 
-        with open(path, kwargs['file_mode'] + kwargs['write_mode'], newline=cls.new_line) as file_pointer:
+        with open(path, kwargs['file_mode'] + kwargs['write_mode'], newline=newline) as file_pointer:
             for chunk in content:
                 file_pointer.write(chunk)
                 file_pointer.flush()
