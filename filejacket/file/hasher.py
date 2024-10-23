@@ -56,6 +56,12 @@ class FileHashes:
     """
     Variable to work as shortcut for the current related object for the hashes.
     """
+    
+    history: dict[str, list]
+    history = None
+    """
+    Storage hashes validation results for current BaseFile.
+    """
 
     def __init__(self, **kwargs: Any) -> None:
         """
@@ -117,6 +123,13 @@ class FileHashes:
 
         return {key: getattr(self, key) for key in attributes}
 
+    def clean_history(self) -> None:
+        """
+        Method to clean the history of validation results.
+        The data will still be in memory while the Garbage Collector don't remove it.
+        """
+        self.history: dict[str, list[str]] = {}
+        
     def keys(self) -> set:
         """
         Method to return the keys availabke at `_cache`.
@@ -167,7 +180,7 @@ class FileHashes:
             hash_file.content = content
             hash_file._actions.to_save()
 
-    def validate(self, force: bool=False) -> None:
+    def validate(self, force: bool = False) -> None:
         """
         Method to validate the integrity of file comparing hashes`s hex value with file content.
         This method will only check the first hex value from files loaded, or any cached hash if no hash loaded from
@@ -180,6 +193,15 @@ class FileHashes:
             hex_value, hash_file, processor = self._cache[hash_name]
             # Compare content with hex_value
             result = processor.check_hash(object_to_process=self.related_file_object, compare_to_hex=hex_value)
+            
+            # Add result to history.
+            if self.history is None:
+                self.clean_history()
+            
+            if hash_name not in self.history:
+                self.history[hash_name] = [result]
+            else:
+                self.history[hash_name].append(result)
 
             if result is False:
                 raise ValidationError(f"File {self.related_file_object} don`t pass the integrity check with "
@@ -202,3 +224,4 @@ class FileHashes:
                     hash_file.save(overwrite=False, allow_update=overwrite)
                 else:
                     hash_file.save(overwrite=overwrite, allow_update=overwrite)
+    
