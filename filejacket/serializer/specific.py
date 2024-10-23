@@ -465,7 +465,7 @@ class TransmuterContent(BaseTransmuter):
         del dict_to_return["_cached_content"]
         del dict_to_return['related_file_object']
         
-        transmuter_class = TransmuterClass()
+        transmuter_class = TransmuterObjectClass()
         transmuter_class.serializer = self.serializer
 
         # If no buffer available, it should return None.
@@ -478,7 +478,7 @@ class TransmuterContent(BaseTransmuter):
         # Convert buffer to a structure that can be used to instantiate a new buffer later.
         dict_to_return["buffer"] = f"{getattr(dict_to_return['buffer'], 'name', '')}:{getattr(dict_to_return['buffer'], 'mode', '')}"
         
-        dict_to_return["buffer_helper"] = transmuter_class.from_data(dict_to_return["buffer_helper"])
+        dict_to_return["buffer_helper"] = f"{transmuter_class.from_data(dict_to_return['buffer_helper'])}:{dict_to_return['buffer_helper'].encoding}"
 
         return dict_to_return
     
@@ -491,16 +491,19 @@ class TransmuterContent(BaseTransmuter):
             return None
         
         buffer = value.pop("buffer").rsplit(':', 1)
-        buffer_helper = value.pop("buffer_helper")
+        buffer_helper = value.pop("buffer_helper").rsplit(':', 1)
         
-        transmuter_class = TransmuterClass()
+        transmuter_class = TransmuterObjectClass()
         transmuter_class.serializer = self.serializer
+        
+        buffer_object = transmuter_class.to_data(buffer_helper[0], reference=reference)
+        buffer_object.encoding = buffer_helper[1]
         
         return FileContent(
             raw_value=None,
             related_file_object=reference,
             buffer=reference.storage.open_file(path=buffer[0], mode=buffer[1]),
-            buffer_helper=transmuter_class.to_data(buffer_helper, reference=reference)
+            buffer_helper=buffer_object
             **value
         )
 
@@ -524,10 +527,10 @@ class TransmuterContentBase64(BaseTransmuter):
         # Convert buffer to a structure that can be used to instantiate a new buffer later.
         dict_to_return["buffer"] = f"{getattr(dict_to_return['buffer'], 'name', '')}:{getattr(dict_to_return['buffer'], 'mode', '')}"
         
-        transmuter_class = TransmuterClass()
+        transmuter_class = TransmuterObjectClass()
         transmuter_class.serializer = self.serializer
         
-        dict_to_return["buffer_helper"] = transmuter_class.from_data(dict_to_return["buffer_helper"])
+        dict_to_return["buffer_helper"] = f"{transmuter_class.from_data(dict_to_return['buffer_helper'])}:{dict_to_return['buffer_helper'].encoding}"
 
         return dict_to_return
 
@@ -536,17 +539,20 @@ class TransmuterContentBase64(BaseTransmuter):
         Method to reverse the conversion at `from_data`.
         """
         buffer = value.pop("buffer").rsplit(':', 1)
-        buffer_helper = value.pop("buffer_helper")
+        buffer_helper = value.pop("buffer_helper").rsplit(':', 1)
         
         content = b64decode(value.pop("content_base64"))
         
-        transmuter_class = TransmuterClass()
+        transmuter_class = TransmuterObjectClass()
         transmuter_class.serializer = self.serializer
+        
+        buffer_object = transmuter_class.to_data(buffer_helper[0], reference=reference)
+        buffer_object.encoding = buffer_helper[1]
         
         return FileContent(
             related_file_object=reference,
             buffer=reference.storage.open_file(path=buffer[0], mode=buffer[1]),
-            buffer_helper=transmuter_class.to_data(buffer_helper, reference=reference),
+            buffer_helper=buffer_object,
             _cached_content=content,
             **value
         )
