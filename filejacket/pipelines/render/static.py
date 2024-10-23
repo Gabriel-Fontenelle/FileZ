@@ -163,13 +163,13 @@ class ImageRender(BaseStaticRender):
 
         defaults: Type[ThumbnailDefaults] = file_object._thumbnail.static_defaults
 
-        buffer = file_object.content_as_buffer
+        buffer_content = file_object.content_as_buffer
 
-        if not buffer:
+        if not buffer_content:
             raise RenderError("There is no content in buffer format available to render.")
 
         # Resize image using the image_engine and default values.
-        image: ImageEngine = image_engine(buffer=buffer)
+        image: ImageEngine = image_engine(buffer=buffer_content)
 
         image.resize(defaults.width, defaults.height, keep_ratio=defaults.keep_ratio)
 

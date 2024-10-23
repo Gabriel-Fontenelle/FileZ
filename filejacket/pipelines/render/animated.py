@@ -103,12 +103,12 @@ class StaticAnimatedRender(BaseAnimatedRender):
         defaults: Type[PreviewDefaults] = file_object._thumbnail.animated_defaults
 
         # Resize image using the image_engine and default values.
-        buffer = file_object.content_as_buffer
+        buffer_content = file_object.content_as_buffer
 
-        if not buffer:
+        if not buffer_content:
             raise RenderError("There is no content in buffer format available to render.")
 
-        image: ImageEngine = image_engine(buffer=buffer)
+        image: ImageEngine = image_engine(buffer=buffer_content)
 
         image.resize(defaults.width, defaults.height, keep_ratio=defaults.keep_ratio)
 
@@ -140,13 +140,13 @@ class ImageAnimatedRender(BaseAnimatedRender):
 
         defaults: Type[PreviewDefaults] = file_object._thumbnail.animated_defaults
 
-        buffer = file_object.content_as_buffer
+        buffer_content = file_object.content_as_buffer
 
-        if not buffer:
+        if not buffer_content:
             raise RenderError("There is no content in buffer format available to render.")
 
         # Resize image using the image_engine and default values.
-        image: ImageEngine = image_engine(buffer=buffer)
+        image: ImageEngine = image_engine(buffer=buffer_content)
 
         image.resample(percentual=defaults.duration, encode_format=defaults.format)
 
@@ -179,9 +179,9 @@ class DocumentAnimatedRender(BaseAnimatedRender):
 
         defaults: Type[PreviewDefaults] = file_object._thumbnail.animated_defaults
 
-        buffer = file_object.content_as_buffer
+        buffer_content = file_object.content_as_buffer
 
-        if not buffer:
+        if not buffer_content:
             raise RenderError("There is no content in buffer format available to render.")
 
         # Local import to avoid longer time to load FileJacket library.
@@ -191,7 +191,7 @@ class DocumentAnimatedRender(BaseAnimatedRender):
         # Because BufferedReader (default return for file_system.open) is not accept
         # we need to consume to get its bytes as bytes are accepted as stream.
         doc = fitz.open(
-            stream=buffer.read(),
+            stream=buffer_content.read(),
             filetype=file_object.extension,
             # width and height are only used for content that requires rendering of vectors as `epub`.
             width=defaults.width * 5,
@@ -255,16 +255,16 @@ class PSDAnimatedRender(BaseAnimatedRender):
 
         defaults: Type[PreviewDefaults] = file_object._thumbnail.animated_defaults
 
-        buffer = file_object.content_as_buffer
+        buffer_content = file_object.content_as_buffer
 
-        if not buffer:
+        if not buffer_content:
             raise RenderError("There is no content in buffer format available to render.")
 
         # Local import to avoid longer time to load FileJacket library.
         from psd_tools import PSDImage
 
         # Load PSD from buffer
-        psd: PSDImage = PSDImage.open(fp=buffer)
+        psd: PSDImage = PSDImage.open(fp=buffer_content)
 
         images: list[ImageEngine] = []
 
@@ -319,12 +319,12 @@ class VideoAnimatedRender(BaseAnimatedRender):
 
         defaults: Type[PreviewDefaults] = file_object._thumbnail.animated_defaults
 
-        buffer = file_object.content_as_buffer
+        buffer_content = file_object.content_as_buffer
 
-        if not buffer:
+        if not buffer_content:
             raise RenderError("There is no content in buffer format available to render.")
 
-        video: VideoEngine = video_engine(buffer=buffer)
+        video: VideoEngine = video_engine(buffer=buffer_content)
 
         total_frames: int = video.get_frame_amount()
         
