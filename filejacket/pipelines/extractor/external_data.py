@@ -230,9 +230,15 @@ class FileSystemDataExtractor(BaseExtractor):
             # Find charset for non unicode files
             encoding = file_object.storage.get_charset(file_object.path)
             mode = 'r'
-
-        # Get buffer io
-        buffer: BytesIO | StringIO | IO = file_object.storage.open_file(file_object.path, mode=mode, encoding=encoding)
+   
+        # Get buffer io with disable parse of newline. It is important to allow hash from text content to be the same
+        # as the saved file.
+        buffer: BytesIO | StringIO | IO = file_object.storage.open_file(
+            file_object.path,
+            mode=mode,
+            encoding=encoding,
+            disable_newline_parse=True
+        )
 
         # Set content with buffer, as content is a property it will validate the buffer and
         # add it as a generator allowing to just loop through chunks of content.

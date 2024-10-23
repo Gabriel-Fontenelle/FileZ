@@ -88,6 +88,11 @@ class StorageEngine:
     """
     Define the location of temporary content in filesystem.
     """
+    
+    new_line = "\n"
+    """
+    Define the character for breaking line in the file system.
+    """
 
     # High-end methods to use with files and directories.
     # Those methods were created to be used by BaseFile.
@@ -147,17 +152,19 @@ class StorageEngine:
 
         cls.create_directory(basedir)
 
-        open(path, 'a').close()
+        open(path, 'a', newline=cls.new_line).close()
 
         return True
 
     @classmethod
-    def open_file(cls, path: str, mode: str = 'rb', encoding: str | None = None) -> StringIO | BytesIO | IO:
+    def open_file(cls, path: str, mode: str = 'rb', encoding: str | None = None, disable_newline_parse: bool = False) -> StringIO | BytesIO | IO:
         """
         Method to return a buffer to a file. This method don't automatically closes file buffer.
         Override this method if that’s not appropriate for your storage.
         """
-        return open(path, mode=mode, encoding=encoding)
+        newline = "" if disable_newline_parse else cls.new_line
+            
+        return open(path, mode=mode, encoding=encoding, newline=newline)
 
     @classmethod
     def close_file(cls, file_buffer: StringIO | BytesIO | IO) -> None:
@@ -182,7 +189,7 @@ class StorageEngine:
         if 'write_mode' not in kwargs:
             kwargs['write_mode'] = 'b'
 
-        with open(path, kwargs['file_mode'] + kwargs['write_mode']) as file_pointer:
+        with open(path, kwargs['file_mode'] + kwargs['write_mode'], newline=cls.new_line) as file_pointer:
             for chunk in content:
                 file_pointer.write(chunk)
                 file_pointer.flush()
@@ -509,7 +516,7 @@ class StorageEngine:
         """
         Method generator to get lines from file without loading all data in one step.
         """
-        with open(path, 'r') as file:
+        with open(path, 'r', newline=cls.new_line) as file:
             line = file.readline()
             while line:
                 yield line

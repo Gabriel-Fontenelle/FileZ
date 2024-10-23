@@ -64,6 +64,11 @@ class WindowsFileSystem(StorageEngine):
     The first part identify the search and the second the replace value.
     This allow search by `<str>.<str>` and replace by `<str> (<int>).<str>`.
     """
+    new_line = "\r\n"
+    """
+    Define the character for breaking line in the file system.
+    This override the default one for Unix `\n`.
+    """
 
     @classmethod
     def get_path_id(cls, path: str) -> str:
