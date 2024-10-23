@@ -84,6 +84,7 @@ class BufferBytes:
     write_mode: str = "b"
     buffer_class: type = BytesIO
     binary: bool = True
+    encoding: str = "utf-8"
 
     @classmethod
     def to_bytes(cls, value: bytes) -> bytes:
@@ -211,21 +212,21 @@ class FileContent:
             raise ValueError("Value pass to FileContent must not be empty!")
 
         # Binary value of related_file_object should be be set up here, as it came from attribute is_binary from
-        # content.
+        # content. 
         if isinstance(raw_value, str):
             # Convert raw content to buffer
-            raw_value = StringIO(raw_value)
-            self.buffer_helper = BufferStr
+            self.buffer_helper = BufferStr()
+            raw_value = self.buffer_helper.to_buffer(raw_value)
         elif isinstance(raw_value, bytes):
             # Convert raw content to buffer
-            raw_value = BytesIO(raw_value)
-            self.buffer_helper = BufferBytes
+            self.buffer_helper = BufferBytes()
+            raw_value = self.buffer_helper.to_buffer(raw_value)
         elif isinstance(raw_value, StringIO):
             # Content is buffered, so don't need to convert it.
-            self.buffer_helper = BufferStr
+            self.buffer_helper = BufferStr()
         elif isinstance(raw_value, BytesIO):
             # Content is buffered, so don't need to convert it.
-            self.buffer_helper = BufferBytes
+            self.buffer_helper = BufferBytes()
         elif not (hasattr(raw_value, "seekable") or hasattr(raw_value, "read")):           
             raise ValueError(
                 f"The parameter `raw_value` informed in FileContent is not a valid type {type(raw_value)}! "
@@ -237,10 +238,14 @@ class FileContent:
                 "mode that allow for identification of type of content: binary or text."
             )
         else:
-            self.buffer_helper = BufferBytes if 'b' in getattr(raw_value, 'mode', '') else BufferStr
+            self.buffer_helper = BufferBytes() if 'b' in getattr(raw_value, 'mode', '') else BufferStr()
 
         # Add content (or content converted to Stream) as buffer
         self.buffer = raw_value
+        
+        # Get encoding from raw value so that conversion to bytes has the same result from external hash file. 
+        if hasattr(raw_value, "encoding"):
+            self.buffer_helper.encoding = raw_value.encoding
 
         # Set content to be cached.
         if not self.buffer.seekable() or force:

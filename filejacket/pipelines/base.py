@@ -166,11 +166,10 @@ class BaseHasher:
         if content_iterator is None:
             return None
 
-        cls.generate_hash(hash_instance=hash_instance, content_iterator=content_iterator)
+        cls.generate_hash(hash_instance=hash_instance, content_iterator=content_iterator, encoding=object_to_process._content.buffer_helper.encoding)
         digested_hex_value: str = cls.digest_hex_hash(hash_instance=hash_instance)
 
         return digested_hex_value == hex_value
-
 
     @classmethod
     def digest_hash(cls, hash_instance: Any) -> str:
@@ -214,13 +213,13 @@ class BaseHasher:
             return h
 
     @classmethod
-    def update_hash(cls, hash_instance: Any, content: str | bytes) -> None:
+    def update_hash(cls, hash_instance: Any, content: str | bytes, encoding: str = "utf-8") -> None:
         """
         Method to update content in hash_instance to generate the hash. We convert all content to bytes to
         generate a hash of it.
         """
         if isinstance(content, str):
-            content = content.encode('utf8')
+            content = content.encode(encoding)
 
         hash_instance.update(content)
 
@@ -232,13 +231,13 @@ class BaseHasher:
         raise NotImplementedError("Method instantiate_hash must be overwrite on child class.")
 
     @classmethod
-    def generate_hash(cls, hash_instance: Any, content_iterator: Iterator[Sequence[bytes | str]]) -> None:
+    def generate_hash(cls, hash_instance: Any, content_iterator: Iterator[Sequence[bytes | str]], encoding: str = "utf-8") -> None:
         """
         Method to update the hash to be generated from content in blocks using a normalized content that can be
         iterated regardless from its source (e.g. file system, memory, stream).
         """
         for block in content_iterator:
-            cls.update_hash(hash_instance, block)
+            cls.update_hash(hash_instance, block, encoding)
 
     @classmethod
     def create_hash_file(cls, object_to_process: BaseFile, digested_hex_value: str) -> BaseFile:
@@ -408,7 +407,7 @@ class BaseHasher:
                 hash_instance: Any = cls.get_hash_instance(file_id)
 
                 # Generate hash
-                cls.generate_hash(hash_instance=hash_instance, content_iterator=content)
+                cls.generate_hash(hash_instance=hash_instance, content_iterator=content, encoding=object_to_process._content.buffer_helper.encoding)
 
             else:
                 hash_instance = cls.get_hash_objects()[file_id]

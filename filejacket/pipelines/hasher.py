@@ -111,12 +111,12 @@ class CRC32Hasher(BaseHasher):
         return hash_instance['crc32']
 
     @classmethod
-    def update_hash(cls, hash_instance: dict[str, Any], content: bytes | str) -> None:
+    def update_hash(cls, hash_instance: dict[str, Any], content: bytes | str, encoding: str = "utf-8") -> None:
         """
         Method to update content in hash_instance to generate the hash. We convert all content to bytes to
         generate a hash of it.
         """
         if isinstance(content, str):
-            content = content.encode('utf8')
+            content = content.encode(encoding)
 
         hash_instance['crc32'] = str(crc32(content, hash_instance['crc32']))

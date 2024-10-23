@@ -224,7 +224,7 @@ class FileSystemDataExtractor(BaseExtractor):
 
         # Define mode from file type
         mode: str = 'rb'
-        encoding = None
+        encoding: str | None = None
         
         if file_object.type == 'text':
             # Find charset for non unicode files
