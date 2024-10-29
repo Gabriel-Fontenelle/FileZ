@@ -112,7 +112,7 @@ class FileNaming:
     def rename(self) -> None:
         """
         Method to rename `related_file_object` according to its own rename pipeline.
-        TODO: Change how this method used `reserved_filenames` to allow moving or copying of file.
+        TODO: Change how this method uses `reserved_filenames` to allow moving or copying of file.
         TODO: Check if save_to exists before doing rename.
         """
         save_to: str | None = self.related_file_object.save_to
