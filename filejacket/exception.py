@@ -93,3 +93,9 @@ class PipelineError(Exception):
 	"""
 	Exception that defines error for when trying to render a file.
 	"""
+
+
+class MultipleFileExistError(Exception):
+    """
+    Exception that defines error for when multiple files are found instead of only one.
+    """
