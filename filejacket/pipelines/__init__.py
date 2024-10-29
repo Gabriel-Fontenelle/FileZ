@@ -276,7 +276,6 @@ class Pipeline:
 
                     if should_stop:
                         break
-
             except Exception as e:
                 if pipeline_raises_exception:
                     raise PipelineError(f"An error ocurred while running process {type(processor)}: {e}") from e
