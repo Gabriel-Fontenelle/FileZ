@@ -32,7 +32,7 @@ from . import Pipeline
 
 # modules
 from ..engines.storage import StorageEngine
-from ..exception import ImproperlyConfiguredFile, ValidationError
+from ..exception import ImproperlyConfiguredFile, MultipleFileExistError, ValidationError
 
 
 if TYPE_CHECKING:
@@ -169,7 +169,8 @@ class BaseHasher:
         cls.generate_hash(hash_instance=hash_instance, content_iterator=content_iterator, encoding=object_to_process._content.buffer_helper.encoding)
         digested_hex_value: str = cls.digest_hex_hash(hash_instance=hash_instance)
 
-        return digested_hex_value == hex_value
+        # Change to lower case to make comparing of hashes case insensitive.
+        return digested_hex_value.lower() == hex_value.lower()
 
     @classmethod
     def digest_hash(cls, hash_instance: Any) -> str:
@@ -351,18 +352,50 @@ class BaseHasher:
         # try to find filename in CHECKSUM.<hasher_name> in directory_path
         for file_path in set(files_to_check):
             if cls.file_system_handler.exists(file_path):
+                # Get relative path from file_path to allow search of directory and not only full_name in line.
+                
+                candidates = []
+                
                 for line in cls.file_system_handler.read_lines(file_path):
                     # We ignore lines that begin with comment describer `;`.
-                    if ';' != line[0] and '#' != line[0] and full_name in line:
-                        # Get hash from line and return it.
-                        # It's assuming that first argument until first white space if the hash and second
-                        # is the filename.
-                        hashed_value: str = line.lstrip().split(maxsplit=1)[0]
+                    full_path: str = directory_path.replace(cls.file_system_handler.get_directory_from_path(file_path) + cls.file_system_handler.sep, '', 1) + cls.file_system_handler.sep + full_name
+                    
+                    if ';' != line[0] and '#' != line[0]:
+                        if full_path in line:
+                            # Get hash from line and return it.
+                            # It's assuming that first argument until first white space if the hash and second
+                            # is the filename.
+                            hashed_value: str = line.lstrip().split(maxsplit=1)[0]
 
-                        # Add hash to cache
-                        hash_directories[directory_path] = hashed_value, file_path
+                            # Add hash to cache
+                            hash_directories[directory_path] = hashed_value, file_path
 
-                        return hashed_value, file_path
+                            return hashed_value, file_path
+                            
+                        elif (full_name in line):
+                            # Get hash from line and return it.
+                            # It's assuming that first argument until first white space if the hash and second
+                            # is the filename.
+                            hashed_value: str = line.lstrip().split(maxsplit=1)[0]
+                            
+                            candidates.append((hashed_value, file_path))
+                        
+                # Case we reach this point no complete file was found, but we can have candidates.
+                # If more than one candidate is found 
+                if len(candidates) > 1:
+                    # Check if checksum is the same in all candidates.
+                    if len(set([value[0] for value in candidates])) == 1:
+                        hash_directories[directory_path] = candidates[0][0], candidates[0][1]
+
+                        return candidates[0][0], candidates[0][1]
+                    else:
+                        raise MultipleFileExistError(f"{full_name} has multiple candidates for {cls.hasher_name} with distinct hashes! Hashes found: {candidates}")
+                    
+                elif len(candidates) == 1:
+                    # Add hash to cache
+                    hash_directories[directory_path] = candidates[0][0], candidates[0][1]
+
+                    return candidates[0][0], candidates[0][1]
 
         raise FileNotFoundError(f"{full_name} not found!")
 
