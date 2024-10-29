@@ -458,27 +458,44 @@ class TransmuterContent(BaseTransmuter):
         Method to convert `value`source to dict for serialization.
         """        
         dict_to_return = value.__serialize__
-
-        if value.should_load_to_memory:
+        
+        is_internal_file = getattr(value.related_file_object._meta, "internal", False)
+        
+        if value.should_load_to_memory and not is_internal_file:            
             raise SerializerError("Content for file should be serialized as it should be load to memory and may not be available later.\nPlease, use a serializer that saves the content.")
-
+        
         del dict_to_return["_cached_content"]
         del dict_to_return['related_file_object']
         
-        transmuter_class = TransmuterObjectClass()
+        transmuter_class_object = TransmuterObjectClass()
+        transmuter_class_object.serializer = self.serializer
+        
+        transmuter_class = TransmuterClass()
         transmuter_class.serializer = self.serializer
 
-        # If no buffer available, it should return None.
-        buffer_name = getattr(dict_to_return['buffer'], 'name', '')
-        buffer_mode = getattr(dict_to_return['buffer'], 'mode', '')
+        if is_internal_file:
+            # Buffer = filename:class:mode:
+            buffer_name = getattr(dict_to_return['buffer'], 'filename', '')
+            buffer_mode = getattr(dict_to_return['buffer'], 'mode', '')
+            buffer_reference =  getattr(dict_to_return['buffer'], 'reference', '')
+            
+            if not buffer_name or not buffer_mode or not buffer_reference:
+                raise SerializerError("Internal file should be a implementation of `ContentBuffer` that implements `filename`, `mode` and `reference`.")
+            
+            dict_to_return["buffer"] = f"internal:{buffer_name}:{buffer_mode}:{transmuter_class.from_data(buffer_reference)}"
         
-        if not buffer_name and not buffer_mode:
-            return None
+        else:
+            # If no buffer available, it should return None.
+            buffer_name = getattr(dict_to_return['buffer'], 'name', '')
+            buffer_mode = getattr(dict_to_return['buffer'], 'mode', '')
+            
+            if not buffer_name and not buffer_mode:
+                return None
+            
+            # Convert buffer to a structure that can be used to instantiate a new buffer later.
+            dict_to_return["buffer"] = f"{getattr(dict_to_return['buffer'], 'name', '')}:{getattr(dict_to_return['buffer'], 'mode', '')}"
         
-        # Convert buffer to a structure that can be used to instantiate a new buffer later.
-        dict_to_return["buffer"] = f"{getattr(dict_to_return['buffer'], 'name', '')}:{getattr(dict_to_return['buffer'], 'mode', '')}"
-        
-        dict_to_return["buffer_helper"] = f"{transmuter_class.from_data(dict_to_return['buffer_helper'])}:{dict_to_return['buffer_helper'].encoding}"
+        dict_to_return["buffer_helper"] = f"{transmuter_class_object.from_data(dict_to_return['buffer_helper'])}:{dict_to_return['buffer_helper'].encoding}"
 
         return dict_to_return
     
@@ -491,19 +508,35 @@ class TransmuterContent(BaseTransmuter):
             return None
         
         buffer = value.pop("buffer").rsplit(':', 1)
-        buffer_helper = value.pop("buffer_helper").rsplit(':', 1)
         
-        transmuter_class = TransmuterObjectClass()
+        transmuter_class_object = TransmuterObjectClass()
+        transmuter_class_object.serializer = self.serializer
+        
+        transmuter_class = TransmuterClass()
         transmuter_class.serializer = self.serializer
         
-        buffer_object = transmuter_class.to_data(buffer_helper[0], reference=reference)
-        buffer_object.encoding = buffer_helper[1]
+        if buffer[0] == "internal":
+            buffer = buffer[1].split(':')
+            buffer[0] # buffer_filename
+            buffer[1] # buffer_mode
+            buffer[2] # buffer_reference
+            
+            buffer_class = transmuter_class.to_data(buffer[2], reference=reference)
+            buffered = buffer_class.content_buffer(file_object=reference, internal_file_name=buffer[0], mode=buffer[1]) 
+            
+        else:
+            buffered = reference.storage.open_file(path=buffer[0], mode=buffer[1])
+            
+        buffer_helper = value.pop("buffer_helper").rsplit(':', 1)
+        
+        buffer_helper_object = transmuter_class_object.to_data(buffer_helper[0], reference=reference)
+        buffer_helper_object.encoding = buffer_helper[1]
         
         return FileContent(
             raw_value=None,
             related_file_object=reference,
-            buffer=reference.storage.open_file(path=buffer[0], mode=buffer[1]),
-            buffer_helper=buffer_object
+            buffer=buffered,
+            buffer_helper=buffer_helper_object
             **value
         )
 
