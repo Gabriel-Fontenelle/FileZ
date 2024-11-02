@@ -76,6 +76,13 @@ class MimeTypeEngine:
         """
         raise NotImplementedError("packed_extensions() method must be overwritten on child class.")
 
+    @staticmethod
+    def sanitize_extension(extension: str):
+        """
+        Method to sanitize extension before using it.
+        """
+        return extension.lower()
+    
     def get_extensions(self, mimetype: str) -> list[str]:
         """
         Method to get all registered extensions for given mimetype.

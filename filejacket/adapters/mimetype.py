@@ -215,7 +215,7 @@ class LibraryMimeTyper(MimeTypeEngine):
         """
         Method to get registered mimetype for given extension.
         """
-        return mimetypes.types_map.get('.' + extension, None)
+        return mimetypes.types_map.get(f".{self.sanitize_extension(extension)}", None)
 
     def get_type(self, mimetype: str | None = None, extension: str | None = None) -> None | str:
         """
@@ -278,7 +278,7 @@ class LibraryMimeTyper(MimeTypeEngine):
         """
         Method to check if an extension is registered or not in list of mimetypes and extensions.
         """
-        return bool(self.get_mimetype(extension))
+        return bool(self.get_mimetype(self.sanitize_extension(extension)))
 
 
 class APIMimeTyper(MimeTypeEngine):
