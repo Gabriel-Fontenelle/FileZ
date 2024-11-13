@@ -1,6 +1,7 @@
 import pytest
 
 from filejacket.exception import (
+    __all__,
     EmptyContentError,
     ImproperlyConfiguredFile,
     NoInternalContentError,
@@ -30,4 +31,20 @@ from filejacket.exception import (
     ]
 )
 def test_instance_of_exception(exception_class):
-    assert isinstance(exception_class, Exception)
+    assert isinstance(exception_class(), Exception)
+
+
+def test_file_exception_all_import():
+    assert __all__ == [
+        'CacheContentNotSeekableError',
+        'EmptyContentError',
+        'ImproperlyConfiguredFile',
+        'ImproperlyConfiguredPipeline',
+        'NoInternalContentError',
+        'OperationNotAllowed',
+        'PipelineError',
+        'ValidationError',
+        'ReservedFilenameError',
+        'RenderError',
+        'SerializerError'
+    ]
