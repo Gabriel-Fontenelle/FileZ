@@ -550,6 +550,21 @@ class StorageEngine:
         return cls.temporary_folder
 
     @classmethod
+    def get_unique_temp_file(cls) -> str:
+        """
+        Method to create a temporary file with an unique filename.
+        This method used uuid4 for its unique name. 
+        """
+        unique_file_path = cls.join(cls.get_temp_directory(), str(uuid4()))
+        
+        while cls.exists(path=unique_file_path):
+            unique_file_path = cls.join(cls.get_temp_directory(), str(uuid4()))
+        
+        cls.create_file(path=unique_file_path)
+        
+        return unique_file_path
+        
+    @classmethod
     def read_lines(cls, path: str) -> Generator[str]:
         """
         Method generator to get lines from file without loading all data in one step.
