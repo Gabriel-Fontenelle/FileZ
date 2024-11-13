@@ -33,7 +33,10 @@ class LazyImportClass:
     Class to facilitate the lazy import of modules and attributes from modules.
 
     """
-    def __init__(self: LazyImportClass, class_name: str, from_module: str | None = None) -> None:
+
+    def __init__(
+        self: LazyImportClass, class_name: str, from_module: str | None = None
+    ) -> None:
         """
         Method to set up the information about the module that should be imported later.
         """
@@ -46,7 +49,9 @@ class LazyImportClass:
         Method to import the module or attribute of the module.
         """
         if self.from_module:
-            self.imported_class = getattr(import_module(self.from_module), self.class_name)
+            self.imported_class = getattr(
+                import_module(self.from_module), self.class_name
+            )
         else:
             self.imported_class = import_module(self.class_name)
 

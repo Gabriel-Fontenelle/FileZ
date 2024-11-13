@@ -28,4 +28,3 @@ class DeckCards:
 
 class LousyAlbumPhotos:
     pass
-

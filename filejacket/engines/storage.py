@@ -39,12 +39,13 @@ from os.path import (
     getsize,
     isdir,
     join,
-    normpath
+    normpath,
 )
 from pathlib import (
     Path,
 )
 from uuid import uuid4
+
 # third-party
 from shutil import copyfile, rmtree
 from sys import version_info
@@ -79,7 +80,7 @@ class StorageEngine:
     Limit for the whole path
     """
 
-    backup_extension: Pattern = re.compile(r'\.bak(\.\d*)?$')
+    backup_extension: Pattern = re.compile(r"\.bak(\.\d*)?$")
     """
     Define what is identifiable as a backup`s extension.
     """
@@ -89,7 +90,7 @@ class StorageEngine:
     """
     Define the location of temporary content in filesystem.
     """
-    
+
     new_line = "\n"
     """
     Define the character for breaking line in the file system.
@@ -130,7 +131,9 @@ class StorageEngine:
         """
         # Create Directory
         if not path:
-            raise ValueError("Is necessary the receive a folder name on create_directory method.")
+            raise ValueError(
+                "Is necessary the receive a folder name on create_directory method."
+            )
 
         if not cls.exists(path):
             os.makedirs(path, mode)
@@ -153,22 +156,28 @@ class StorageEngine:
 
         cls.create_directory(basedir)
 
-        open(path, 'a').close()
+        open(path, "a").close()
 
         return True
 
     @classmethod
-    def open_file(cls, path: str, mode: str = 'rb', encoding: str | None = None, disable_newline_parse: bool = False) -> StringIO | BytesIO | IO:
+    def open_file(
+        cls,
+        path: str,
+        mode: str = "rb",
+        encoding: str | None = None,
+        disable_newline_parse: bool = False,
+    ) -> StringIO | BytesIO | IO:
         """
         Method to return a buffer to a file. This method don't automatically closes file buffer.
         Override this method if that’s not appropriate for your storage.
         """
-        if 'b' in mode:
+        if "b" in mode:
             # Binary don't support newline.
             newline = None
         else:
             newline = "" if disable_newline_parse else cls.new_line
-            
+
         return open(path, mode=mode, encoding=encoding, newline=newline)
 
     @classmethod
@@ -187,51 +196,57 @@ class StorageEngine:
         Override this method if that’s not appropriate for your storage.
         """
         if isinstance(content, bytes):
-            raise ValueError("The method `save_file` don't accept bytes as it iterable `content`.") 
-        
+            raise ValueError(
+                "The method `save_file` don't accept bytes as it iterable `content`."
+            )
+
         content = iter(content)
 
-        if 'file_mode' not in kwargs:
-            kwargs['file_mode'] = 'a'
+        if "file_mode" not in kwargs:
+            kwargs["file_mode"] = "a"
 
-        if 'write_mode' not in kwargs:
-            kwargs['write_mode'] = 'b'
-            
+        if "write_mode" not in kwargs:
+            kwargs["write_mode"] = "b"
+
         if "b" in kwargs["write_mode"]:
             # Binary don't support newline argument.
             newline = None
         else:
-            newline=cls.new_line
+            newline = cls.new_line
 
-        with open(path, kwargs['file_mode'] + kwargs['write_mode'], newline=newline) as file_pointer:
+        with open(
+            path, kwargs["file_mode"] + kwargs["write_mode"], newline=newline
+        ) as file_pointer:
             for chunk in content:
                 file_pointer.write(chunk)
                 file_pointer.flush()
-            
+
             os.fsync(file_pointer.fileno())
-    
+
     @classmethod
     def write_to_file(cls, path: str, content: str | bytes, **kwargs: Any) -> None:
         """
-        Method to save a string or bytes content to a file.        
+        Method to save a string or bytes content to a file.
         Override this method if that’s not appropriate for your storage.
         """
-        if 'file_mode' not in kwargs:
-            kwargs['file_mode'] = 'a'
+        if "file_mode" not in kwargs:
+            kwargs["file_mode"] = "a"
 
-        if 'write_mode' not in kwargs:
-            kwargs['write_mode'] = 'b'
-            
+        if "write_mode" not in kwargs:
+            kwargs["write_mode"] = "b"
+
         if "b" in kwargs["write_mode"]:
             # Binary don't support newline argument.
             newline = None
         else:
-            newline=cls.new_line
+            newline = cls.new_line
 
-        with open(path, kwargs['file_mode'] + kwargs['write_mode'], newline=newline) as file_pointer:
+        with open(
+            path, kwargs["file_mode"] + kwargs["write_mode"], newline=newline
+        ) as file_pointer:
             file_pointer.write(content)
             file_pointer.flush()
-            
+
             os.fsync(file_pointer.fileno())
 
     @classmethod
@@ -247,17 +262,21 @@ class StorageEngine:
 
         Override this method if that’s not appropriate for your storage.
         """
-        file_path_destination: str = file_path_origin + '.bak'
+        file_path_destination: str = file_path_origin + ".bak"
 
         i = 1
         while not force and cls.exists(file_path_destination):
-            file_path_destination = re.sub(cls.backup_extension, f".bak.{i}", file_path_destination)
+            file_path_destination = re.sub(
+                cls.backup_extension, f".bak.{i}", file_path_destination
+            )
             i += 1
 
         return cls.copy(file_path_origin, file_path_destination, force=True)
 
     @classmethod
-    def copy(cls, file_path_origin: str, file_path_destination: str, force: bool = False) -> bool:
+    def copy(
+        cls, file_path_origin: str, file_path_destination: str, force: bool = False
+    ) -> bool:
         """
         Method used to copy a file from origin to destination.
         This method only try to copy if file exists.
@@ -269,14 +288,18 @@ class StorageEngine:
 
         TODO: Test what happens if file_path_destination is a directory.
         """
-        if cls.exists(file_path_origin) and (not cls.exists(file_path_destination) or force):
+        if cls.exists(file_path_origin) and (
+            not cls.exists(file_path_destination) or force
+        ):
             copyfile(file_path_origin, file_path_destination)
             return True
 
         return False
 
     @classmethod
-    def move(cls, file_path_origin: str, file_path_destination: str, force: bool = False) -> bool:
+    def move(
+        cls, file_path_origin: str, file_path_destination: str, force: bool = False
+    ) -> bool:
         """
         Method used to move a file from origin to destination.
         This method do use copy_file to first copy the file and after send file to trash.
@@ -417,7 +440,7 @@ class StorageEngine:
             return path
 
         return dirname(path)
-    
+
     @classmethod
     def get_parent_directory_from_path(cls, path: str) -> str:
         """
@@ -427,7 +450,7 @@ class StorageEngine:
             return dirname(path)
 
         return dirname(dirname(path))
-    
+
     @classmethod
     def get_relative_path(cls, path: str, relative_to: str) -> str:
         """
@@ -438,10 +461,10 @@ class StorageEngine:
 
         path and relative_to must have its separator correct before being used.
         """
-        
+
         # Fix directory without sep on end
         fix: tuple = relative_to.rpartition(cls.sep)
-        if '.' not in fix[2]:
+        if "." not in fix[2]:
             relative_to += cls.sep
 
         base_length: int = len(relative_to)
@@ -456,11 +479,11 @@ class StorageEngine:
                 break
             else:
                 count += 1
-                if path[i] == '/':
+                if path[i] == "/":
                     last_bar = count
 
         if last_bar:
-            return '../' * relative_to[last_bar:].count(cls.sep) + path[last_bar:]
+            return "../" * relative_to[last_bar:].count(cls.sep) + path[last_bar:]
 
         return path
 
@@ -492,17 +515,19 @@ class StorageEngine:
         last modified if that isn't possible.
         This method should be overwritten in child specific for Operational System.
         """
-        raise NotImplementedError("Method get_created_date(path) should be accessed through inherent class.")
+        raise NotImplementedError(
+            "Method get_created_date(path) should be accessed through inherent class."
+        )
 
     @classmethod
     def get_charset(cls, path: str) -> str | None:
         """
         Method to get the charset from a given file."""
         guessed = from_path(path).best()
-        
+
         if not guessed:
             return None
-        
+
         return guessed.encoding
 
     @classmethod
@@ -514,21 +539,28 @@ class StorageEngine:
         sequence.
         """
         if not (
-                hasattr(cls, 'file_sequence_style')
-                and isinstance(cls.file_sequence_style, tuple)
-                and len(cls.file_sequence_style) == 2
-                and isinstance(cls.file_sequence_style[0], re.Pattern)
-                and isinstance(cls.file_sequence_style[1], str)
-                and 'sequence' in cls.file_sequence_style[1]
+            hasattr(cls, "file_sequence_style")
+            and isinstance(cls.file_sequence_style, tuple)
+            and len(cls.file_sequence_style) == 2
+            and isinstance(cls.file_sequence_style[0], re.Pattern)
+            and isinstance(cls.file_sequence_style[1], str)
+            and "sequence" in cls.file_sequence_style[1]
         ):
-            raise NotImplementedError("Method `get_renamed_path(path, sequence)` requires that `file_sequence_style` "
-                                      "to be set in through inherent class as a tuple with a pattern and string value "
-                                      "with the placeholder for sequence `{sequence}`.")
+            raise NotImplementedError(
+                "Method `get_renamed_path(path, sequence)` requires that `file_sequence_style` "
+                "to be set in through inherent class as a tuple with a pattern and string value "
+                "with the placeholder for sequence `{sequence}`."
+            )
 
         filename: str = cls.get_filename_from_path(path)
 
-        return path.replace(filename, re.sub(
-            cls.file_sequence_style[0], cls.file_sequence_style[1].format(sequence=sequence), filename)
+        return path.replace(
+            filename,
+            re.sub(
+                cls.file_sequence_style[0],
+                cls.file_sequence_style[1].format(sequence=sequence),
+                filename,
+            ),
         )
 
     @classmethod
@@ -537,12 +569,16 @@ class StorageEngine:
         Method to get the file system id for path.
         This method should be overwritten in child specific for Operational System.
         """
-        raise NotImplementedError("Method get_path_id(path) should be accessed through inherent class.")
+        raise NotImplementedError(
+            "Method get_path_id(path) should be accessed through inherent class."
+        )
 
     @classmethod
     def get_temp_directory(cls) -> str:
         if cls.temporary_folder is None:
-            raise ValueError(f"There is no `temporary_folder` attribute set for {cls.__name__}!")
+            raise ValueError(
+                f"There is no `temporary_folder` attribute set for {cls.__name__}!"
+            )
 
         if not cls.exists(cls.temporary_folder):
             cls.create_directory(cls.temporary_folder)
@@ -553,23 +589,23 @@ class StorageEngine:
     def get_unique_temp_file(cls) -> str:
         """
         Method to create a temporary file with an unique filename.
-        This method used uuid4 for its unique name. 
+        This method used uuid4 for its unique name.
         """
         unique_file_path = cls.join(cls.get_temp_directory(), str(uuid4()))
-        
+
         while cls.exists(path=unique_file_path):
             unique_file_path = cls.join(cls.get_temp_directory(), str(uuid4()))
-        
+
         cls.create_file(path=unique_file_path)
-        
+
         return unique_file_path
-        
+
     @classmethod
     def read_lines(cls, path: str) -> Generator[str]:
         """
         Method generator to get lines from file without loading all data in one step.
         """
-        with open(path, 'r', newline=cls.new_line) as file:
+        with open(path, "r", newline=cls.new_line) as file:
             line = file.readline()
             while line:
                 yield line
@@ -582,7 +618,7 @@ class StorageEngine:
         This method collapse redundant separators and up-level references so that A//B, A/B/, A/./B and A/foo/../B
         all become A/B.
         """
-        return normpath(path.replace('/', cls.sep))
+        return normpath(path.replace("/", cls.sep))
 
     # Low-end methods to use with Path
     # Those methods were created to be used by pathlib.Path, tough
@@ -601,4 +637,6 @@ class StorageEngine:
         Method to get the custom Path class with accessor override.
         This method should be overwritten in child specific for Operational System.
         """
-        raise NotImplementedError("Method get_pathlib_path(path) should be accessed through inherent class.")
+        raise NotImplementedError(
+            "Method get_pathlib_path(path) should be accessed through inherent class."
+        )

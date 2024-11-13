@@ -63,14 +63,18 @@ class VideoEngine:
         Method to return the duration in seconds of the video.
         This method should be overwritten in child class.
         """
-        raise NotImplementedError("The method get_duration should be override in child class.")
+        raise NotImplementedError(
+            "The method get_duration should be override in child class."
+        )
 
     def get_frame_rate(self) -> float:
         """
         Method to return the framerate of the video.
         This method should be overwritten in child class.
         """
-        raise NotImplementedError("The method get_frame_rate should be override in child class.")
+        raise NotImplementedError(
+            "The method get_frame_rate should be override in child class."
+        )
 
     def get_frame_amount(self) -> int:
         """
@@ -83,21 +87,27 @@ class VideoEngine:
         Method to return content of the frame at index as bytes.
         This method should be overwritten in child class.
         """
-        raise NotImplementedError("The method get_frame_as_bytes should be override in child class.")
+        raise NotImplementedError(
+            "The method get_frame_as_bytes should be override in child class."
+        )
 
     def get_frame_image(self, index: int) -> Any:
         """
         Method to return the array representing the frame at index.
         This method should be overwritten in child class.
         """
-        raise NotImplementedError("The method get_frame_image should be override in child class.")
+        raise NotImplementedError(
+            "The method get_frame_image should be override in child class."
+        )
 
     def get_size(self) -> tuple[int, int]:
         """
         Method to return the width and height of the video.
         This method should be overwritten in child class.
         """
-        raise NotImplementedError("The method get_size should be override in child class.")
+        raise NotImplementedError(
+            "The method get_size should be override in child class."
+        )
 
     def prepare_video(self) -> None:
         """
@@ -105,7 +115,9 @@ class VideoEngine:
         This method should use `self.source_buffer` and `self.video` to set the current video object.
         This method should be overwritten in child class.
         """
-        raise NotImplementedError("The method prepare_video should be override in child class.")
+        raise NotImplementedError(
+            "The method prepare_video should be override in child class."
+        )
 
     def show(self) -> None:
         """

@@ -53,20 +53,14 @@ from ..adapters.storage import LinuxFileSystem, WindowsFileSystem
 
 if TYPE_CHECKING:
     from io import BytesIO, StringIO
-    
+
     from ..serializer import PickleSerializer
     from ..adapters.mimetype import MimeTypeEngine
     from ..adapters.storage import StorageEngine
     from ..pipelines.extractor.package import PackageExtractor
-    
 
 
-__all__ = [
-    'BaseFile',
-    'ContentFile',
-    'File',
-    'StreamFile'
-]
+__all__ = ["BaseFile", "ContentFile", "File", "StreamFile"]
 
 
 class BaseFile:
@@ -141,7 +135,9 @@ class BaseFile:
     """
 
     # Initializer data
-    _pipelines_override_keyword_arguments: dict[str, Any] | list[tuple[dict[str, Any], str] | dict[str, Any]]
+    _pipelines_override_keyword_arguments: dict[str, Any] | list[
+        tuple[dict[str, Any], str] | dict[str, Any]
+    ]
     _pipelines_override_keyword_arguments = None
     """
     Attributes for overriding pipelines kwargs passed to `__init__` method. This information is important to be able to 
@@ -179,25 +175,23 @@ class BaseFile:
     `extract_data_pipeline.errors`.
     """
     compare_pipeline: Pipeline = Pipeline(
-        'filejacket.pipelines.comparer.TypeCompare',
-        'filejacket.pipelines.comparer.SizeCompare',
-        'filejacket.pipelines.comparer.BinaryCompare',
-        'filejacket.pipelines.comparer.HashCompare',
-        'filejacket.pipelines.comparer.DataCompare'
+        "filejacket.pipelines.comparer.TypeCompare",
+        "filejacket.pipelines.comparer.SizeCompare",
+        "filejacket.pipelines.comparer.BinaryCompare",
+        "filejacket.pipelines.comparer.HashCompare",
+        "filejacket.pipelines.comparer.DataCompare",
     )
     """
     Pipeline to compare two files.
     """
     hasher_pipeline: Pipeline = Pipeline(
-        ('filejacket.pipelines.hasher.MD5Hasher', {'full_check': True}),
-        ('filejacket.pipelines.hasher.SHA256Hasher', {'full_check': True}),
+        ("filejacket.pipelines.hasher.MD5Hasher", {"full_check": True}),
+        ("filejacket.pipelines.hasher.SHA256Hasher", {"full_check": True}),
     )
     """
     Pipeline to generate hashes from content.
     """
-    rename_pipeline: Pipeline = Pipeline(
-        'filejacket.pipelines.renamer.WindowsRenamer'
-    )
+    rename_pipeline: Pipeline = Pipeline("filejacket.pipelines.renamer.WindowsRenamer")
     """
     Pipeline to rename file when saving. This pipeline can be 
     non-blocking and errors that occur in it will be available through attribute `errors` at 
@@ -296,7 +290,7 @@ class BaseFile:
 
         # Set up storage with default based on operational system
         if not self.storage:
-            self.storage = WindowsFileSystem if name == 'nt' else LinuxFileSystem
+            self.storage = WindowsFileSystem if name == "nt" else LinuxFileSystem
 
         additional_kwargs: dict[str, Any] = {}
         for key, value in kwargs.items():
@@ -309,7 +303,7 @@ class BaseFile:
         # only the attributes must be set.
         if version:
             return
-        
+
         # Validate class creation
         if self.extract_data_pipeline is None:
             raise self.ImproperlyConfiguredFile(
@@ -356,12 +350,14 @@ class BaseFile:
             self._option = FileOption()
 
         # Get option to run pipeline.
-        run_extractor: bool = additional_kwargs.pop('run_extractor', True)
+        run_extractor: bool = additional_kwargs.pop("run_extractor", True)
 
         # Set up keyword arguments to be used in processor.
         # pipelines_override_kwargs: dict[str, Any] = {}
         # pipelines_override_kwargs: list[tuple[dict[str, Any], str]] = [({}, )]
-        self._pipelines_override_keyword_arguments = additional_kwargs.pop('pipelines_override_kwargs', {})
+        self._pipelines_override_keyword_arguments = additional_kwargs.pop(
+            "pipelines_override_kwargs", {}
+        )
 
         # Process extractor pipeline. We only run the pipeline if the criterion below is accomplished:
         # It should not come from the serializer (don't have version)
@@ -397,7 +393,9 @@ class BaseFile:
         `other_instance` can be an object or a list of objects to be compared.
         """
         if not isinstance(other_instance, BaseFile):
-            raise NotImplementedError(f"The {type(other_instance)} was not implemented to compare.")
+            raise NotImplementedError(
+                f"The {type(other_instance)} was not implemented to compare."
+            )
 
         # Run compare pipeline
         try:
@@ -411,7 +409,9 @@ class BaseFile:
         Method to allow comparison not equal to work between BaseFiles.
         """
         if not isinstance(other_instance, BaseFile):
-            raise NotImplementedError(f"The {type(other_instance)} was not implemented to compare.")
+            raise NotImplementedError(
+                f"The {type(other_instance)} was not implemented to compare."
+            )
 
         return not self.__eq__(other_instance)
 
@@ -436,7 +436,7 @@ class BaseFile:
         Without this method `if BaseFile` will return False.
         """
         return True
-    
+
     @property
     def __version__(self) -> str:
         """
@@ -479,7 +479,7 @@ class BaseFile:
             "_content_files",
             "_thumbnail",
             "_option",
-            "__version__"
+            "__version__",
         }
 
         return {key: getattr(self, key) for key in attributes}
@@ -489,7 +489,11 @@ class BaseFile:
         """
         Method to return as attribute the complete filename from file.
         """
-        return f"{self.filename}" if not self.extension else f"{self.filename}.{self.extension}"
+        return (
+            f"{self.filename}"
+            if not self.extension
+            else f"{self.filename}.{self.extension}"
+        )
 
     @property
     def complete_filename_as_tuple(self) -> tuple[str, str | None]:
@@ -545,8 +549,10 @@ class BaseFile:
         This method can receive value as string, bytes or buffer.
         """
         if not isinstance(value, (str, bytes)):
-            raise ValueError(f"The method `content` should not be used for setter of `{type(value)}`."
-                             "Try using `content_as_buffer` instead.")
+            raise ValueError(
+                f"The method `content` should not be used for setter of `{type(value)}`."
+                "Try using `content_as_buffer` instead."
+            )
 
         # Storage information if content is being loaded to generator for the first time
         loading_content: bool = self._content is None
@@ -584,7 +590,9 @@ class BaseFile:
         return iter(self._content.content_as_buffer)
 
     @property
-    def content_as_buffer(self) -> BytesIO | StringIO | PackageExtractor.ContentBuffer | None:
+    def content_as_buffer(
+        self,
+    ) -> BytesIO | StringIO | PackageExtractor.ContentBuffer | None:
         """
         Method to return the current content as buffer to be used for extraction or other code
         that require IO objects.
@@ -595,10 +603,14 @@ class BaseFile:
         return self._content.content_as_buffer
 
     @content_as_buffer.setter
-    def content_as_buffer(self, value: BytesIO | StringIO | PackageExtractor.ContentBuffer) -> None:
+    def content_as_buffer(
+        self, value: BytesIO | StringIO | PackageExtractor.ContentBuffer
+    ) -> None:
         if isinstance(value, (str, bytes)):
-            raise ValueError("The method `content_as_buffer` should not be used for setter of `str` or `bytes`."
-                             "Use `content` instead.")
+            raise ValueError(
+                "The method `content_as_buffer` should not be used for setter of `str` or `bytes`."
+                "Use `content` instead."
+            )
 
         # Storage information if content is being loaded to generator for the first time
         loading_content: bool = self._content is None
@@ -711,7 +723,9 @@ class BaseFile:
 
         # Validate if path is really a file.
         if self.storage.is_dir(self._path):
-            raise ValueError("Attribute `path` informed for File cannot be a directory.")
+            raise ValueError(
+                "Attribute `path` informed for File cannot be a directory."
+            )
 
     @property
     def pipelines(self) -> list[tuple[str, Pipeline]]:
@@ -733,13 +747,15 @@ class BaseFile:
 
             pipelines = []
             for attr, value in source_dict.items():
-                if attr == 'related_file_object':
+                if attr == "related_file_object":
                     continue
 
                 if isinstance(value, Pipeline):
                     pipelines.append((attr, value))
-                elif hasattr(value, '__serialize__'):
-                    pipelines += recursively_get_pipelines_from_serializer(value.__serialize__)
+                elif hasattr(value, "__serialize__"):
+                    pipelines += recursively_get_pipelines_from_serializer(
+                        value.__serialize__
+                    )
 
             return pipelines
 
@@ -750,7 +766,11 @@ class BaseFile:
         """
         Method to return the list of errors that occurred in all pipelines availables.
         """
-        return [(name, pipeline.errors) for name, pipeline in self.pipelines if pipeline.errors]
+        return [
+            (name, pipeline.errors)
+            for name, pipeline in self.pipelines
+            if pipeline.errors
+        ]
 
     @property
     def save_to(self) -> str | None:
@@ -772,8 +792,12 @@ class BaseFile:
 
         # Validate if path is really a directory. `is_dir` will convert the path to its absolute form before checking
         # it to avoid a bug where `~/` is not interpreted as existing.
-        if not self.storage.is_dir(self._save_to) and self.storage.exists(self._save_to):
-            raise ValueError("Attribute `save_to` informed for File must be a directory.")
+        if not self.storage.is_dir(self._save_to) and self.storage.exists(
+            self._save_to
+        ):
+            raise ValueError(
+                "Attribute `save_to` informed for File must be a directory."
+            )
 
     @property
     def sanitize_path(self) -> str:
@@ -806,7 +830,9 @@ class BaseFile:
 
         return self._thumbnail.preview
 
-    def _get_kwargs_for_pipeline(self, pipeline_name: str | None = None) -> dict[str, Any]:
+    def _get_kwargs_for_pipeline(
+        self, pipeline_name: str | None = None
+    ) -> dict[str, Any]:
         """
         Method to return the parameters for overriding of pipeline arguments.
         This method will return all parameters that match the `pipeline_name` and those that don't specify a pipeline.
@@ -837,7 +863,9 @@ class BaseFile:
             "Allowed types: dict[str, Any] | list[tuple[dict[str, Any], str] | dict[str, Any]]"
         )
 
-    def add_valid_filename(self, complete_filename: str, enforce_mimetype: bool = False) -> bool:
+    def add_valid_filename(
+        self, complete_filename: str, enforce_mimetype: bool = False
+    ) -> bool:
         """
         Method to add filename and extension to file only if it has a valid extension.
         This method return boolean to indicate whether a filename and extension was added or not.
@@ -856,31 +884,42 @@ class BaseFile:
         # Check if there is known extension in complete_filename.
         # This method break extract extension from filename and get check if it is valid, returning
         # extension only if it is registered.
-        possible_extension: str | None = self.mime_type_handler.guess_extension_from_filename(complete_filename)
+        possible_extension: str | None = (
+            self.mime_type_handler.guess_extension_from_filename(complete_filename)
+        )
 
         if possible_extension:
             # Enforce use of extension that match mimetype if `enforce_mimetype` is True.
             # This will also override self.extension to use a new one still compatible with mimetype.
             if enforce_mimetype and self.mime_type:
-                if possible_extension not in self.mime_type_handler.get_extensions(self.mime_type):
+                if possible_extension not in self.mime_type_handler.get_extensions(
+                    self.mime_type
+                ):
                     return False
 
             # Use first class BaseRenamer declared in pipeline because `prepare_filename` is a class method from base
             # BaseRenamer class, and we don't require any other specialized methods from BaseRenamer children.
             processor: object = self.rename_pipeline[0]
-            if not hasattr(processor, 'prepare_filename'):
-                raise ImproperlyConfiguredPipeline("The rename pipeline first processor class don't implement the "
-                                                   "method `prepare_filename`.")
+            if not hasattr(processor, "prepare_filename"):
+                raise ImproperlyConfiguredPipeline(
+                    "The rename pipeline first processor class don't implement the "
+                    "method `prepare_filename`."
+                )
             self.complete_filename_as_tuple = processor.prepare_filename(
-                complete_filename,
-                possible_extension
+                complete_filename, possible_extension
             )
 
             # Save additional metadata to file.
             if self.extension:
-                self._meta.compressed = self.mime_type_handler.is_extension_compressed(self.extension)
-                self._meta.lossless = self.mime_type_handler.is_extension_lossless(self.extension)
-                self._meta.packed = self.mime_type_handler.is_extension_packed(self.extension)
+                self._meta.compressed = self.mime_type_handler.is_extension_compressed(
+                    self.extension
+                )
+                self._meta.lossless = self.mime_type_handler.is_extension_lossless(
+                    self.extension
+                )
+                self._meta.packed = self.mime_type_handler.is_extension_packed(
+                    self.extension
+                )
 
             if self._meta.packed:
                 self._actions.to_list()
@@ -895,33 +934,43 @@ class BaseFile:
         This method set-up for current file object with others.
         """
         if not files:
-            raise ValueError("There must be at least one file to be compared in `BaseFile.compare_to` method.")
+            raise ValueError(
+                "There must be at least one file to be compared in `BaseFile.compare_to` method."
+            )
 
         # Run pipeline passing objects to be compared
         self.compare_pipeline.run(
             object_to_process=self,
             **{
-                **self._get_kwargs_for_pipeline('compare_pipeline'),
-                "objects_to_compare": files
-            }
+                **self._get_kwargs_for_pipeline("compare_pipeline"),
+                "objects_to_compare": files,
+            },
         )
 
         result: None | bool = self.compare_pipeline.last_result
 
         if result is None:
-            raise ValueError("There is not enough data in files for comparison at `File.compare_to`.")
+            raise ValueError(
+                "There is not enough data in files for comparison at `File.compare_to`."
+            )
 
         return result
 
-    def extract(self, destination: str | None = None, force: bool = False) -> bool | None:
+    def extract(
+        self, destination: str | None = None, force: bool = False
+    ) -> bool | None:
         """
         Method to extract the content of the file, only if object is packed and extractable.
         """
         if not self.save_to:
-            raise ValueError("There is no directory defined at `save_to` to use for extraction.")
+            raise ValueError(
+                "There is no directory defined at `save_to` to use for extraction."
+            )
 
         if not self.filename:
-            raise ValueError("There is no filename defined at `filename` to use for extraction.")
+            raise ValueError(
+                "There is no filename defined at `filename` to use for extraction."
+            )
 
         if self.meta.packed:
             # Define directory location for extraction of content from path.
@@ -931,7 +980,9 @@ class BaseFile:
             # The method decompress in extractor determine if this package is extractable.
             for processor in self._content_files.unpack_data_pipeline:
                 try:
-                    if processor.decompress(file_object=self, decompress_to=destination, overrider=force):
+                    if processor.decompress(
+                        file_object=self, decompress_to=destination, overrider=force
+                    ):
                         return True
 
                 except NotImplementedError:
@@ -947,15 +998,17 @@ class BaseFile:
         """
         if self._actions.hash:
             # If content is being changed a new hash need to be generated instead of load from hash files.
-            try_loading_from_file: bool = False if self._state.changing or force else self._actions.was_saved
+            try_loading_from_file: bool = (
+                False if self._state.changing or force else self._actions.was_saved
+            )
 
             # Reset `try_loading_from_file` in pipeline.
             self.hasher_pipeline.run(
                 object_to_process=self,
                 **{
-                    **self._get_kwargs_for_pipeline('hasher_pipeline'),
-                    "try_loading_from_file": try_loading_from_file
-                }
+                    **self._get_kwargs_for_pipeline("hasher_pipeline"),
+                    "try_loading_from_file": try_loading_from_file,
+                },
             )
 
             self._actions.hashed()
@@ -971,7 +1024,7 @@ class BaseFile:
             # Extract data from content
             self._content_files.unpack_data_pipeline.run(
                 object_to_process=self,
-                **self._get_kwargs_for_pipeline('unpack_data_pipeline')
+                **self._get_kwargs_for_pipeline("unpack_data_pipeline"),
             )
 
             # Mark as concluded the was_listed option
@@ -986,14 +1039,17 @@ class BaseFile:
         """
         # Set-up pipeline to extract data from.
         pipeline: Pipeline = Pipeline(
-            'filejacket.pipelines.extractor.FilenameAndExtensionFromPathExtractor',
-            'filejacket.pipelines.extractor.MimeTypeFromFilenameExtractor',
-            'filejacket.pipelines.extractor.FileSystemDataExtractor',
-            'filejacket.pipelines.extractor.HashFileExtractor'
+            "filejacket.pipelines.extractor.FilenameAndExtensionFromPathExtractor",
+            "filejacket.pipelines.extractor.MimeTypeFromFilenameExtractor",
+            "filejacket.pipelines.extractor.FileSystemDataExtractor",
+            "filejacket.pipelines.extractor.HashFileExtractor",
         )
 
         # Run the pipeline.
-        pipeline.run(object_to_process=self, **{**self._get_kwargs_for_pipeline(), "overrider": True})
+        pipeline.run(
+            object_to_process=self,
+            **{**self._get_kwargs_for_pipeline(), "overrider": True},
+        )
 
         # Set up its processing state to False
         self._state.processing = False
@@ -1004,7 +1060,10 @@ class BaseFile:
         not overwrite data already loaded.
         """
         # Call pipeline with keyword_arguments saved in file object
-        self.extract_data_pipeline.run(object_to_process=self, **self._get_kwargs_for_pipeline('extract_data_pipeline'))
+        self.extract_data_pipeline.run(
+            object_to_process=self,
+            **self._get_kwargs_for_pipeline("extract_data_pipeline"),
+        )
 
         # Mark the file object as run its pipeline for extraction.
         # Set up its processing state to False
@@ -1037,29 +1096,45 @@ class BaseFile:
         self.validate()
 
         # Extract options like `overwrite=bool` file, `save_hashes=False`.
-        allow_overwrite: bool = getattr(self._option, 'allow_overwrite', False)
-        save_hashes: bool = getattr(self._option, 'save_hashes', False)
-        allow_search_hashes: bool = getattr(self._option, 'allow_search_hashes', True)
-        allow_update: bool = getattr(self._option, 'allow_update', True)
-        allow_rename: bool = getattr(self._option, 'allow_rename', False)
-        allow_extension_change: bool = getattr(self._option, 'allow_extension_change', True)
-        create_backup: bool = getattr(self._option, 'create_backup', False)
+        allow_overwrite: bool = getattr(self._option, "allow_overwrite", False)
+        save_hashes: bool = getattr(self._option, "save_hashes", False)
+        allow_search_hashes: bool = getattr(self._option, "allow_search_hashes", True)
+        allow_update: bool = getattr(self._option, "allow_update", True)
+        allow_rename: bool = getattr(self._option, "allow_rename", False)
+        allow_extension_change: bool = getattr(
+            self._option, "allow_extension_change", True
+        )
+        create_backup: bool = getattr(self._option, "create_backup", False)
 
         # If overwrite is False and file exists a new filename must be created before renaming.
         file_exists: bool = self.storage.exists(self.sanitize_path)
 
         # Verify which actions are allowed to perform while saving.
         if self._state.adding and file_exists and not allow_overwrite:
-            raise self.OperationNotAllowed("Saving a new file is not allowed when there is a existing one in path "
-                                           "and `overwrite` is set to `False`!")
+            raise self.OperationNotAllowed(
+                "Saving a new file is not allowed when there is a existing one in path "
+                "and `overwrite` is set to `False`!"
+            )
 
-        if not self._state.adding and self._state.changing and not (allow_update or create_backup):
-            raise self.OperationNotAllowed("Update a file content is not allowed when there is a existing one in path "
-                                           "and `allow_update` and `create_backup` are set to `False`!")
+        if (
+            not self._state.adding
+            and self._state.changing
+            and not (allow_update or create_backup)
+        ):
+            raise self.OperationNotAllowed(
+                "Update a file content is not allowed when there is a existing one in path "
+                "and `allow_update` and `create_backup` are set to `False`!"
+            )
 
-        if self._state.renaming and file_exists and not (allow_rename or allow_overwrite):
-            raise self.OperationNotAllowed("Renaming a file is not allowed when there is a existing one in path "
-                                           "and `allow_rename` and `overwrite` is set to `False`!")
+        if (
+            self._state.renaming
+            and file_exists
+            and not (allow_rename or allow_overwrite)
+        ):
+            raise self.OperationNotAllowed(
+                "Renaming a file is not allowed when there is a existing one in path "
+                "and `allow_rename` and `overwrite` is set to `False`!"
+            )
 
         # Check if extension is being change, raise exception if it is.
         if (
@@ -1068,8 +1143,10 @@ class BaseFile:
             and self._naming.previous_saved_extension != self.extension
             and not allow_extension_change
         ):
-            raise self.OperationNotAllowed("Changing a file extension is not allowed when `allow_extension_change` is "
-                                           "set to `False`!")
+            raise self.OperationNotAllowed(
+                "Changing a file extension is not allowed when `allow_extension_change` is "
+                "set to `False`!"
+            )
 
         # Create new filename to avoid overwrite if allow_rename is set to `True`.
         if self._state.renaming:
@@ -1116,28 +1193,41 @@ class BaseFile:
         """
         # Check if there is a filename or extension
         if not self.filename and not self.extension:
-            raise self.ValidationError("The attribute `filename` or `extension` must be set for the file!")
+            raise self.ValidationError(
+                "The attribute `filename` or `extension` must be set for the file!"
+            )
 
         # Raise if not save_to is provided.
         if not self.save_to:
-            raise self.ValidationError("The attribute `save_to` must be set for the file!")
+            raise self.ValidationError(
+                "The attribute `save_to` must be set for the file!"
+            )
 
         # Raise if not content provided.
         if self._content is None:
-            raise self.ValidationError("The attribute `content` or `content_as_buffer` must be set for the file!")
+            raise self.ValidationError(
+                "The attribute `content` or `content_as_buffer` must be set for the file!"
+            )
 
         # Check if mimetype is compatible with extension
-        if self.extension and self.mime_type and self.extension not in self.mime_type_handler.get_extensions(
-            self.mime_type
+        if (
+            self.extension
+            and self.mime_type
+            and self.extension
+            not in self.mime_type_handler.get_extensions(self.mime_type)
         ):
-            raise self.ValidationError("The attribute `extension` is not compatible with the set-up mimetype for the "
-                                       "file!")
+            raise self.ValidationError(
+                "The attribute `extension` is not compatible with the set-up mimetype for the "
+                "file!"
+            )
 
     def write_content(self, path: str) -> None:
         """
         Method to write content to a given path.
         This method will truncate the file before saving content to it.
         """
-        write_mode: str = 'b' if self.is_binary else 't'
+        write_mode: str = "b" if self.is_binary else "t"
 
-        self.storage.save_file(path, self._content, file_mode='w', write_mode=write_mode)
+        self.storage.save_file(
+            path, self._content, file_mode="w", write_mode=write_mode
+        )

@@ -26,31 +26,25 @@ from __future__ import annotations
 import re
 from collections import namedtuple
 from typing import Type, TYPE_CHECKING, NamedTuple, Pattern
+
 # third-party
 from urllib.parse import urlparse, parse_qsl, unquote, urlencode
 
-from psutil import (
-    disk_usage,
-    virtual_memory,
-    swap_memory
-)
+from psutil import disk_usage, virtual_memory, swap_memory
 
 if TYPE_CHECKING:
     from .engines.storage import StorageEngine
     from urllib.parse import ParseResult
 
 
-__all__ = [
-    'System',
-    'URI'
-]
+__all__ = ["System", "URI"]
 
 
 class System:
     """
     Class that standardized methods of different storage and processing systems.
     """
-    
+
     @classmethod
     def has_available_swap(cls, reversed_data: int = 0) -> bool:
         """
@@ -87,17 +81,17 @@ class URI:
     Class that standardized methods of different URI handlers.
     """
 
-    uri_scheme: Pattern = re.compile(r'([A-Za-z0-9_-]*:\/\/)')
+    uri_scheme: Pattern = re.compile(r"([A-Za-z0-9_-]*:\/\/)")
     """
     Define what is identifiable as scheme. The parentheses required to allow returning of
     capture string in `re.split()`.
     """
-    uri_fragment: Pattern = re.compile(r'#[^#\/\\]+$')
+    uri_fragment: Pattern = re.compile(r"#[^#\/\\]+$")
     """
     Define what is identifiable as fragment. 
     e.g. `https://test.com/path/#fragment` or `https://test.com/path/test.php#fragment`.
     """
-    uri_separator: Pattern = re.compile(r'\/|\\|\?[^=]+=|&[^=]+=|&amp;[^=]+=')
+    uri_separator: Pattern = re.compile(r"\/|\\|\?[^=]+=|&[^=]+=|&amp;[^=]+=")
     """
     Define characters that separate values in URLs. 
     """
@@ -105,9 +99,9 @@ class URI:
     """
     Dictionary to cache paths and URIs to avoid calculating it again.
     """
-    Path: NamedTuple = namedtuple('Path', ['directory', 'processed_uri'])
-    Filename: NamedTuple = namedtuple('Filename', ['filename', 'processed_uri'])
-    Cache: NamedTuple = namedtuple('Cache', ['filename', 'directory'])
+    Path: NamedTuple = namedtuple("Path", ["directory", "processed_uri"])
+    Filename: NamedTuple = namedtuple("Filename", ["filename", "processed_uri"])
+    Cache: NamedTuple = namedtuple("Cache", ["filename", "directory"])
 
     @classmethod
     def remove_fragments(cls, value: str) -> str:
@@ -115,7 +109,7 @@ class URI:
         Method to remove a fragment from URL informed in value.
         This method expected that value is a URL unquoted.
         """
-        return cls.uri_fragment.sub('', value)
+        return cls.uri_fragment.sub("", value)
 
     @classmethod
     def parse_query(cls, value: str) -> list:
@@ -151,7 +145,7 @@ class URI:
         """
         This method caches the processed value to allow for dynamic programming.
         """
-        search: set[str] = {'filename', 'file_name', 'file'}
+        search: set[str] = {"filename", "file_name", "file"}
         parsed_url: ParseResult = cls.parse_url(value)
 
         filename: str | None = None
@@ -180,7 +174,7 @@ class URI:
         if not filename:
             possible_filename: str = file_system.get_filename_from_path(path)
 
-            if '.' in possible_filename:
+            if "." in possible_filename:
                 filename = possible_filename
                 path = file_system.get_directory_from_path(path)
 
@@ -188,10 +182,7 @@ class URI:
         directory: str = file_system.sanitize_path(path)
 
         # Save in cache
-        cls.cache[value] = cls.Cache(
-            directory=directory,
-            filename=filename
-        )
+        cls.cache[value] = cls.Cache(directory=directory, filename=filename)
 
     @classmethod
     def get_processed_uri(cls, value: str) -> Cache | None:
@@ -218,7 +209,7 @@ class URI:
             processed_uri: str = cls.remove_fragments(uri)
 
             # Remove scheme from URI
-            processed_uri = cls.uri_scheme.sub('', processed_uri)
+            processed_uri = cls.uri_scheme.sub("", processed_uri)
 
             if processed_uri not in cls.cache:
                 cls.process_path(processed_uri, file_system)
@@ -228,7 +219,9 @@ class URI:
         return paths
 
     @classmethod
-    def get_filenames(cls, value: str, file_system: Type[StorageEngine]) -> list[URI.Filename]:
+    def get_filenames(
+        cls, value: str, file_system: Type[StorageEngine]
+    ) -> list[URI.Filename]:
         """
         Method to return a list of filenames found in URI.
         This method try to find a filename in path if there is any.
@@ -242,13 +235,15 @@ class URI:
 
         for uri in cls.separate_uris(value):
             # Remove fragments and scheme from URI
-            processed_uri: str = cls.uri_scheme.sub('', cls.remove_fragments(uri))
+            processed_uri: str = cls.uri_scheme.sub("", cls.remove_fragments(uri))
 
             if processed_uri not in cls.cache:
                 cls.process_path(processed_uri, file_system)
 
             if cls.cache[processed_uri].filename:
-                filenames.append(cls.Filename(cls.cache[processed_uri].filename, processed_uri))
+                filenames.append(
+                    cls.Filename(cls.cache[processed_uri].filename, processed_uri)
+                )
 
         return filenames
 
@@ -263,5 +258,5 @@ class URI:
         return [
             element[index + 1] + element
             for index, element in enumerate(possible_uris)
-            if element and ':' not in element
+            if element and ":" not in element
         ]

@@ -31,14 +31,14 @@ if TYPE_CHECKING:
 
 
 __all__ = [
-    'BinaryCompare',
-    'DataCompare',
-    'HashCompare',
-    'LousyNameCompare',
-    'MimeTypeCompare',
-    'NameCompare',
-    'SizeCompare',
-    'TypeCompare'
+    "BinaryCompare",
+    "DataCompare",
+    "HashCompare",
+    "LousyNameCompare",
+    "MimeTypeCompare",
+    "NameCompare",
+    "SizeCompare",
+    "TypeCompare",
 ]
 
 
@@ -64,6 +64,7 @@ class DataCompare(BaseComparer):
         of a additional buffer to save parts of content to compare. Using the lower size of buffer
         between the two files.
         """
+
         def compare_buffer():
             """
             Internal function to compare two buffer's data.
@@ -86,8 +87,8 @@ class DataCompare(BaseComparer):
             # Comparing data between binary and string should return False, they are not the same anyway.
             if file_1.is_binary != file_2.is_binary:
                 return False
-            
-            # Check if the iterator being compared is the same, to avoid consuming unequal parts of the same iterator.             
+
+            # Check if the iterator being compared is the same, to avoid consuming unequal parts of the same iterator.
             if id(content_1) == id(content_2):
                 return True
 
@@ -98,11 +99,11 @@ class DataCompare(BaseComparer):
             buffer_2: str | bytes | None
 
             if file_1.is_binary:
-                value_1 = buffer_1 = b''
-                value_2 = buffer_2 = b''
+                value_1 = buffer_1 = b""
+                value_2 = buffer_2 = b""
             else:
-                value_1 = buffer_1 = ''
-                value_2 = buffer_2 = ''
+                value_1 = buffer_1 = ""
+                value_2 = buffer_2 = ""
 
             # Normalize buffer size to be the minimum denominator between buffers
             buffer_size = min(file_1._content._block_size, file_2._content._block_size)
@@ -184,7 +185,9 @@ class HashCompare(BaseComparer):
         if not file_1.hashes or not file_2.hashes:
             return None
 
-        for hash_name in set(file_1.hashes.keys()).intersection(set(file_2.hashes.keys())):
+        for hash_name in set(file_1.hashes.keys()).intersection(
+            set(file_2.hashes.keys())
+        ):
             if file_1.hashes[hash_name] != file_2.hashes[hash_name]:
                 return False
 

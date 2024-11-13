@@ -37,10 +37,10 @@ if TYPE_CHECKING:
 
 
 __all__ = [
-    'AudioMetadataFromContentExtractor',
-    'DocumentMetadataFromContentExtractor',
-    'MimeTypeFromContentExtractor',
-    'VideoMetadataFromContentExtractor',
+    "AudioMetadataFromContentExtractor",
+    "DocumentMetadataFromContentExtractor",
+    "MimeTypeFromContentExtractor",
+    "VideoMetadataFromContentExtractor",
 ]
 
 
@@ -197,33 +197,34 @@ class AudioMetadataFromContentExtractor(BaseExtractor):
         tinytag.extra = dict(tinytag.extra)
 
         attributes_to_extract: set[str] = {
-            'album',
-            'albumartist',
-            'artist',
-            'audio_offset',
-            'bitrate',
-            'channels',
-            'comment',
-            'composer',
-            'disc',
-            'disc_total',
-            'duration',
-            'extra',
-            'genre',
-            'samplerate',
-            'title',
-            'track',
-            'track_total',
-            'year'
+            "album",
+            "albumartist",
+            "artist",
+            "audio_offset",
+            "bitrate",
+            "channels",
+            "comment",
+            "composer",
+            "disc",
+            "disc_total",
+            "duration",
+            "extra",
+            "genre",
+            "samplerate",
+            "title",
+            "track",
+            "track_total",
+            "year",
         }
         for attribute in attributes_to_extract:
             tinytag_attribute = getattr(tinytag, attribute, None)
-            if tinytag_attribute and (not getattr(file_object.meta, attribute, None) or overrider):
+            if tinytag_attribute and (
+                not getattr(file_object.meta, attribute, None) or overrider
+            ):
                 setattr(file_object.meta, attribute, tinytag_attribute)
 
 
 class MimeTypeFromContentExtractor(BaseExtractor):
-    
     @classmethod
     def extract(cls, file_object: BaseFile, overrider: bool, **kwargs: Any) -> None:
         """
@@ -234,21 +235,25 @@ class MimeTypeFromContentExtractor(BaseExtractor):
                 "Attribute `content` or `content_as_buffer` must be settled before calling "
                 "`AudioMetadataFromContentExtractor.extract`!"
             )
-        
+
         # Check if already there is a mimetype, if exists do nothing.
         if file_object.mime_type and not overrider:
             return
-        
+
         if not file_object._content.is_seekable:
-            raise OperationNotAllowed("The MimeTypeFromContentExtractor extractor cannot be used with a file_object`s content that is not seekable.")
-        
+            raise OperationNotAllowed(
+                "The MimeTypeFromContentExtractor extractor cannot be used with a file_object`s content that is not seekable."
+            )
+
         from polyfile.magic import MagicMatcher
 
         mime_types = []
-        
-        # We only need the first 32 
-        for match in MagicMatcher.DEFAULT_INSTANCE.match(file_object.content_as_buffer.read(32)):
-            mime_types += list(match.mimetypes)        
-        
-        # This will throw KeyError if no mime_type is found. 
+
+        # We only need the first 32
+        for match in MagicMatcher.DEFAULT_INSTANCE.match(
+            file_object.content_as_buffer.read(32)
+        ):
+            mime_types += list(match.mimetypes)
+
+        # This will throw KeyError if no mime_type is found.
         file_object.mime_type = mime_types[0]

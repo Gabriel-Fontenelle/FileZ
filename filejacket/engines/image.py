@@ -39,6 +39,7 @@ class ImageEngine:
     """
     Class that standardized methods of different image manipulators.
     """
+
     image: Any
     image = None
     """
@@ -55,7 +56,9 @@ class ImageEngine:
     Attribute used to store image metadata if available.
     """
 
-    def __init__(self, buffer: StringIO | BytesIO | PackageExtractor.ContentBuffer | None = None) -> None:
+    def __init__(
+        self, buffer: StringIO | BytesIO | PackageExtractor.ContentBuffer | None = None
+    ) -> None:
         """
         Method to instantiate the current class using a buffer for the image content as a source
         for manipulation by the class to be used.
@@ -71,14 +74,18 @@ class ImageEngine:
         this method should convert it to a sequence.
         This method should be overwritten in child class.
         """
-        raise NotImplementedError("The method append_to_sequence should be override in child class.")
+        raise NotImplementedError(
+            "The method append_to_sequence should be override in child class."
+        )
 
     def change_color(self, colorspace: str = "gray", **kwargs: Any) -> None:
         """
         Method to change the color space of the current image.
         This method should be overwritten in child class.
         """
-        raise NotImplementedError("The method change_color should be override in child class.")
+        raise NotImplementedError(
+            "The method change_color should be override in child class."
+        )
 
     def clone(self) -> Any:
         """
@@ -92,11 +99,15 @@ class ImageEngine:
         """
         Method to instantiate the current class with an empty image.
         """
-        if not hasattr(cls, 'class_image'):
-            raise NotImplementedError(f"The current class {cls.__name__} don`t implement the attribute `class_image`.")
+        if not hasattr(cls, "class_image"):
+            raise NotImplementedError(
+                f"The current class {cls.__name__} don`t implement the attribute `class_image`."
+            )
 
         if cls.class_image is None:
-            raise NotImplementedError("The attribute `class_image` should be override in child class.")
+            raise NotImplementedError(
+                "The attribute `class_image` should be override in child class."
+            )
 
         return cls.create_from_image(image=cls.class_image())
 
@@ -109,7 +120,7 @@ class ImageEngine:
         self.image = image
 
         return self
-    
+
     def crop(self, width: int, height: int, **kwargs: Any) -> None:
         """
         Method to crop the current image object.
@@ -135,7 +146,7 @@ class ImageEngine:
         content = self.get_bytes(encode_format=encode_format)
 
         # Convert buffer to base64 string representation in ASCII
-        return base64.b64encode(content).decode('ascii')
+        return base64.b64encode(content).decode("ascii")
 
     def get_buffer(self, encode_format: str = "jpeg") -> BytesIO:
         """
@@ -149,7 +160,9 @@ class ImageEngine:
         This method must return bytes already compressed by format.
         This method should be overwritten in child class.
         """
-        raise NotImplementedError("The method get_bytes_from_image should be override in child class.")
+        raise NotImplementedError(
+            "The method get_bytes_from_image should be override in child class."
+        )
 
     def get_relative_size(
         self,
@@ -157,7 +170,7 @@ class ImageEngine:
         height: int,
         new_width: int,
         new_height: int,
-        constraint: bool = True
+        constraint: bool = True,
     ) -> tuple[int, int]:
         """
         Method to obtain a new size relative to width and height that respect the aspect ratio
@@ -184,21 +197,27 @@ class ImageEngine:
         This method should return a tuple with width and height.
         This method should be overwritten in child class.
         """
-        raise NotImplementedError("The method get_size should be override in child class.")
+        raise NotImplementedError(
+            "The method get_size should be override in child class."
+        )
 
     def has_sequence(self) -> bool:
         """
         Method to verify if image has multiple frames, e.g `.gif`, or distinct sizes, e.g `.ico`.
         This method should be overwritten in child class.
         """
-        raise NotImplementedError("The method has_sequence should be override in child class.")
+        raise NotImplementedError(
+            "The method has_sequence should be override in child class."
+        )
 
     def has_transparency(self) -> bool:
         """
         Method to verify if image has a channel for transparency.
         This method should be overwritten in child class.
         """
-        raise NotImplementedError("The method has_transparency should be override in child class.")
+        raise NotImplementedError(
+            "The method has_transparency should be override in child class."
+        )
 
     def prepare_image(self) -> None:
         """
@@ -206,7 +225,9 @@ class ImageEngine:
         This method should use `self.source_buffer` and `self.image` to set the current image object.
         This method should be overwritten in child class.
         """
-        raise NotImplementedError("The method prepare_image should be override in child class.")
+        raise NotImplementedError(
+            "The method prepare_image should be override in child class."
+        )
 
     def resample(self, percentual: int = 10, encode_format: str = "webp") -> None:
         """
@@ -214,7 +235,9 @@ class ImageEngine:
         sequences.
         This method should be overwritten in child class.
         """
-        raise NotImplementedError("The method resample should be override in child class.")
+        raise NotImplementedError(
+            "The method resample should be override in child class."
+        )
 
     def resize(self, width, height, constraint=True, keep_ratio=False, crop=False):
         """
@@ -240,13 +263,15 @@ class ImageEngine:
                 height=current_height,
                 new_width=width,
                 new_height=height,
-                constraint=constraint
+                constraint=constraint,
             )
 
         elif crop:
             # Resize image cropping it to have the same aspect ratio as the new width and height.
             ratio_width, ratio_height = self.get_aspect_ratio(width, height)
-            self.crop(int(ratio_width * current_height), int(ratio_height * current_width))
+            self.crop(
+                int(ratio_width * current_height), int(ratio_height * current_width)
+            )
 
         # Scale image with the new width, height
         self.scale(width, height)
@@ -257,7 +282,9 @@ class ImageEngine:
          by the transformation will be filled with it.
         This method should be overwritten in child class.
         """
-        raise NotImplementedError("The method rotate should be override in child class.")
+        raise NotImplementedError(
+            "The method rotate should be override in child class."
+        )
 
     def scale(self, width: int, height: int, **kwargs: Any) -> None:
         """

@@ -24,9 +24,7 @@ from typing import Any
 
 from ..exception import SerializerError
 
-__all__ = [
-    "FileState"
-]
+__all__ = ["FileState"]
 
 
 class FileState:
@@ -62,7 +60,9 @@ class FileState:
             if hasattr(self, key):
                 setattr(self, key, value)
             else:
-                raise SerializerError(f"Class {self.__class__.__name__} doesn't have an attribute called {key}.")
+                raise SerializerError(
+                    f"Class {self.__class__.__name__} doesn't have an attribute called {key}."
+                )
 
     @property
     def __serialize__(self) -> dict[str, bool]:

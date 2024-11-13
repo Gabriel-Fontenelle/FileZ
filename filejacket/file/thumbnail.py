@@ -225,7 +225,9 @@ class FileThumbnail:
             if hasattr(self, key):
                 setattr(self, key, value)
             else:
-                raise SerializerError(f"Class {self.__class__.__name__} doesn't have an attribute called {key}.")
+                raise SerializerError(
+                    f"Class {self.__class__.__name__} doesn't have an attribute called {key}."
+                )
 
     @property
     def __serialize__(self) -> dict[str, Any]:
@@ -300,7 +302,9 @@ class FileThumbnail:
         """
         self.related_file_object._actions.previewed()
 
-    def _generate_file(self, defaults: Type[ThumbnailDefaults], name: str = "static") -> None:
+    def _generate_file(
+        self, defaults: Type[ThumbnailDefaults], name: str = "static"
+    ) -> None:
         """
         Method to process a list of files in order to generate thumbnail's or previews' files.
         This method use name to retrieve the related files in thumbnail. Possible names are static and animated.
@@ -316,7 +320,7 @@ class FileThumbnail:
         files: list[BaseFile] = self._get_files_to_process(defaults)
 
         to_be_processed: list[BaseFile] = []
-        
+
         for file_object in files:
             # Call processor for each file running the pipeline to render an animated image
             # of the file, files that don't have a processor will result in None
@@ -324,14 +328,13 @@ class FileThumbnail:
                 object_to_process=file_object,
                 image_engine=self.image_engine,
                 video_engine=self.video_engine,
-                **file_object._get_kwargs_for_pipeline(f"render_{name}_pipeline")
+                **file_object._get_kwargs_for_pipeline(f"render_{name}_pipeline"),
             )
 
             # Check if animated/static image was generated
             file_processed: BaseFile = getattr(file_object._thumbnail, f"_{name}_file")
 
             if file_processed is not None:
-
                 if defaults.composer_engine is None:
                     # Return the first preview
                     setattr(self, f"_{name}_file", file_processed)
@@ -346,26 +349,40 @@ class FileThumbnail:
         if to_be_processed:
             # Call the current composer set up for the FileThumbnail.
             # It will clone the images and merge it in a single sequence.
-            setattr(self, f"_{name}_file", defaults.composer_engine.compose(
-                objects_to_compose=to_be_processed,
-                engine=self.image_engine
-            ))
+            setattr(
+                self,
+                f"_{name}_file",
+                defaults.composer_engine.compose(
+                    objects_to_compose=to_be_processed, engine=self.image_engine
+                ),
+            )
         elif defaults.default_engine is not None:
             # No image was rendered for thumbnail, so we should return the default one.
-            setattr(self, f"_{name}_file", defaults.default_engine.compose(object_to_process=self.related_file_object))
+            setattr(
+                self,
+                f"_{name}_file",
+                defaults.default_engine.compose(
+                    object_to_process=self.related_file_object
+                ),
+            )
         else:
             setattr(self, f"_{name}_file", False)
 
         # Set state of related file as concluded.
         getattr(self, f"_conclude_{name}_action")()
 
-    def _get_files_to_process(self, defaults: Type[ThumbnailDefaults]) -> list[BaseFile]:
+    def _get_files_to_process(
+        self, defaults: Type[ThumbnailDefaults]
+    ) -> list[BaseFile]:
         """
         Method to obtain the list of files to process considering if current related file object is a package with
         internal files or not.
         As convention this method should be considered private and not called outside internal use.
         """
-        if self.related_file_object.meta.packed and self.related_file_object.extension not in defaults.packed_to_ignore:
+        if (
+            self.related_file_object.meta.packed
+            and self.related_file_object.extension not in defaults.packed_to_ignore
+        ):
             # Check if there is an element in iterator, else the self.related_file_object will be used.
             first, second = itertools.tee(self.related_file_object.files, 2)
             try:
@@ -383,7 +400,10 @@ class FileThumbnail:
         Method to clean the history of file thumbnail.
         The data will still be in memory while the Garbage Collector don't remove it.
         """
-        self.history: dict[str, list[BaseFile]] = {"_static_file": [], "_animated_file": []}
+        self.history: dict[str, list[BaseFile]] = {
+            "_static_file": [],
+            "_animated_file": [],
+        }
 
     def display_image(self) -> None:
         """

@@ -32,11 +32,8 @@ from os.path import (
     normcase,
     normpath,
 )
-from pathlib import (
-    Path,
-    WindowsPath,
-    PosixPath
-)
+from pathlib import Path, WindowsPath, PosixPath
+
 # third-party
 from typing import Any, Pattern
 
@@ -44,8 +41,8 @@ from ..engines.storage import StorageEngine
 
 
 __all__ = [
-    'WindowsFileSystem',
-    'LinuxFileSystem',
+    "WindowsFileSystem",
+    "LinuxFileSystem",
 ]
 
 
@@ -58,7 +55,10 @@ class WindowsFileSystem(StorageEngine):
     """
     Define the location of temporary content in filesystem.
     """
-    file_sequence_style: tuple[Pattern[str], str] = (re.compile(r"(\ *\(\d+?\))?(\.[^.]*$)"), r" ({sequence})\2")
+    file_sequence_style: tuple[Pattern[str], str] = (
+        re.compile(r"(\ *\(\d+?\))?(\.[^.]*$)"),
+        r" ({sequence})\2",
+    )
     """
     Define the pattern to use to replace a sequence in the stylus of the filesystem.
     The first part identify the search and the second the replace value.
@@ -80,7 +80,7 @@ class WindowsFileSystem(StorageEngine):
         """
         # TODO: Conclude function after testing on Windows.
         file = r"C:\Users\Grandmaster\Desktop\testing.py"
-        output = os.popen(fr"fsutil file queryfileid {file}").read()
+        output = os.popen(rf"fsutil file queryfileid {file}").read()
 
         return str(output)
 
@@ -110,8 +110,8 @@ class WindowsFileSystem(StorageEngine):
         """
         Method to get the custom Path class with accessor override.
         """
-        class CustomPath(WindowsPath):
 
+        class CustomPath(WindowsPath):
             def open(self, *args: Any, **kwargs: Any) -> Any:
                 return cls.opener(*args, **kwargs)
 
@@ -142,7 +142,10 @@ class LinuxFileSystem(StorageEngine):
     """
     Define the location of temporary content in filesystem.
     """
-    file_sequence_style: tuple[Pattern[str], str] = (re.compile(r"(\ *-\ *\d+?)?(\.[^.]*$)"), r" - {sequence}\2")
+    file_sequence_style: tuple[Pattern[str], str] = (
+        re.compile(r"(\ *-\ *\d+?)?(\.[^.]*$)"),
+        r" - {sequence}\2",
+    )
     """
     Define the pattern to use to replace a sequence in the stylus of the filesystem.
     The first part identify the search and the second the replace value.
@@ -182,7 +185,6 @@ class LinuxFileSystem(StorageEngine):
         """
 
         class CustomPath(PosixPath):
-
             def open(self, *args: Any, **kwargs: Any) -> Any:
                 return cls.opener(*args, **kwargs)
 

@@ -57,20 +57,21 @@ class MoviePyVideo(VideoEngine):
         """
         Method to return content of the frame at index as bytes.
         TODO: Test that buffer is really bytes.
-        TODO: Expand the formats dict to allow more types of media. 
+        TODO: Expand the formats dict to allow more types of media.
         """
-        formats: dict[str, str] = {
-            "jpeg": ".jpg",
-            "webp": ".webp"
-        }
+        formats: dict[str, str] = {"jpeg": ".jpg", "webp": ".webp"}
 
         from cv2 import imencode, cvtColor, COLOR_BGR2RGB
-        
+
         # Fix the color from BGR -> RGB.
-        success, buffer = imencode(formats[encode_format], cvtColor(self.video.get_frame(index), COLOR_BGR2RGB))
+        success, buffer = imencode(
+            formats[encode_format], cvtColor(self.video.get_frame(index), COLOR_BGR2RGB)
+        )
 
         if not success:
-            raise ValueError(f"Could not convert image to format {encode_format} in MoviePyVideo.get_frame_as_bytes.")
+            raise ValueError(
+                f"Could not convert image to format {encode_format} in MoviePyVideo.get_frame_as_bytes."
+            )
 
         return buffer
 
@@ -93,7 +94,7 @@ class MoviePyVideo(VideoEngine):
         from moviepy.editor import VideoClip
         from imageio import imopen
 
-        video_array: PluginV3 = imopen(self.source_buffer, io_mode="r", plugin="pyav") # type: ignore
+        video_array: PluginV3 = imopen(self.source_buffer, io_mode="r", plugin="pyav")  # type: ignore
         self.metadata: dict[str, Any] = video_array.metadata()
 
         def make_frame(t):
@@ -106,11 +107,17 @@ class MoviePyVideo(VideoEngine):
         try:
             duration = self.metadata["duration"]
         except KeyError:
-            duration = int(float(video_array._container.duration * video_array._video_stream.time_base) // 1000)
+            duration = int(
+                float(
+                    video_array._container.duration
+                    * video_array._video_stream.time_base
+                )
+                // 1000
+            )
             self.metadata["duration"] = duration
-        
+
         self.video = VideoClip(make_frame, duration=duration)
-        self.video.fps = self.metadata['fps']
+        self.video.fps = self.metadata["fps"]
 
     def show(self) -> None:
         """
@@ -126,7 +133,7 @@ class MoviePyVideo(VideoEngine):
             imshow("Video", self.get_frame_image(frame))
             frame += 1
 
-            if waitKey(25) & 0xFF == ord('q'):
+            if waitKey(25) & 0xFF == ord("q"):
                 break
 
         destroyAllWindows()

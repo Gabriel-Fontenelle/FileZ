@@ -22,15 +22,20 @@ Should there be a need for contact the electronic mail
 """
 
 from .generic import JSONSerializer, PickleSerializer
-from .specific import FileDictionarySerializer, FileJsonSerializer, FileWithContentDictionarySerializer, FileWithContentJsonSerializer
+from .specific import (
+    FileDictionarySerializer,
+    FileJsonSerializer,
+    FileWithContentDictionarySerializer,
+    FileWithContentJsonSerializer,
+)
 
 __all__ = [
     # Generic
-    'PickleSerializer',
-    'JSONSerializer',
+    "PickleSerializer",
+    "JSONSerializer",
     # Specific
-    'FileDictionarySerializer',
-    'FileJsonSerializer',
-    'FileWithContentDictionarySerializer',
-    'FileWithContentJsonSerializer',
+    "FileDictionarySerializer",
+    "FileJsonSerializer",
+    "FileWithContentDictionarySerializer",
+    "FileWithContentJsonSerializer",
 ]
