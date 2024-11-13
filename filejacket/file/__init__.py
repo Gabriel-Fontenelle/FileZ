@@ -274,13 +274,13 @@ class BaseFile:
     """
 
     @classmethod
-    def deserialize(cls, source: str) -> BaseFile:
+    def deserialize(cls: Type[BaseFile], source: str) -> BaseFile:
         """
         Class method to deserialize the source and return the instance object.
         """
         return cls.serializer.deserialize(source=source)
 
-    def __init__(self, **kwargs: Any) -> None:
+    def __init__(self: BaseFile, **kwargs: Any) -> None:
         """
         Method to instantiate BaseFile. This method can be used for any child class, only needing
         to change the extract_data_pipeline to be suited for each class.
