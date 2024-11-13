@@ -192,12 +192,15 @@ class PackageExtractor(BaseExtractor):
         Method to validate if content can be extract to given extension.
         """
         if cls.extensions is None:
-            raise NotImplementedError(f"The attribute extensions is not overwritten in child class {cls.__name__}")
+            raise NotImplementedError(f"The attribute `extensions` is not overwritten in child class {cls.__name__}")
+        
+        if cls.compressor_class is None:
+             raise NotImplementedError(f"The attribute `compressor_class` is not overwritten in child class {cls.__name__}")
 
         # The ValidationError should be captured in children classes else it will not register as an error and
         # the pipeline will break.
         if file_object.extension not in cls.extensions:
-            raise ValidationError(f"Extension {file_object.extension} not allowed in validate for class {cls.__name__}")
+            raise ValidationError(f"Extension `{file_object.extension}` not allowed in validate for class {cls.__name__}")
 
     @classmethod
     def decompress(cls, file_object: BaseFile, overrider: bool, **kwargs: Any) -> bool:
