@@ -39,11 +39,12 @@ from os.path import (
     getsize,
     isdir,
     join,
-    normpath,
+    normpath
 )
 from pathlib import (
     Path,
 )
+from uuid import uuid4
 # third-party
 from shutil import copyfile, rmtree
 from sys import version_info
@@ -181,10 +182,13 @@ class StorageEngine:
     @classmethod
     def save_file(cls, path: str, content: Any, **kwargs: Any) -> None:
         """
-        Method to save content on file.
-        This method will throw an exception if content is not iterable.
+        Method to save a iterable content on a file.
+        This method will throw an exception if content is bytes or is not iterable.
         Override this method if that’s not appropriate for your storage.
         """
+        if isinstance(content, bytes):
+            raise ValueError("The method `save_file` don't accept bytes as it iterable `content`.") 
+        
         content = iter(content)
 
         if 'file_mode' not in kwargs:
