@@ -209,6 +209,30 @@ class StorageEngine:
                 file_pointer.flush()
             
             os.fsync(file_pointer.fileno())
+    
+    @classmethod
+    def write_to_file(cls, path: str, content: str | bytes, **kwargs: Any) -> None:
+        """
+        Method to save a string or bytes content to a file.        
+        Override this method if that’s not appropriate for your storage.
+        """
+        if 'file_mode' not in kwargs:
+            kwargs['file_mode'] = 'a'
+
+        if 'write_mode' not in kwargs:
+            kwargs['write_mode'] = 'b'
+            
+        if "b" in kwargs["write_mode"]:
+            # Binary don't support newline argument.
+            newline = None
+        else:
+            newline=cls.new_line
+
+        with open(path, kwargs['file_mode'] + kwargs['write_mode'], newline=newline) as file_pointer:
+            file_pointer.write(content)
+            file_pointer.flush()
+            
+            os.fsync(file_pointer.fileno())
 
     @classmethod
     def backup(cls, file_path_origin: str, force: bool = False) -> bool:
