@@ -94,6 +94,11 @@ class PackageExtractor(BaseExtractor):
         """
         Attribute to store the class of the compressor able to uncompress the content.  
         """
+        compressed_object: Any
+        compressed_object = None
+        """
+        Attribute to store the instance of the compressor.
+        """
         filename: str
         filename = None
         """
@@ -142,17 +147,17 @@ class PackageExtractor(BaseExtractor):
             """
             if not hasattr(self, "buffer"):
                 # Instantiate the buffer of inner content
-                self.mount()
+                self.mount_buffer()
 
             return self.buffer.read(*args, **kwargs)
 
-        def mount(self: PackageExtractor.ContentBuffer) -> None:
+        def mount_buffer(self: PackageExtractor.ContentBuffer) -> None:
             """
             Method to initiate the buffer object if not exists.
             This method should be overwritten in child class.
             """
             raise NotImplementedError(
-                f"Method mount of PackageExtractor.ContentBuffer should be override in child class "
+                f"Method mount_buffer of PackageExtractor.ContentBuffer should be override in child class "
                 f"{self.__class__.__name__}."
             )
 
@@ -163,7 +168,8 @@ class PackageExtractor(BaseExtractor):
             """
             if not hasattr(self, "buffer"):
                 # Initiate the buffer
-                self.mount()
+                # It will begin extraction of file to have access to its buffer.
+                self.mount_buffer()
 
             return self.buffer.seek(*args, **kwargs)
 
@@ -171,11 +177,14 @@ class PackageExtractor(BaseExtractor):
             """
             Method to verify if buffer is seekable.
             Buffer must exist for this method to work, else no action will be taken.
+            
+            For better performance this method should be override in child class to avoid using buffer, as it extract the content
+            in memory.
             """
-
             if not hasattr(self, "buffer"):
                 # Initiate the buffer
-                self.mount()
+                # It will begin extraction of file to have access to its buffer.
+                self.mount_buffer()
 
             return self.buffer.seekable()
 
@@ -287,7 +296,7 @@ class PSDLayersFromPackageExtractor(PackageExtractor):
             Class to allow consumption of buffer in a lazy way.
             """
 
-            def mount(self: PackageExtractor.ContentBuffer) -> None:
+            def mount_buffer(self: PackageExtractor.ContentBuffer) -> None:
                 """
                 Method to initiate the buffer object if not exists.
                 """
@@ -302,6 +311,15 @@ class PSDLayersFromPackageExtractor(PackageExtractor):
 
                 # Reset buffer to allow read.
                 self.buffer.seek(0)
+                
+            def seekable(self) -> bool:
+                """
+                Method to verify if buffer is seekable.
+                This method override the default behavior for better performance to avoid extracting the self.filename.
+                
+                Because the layer must be extracted to a auxiliary buffer it will always be seekable.
+                """                
+                return True
 
         return PSDContentBuffer(
             file_object, cls.compressor_class, internal_file_name, mode, cls
@@ -448,16 +466,23 @@ class TarCompressedFilesFromPackageExtractor(PackageExtractor):
             Class to allow consumption of buffer in a lazy way.
             """
 
-            def mount(self: PackageExtractor.ContentBuffer) -> None:
+            def mount_compressed_object(self: PackageExtractor.ContentBuffer) -> None:
+                """
+                Method to initialize the compressed file from the upstream package buffer.
+                """
+                # Instantiate the buffer of inner content
+                self.compressed_object: TarFile = self.compressor(
+                    fileobj=self.source_file_object.content_as_buffer
+                )
+                
+            def mount_buffer(self: PackageExtractor.ContentBuffer) -> None:
                 """
                 Method to initiate the buffer object if not exists.
                 """
-                # Instantiate the buffer of inner content
-                compressed: TarFile = self.compressor(
-                    fileobj=self.source_file_object.content_as_buffer
-                )
-
-                content = compressed.extractfile(member=self.filename)
+                if not self.compressed_object:
+                    self.mount_compressed_object()
+                
+                content = self.compressed_object.extractfile(member=self.filename)
 
                 if content is None:
                     self.buffer = BytesIO(b"")
@@ -470,10 +495,22 @@ class TarCompressedFilesFromPackageExtractor(PackageExtractor):
                 """
                 if not hasattr(self, "buffer"):
                     # Instantiate the buffer of inner content
-                    self.mount()
+                    self.mount_buffer()
 
                 return self.buffer.read(*args, **kwargs)
 
+            def seekable(self) -> bool:
+                """
+                Method to verify if buffer is seekable.
+                This method override the default behavior for better performance to avoid extracting the self.filename.
+                """                
+                if not self.compressed_object:
+                    self.mount_compressed_object()
+                
+                # The fileobj is the same object as the self.source_file_object.content_as_buffer 
+                # used in mount_compressed_object.
+                return self.compressed_object.fileobj.seekable()
+            
         return TarContentBuffer(
             file_object, cls.compressor_class, internal_file_name, mode, cls
         )
@@ -644,15 +681,33 @@ class ZipCompressedFilesFromPackageExtractor(PackageExtractor):
             Class to allow consumption of buffer in a lazy way.
             """
 
-            def mount(self: PackageExtractor.ContentBuffer) -> None:
+            def mount_compressed_object(self: PackageExtractor.ContentBuffer) -> None:
+                """
+                Method to initialize the compressed file from the upstream package buffer.
+                """
+                # Instantiate the buffer of inner content
+                self.compressed_object: ZipFile = self.compressor(
+                    file=self.source_file_object.content_as_buffer
+                )
+                
+            def mount_buffer(self: PackageExtractor.ContentBuffer) -> None:
                 """
                 Method to initiate the buffer object if not exists.
                 """
-                compressed: ZipFile = self.compressor(
-                    file=self.source_file_object.content_as_buffer
-                )
+                if not self.compressed_object:
+                    self.mount_compressed_object()
 
-                self.buffer = compressed.open(name=self.filename)
+                self.buffer = self.compressed_object.open(name=self.filename)
+                
+            def seekable(self) -> bool:
+                """
+                Method to verify if buffer is seekable.
+                This method override the default behavior for better performance to avoid extracting the self.filename.
+                """                
+                if not self.compressed_object:
+                    self.mount_compressed_object()
+                
+                return self.compressed_object._seekable
 
         return ZipContentBuffer(
             file_object, cls.compressor_class, internal_file_name, mode, cls
@@ -823,16 +878,34 @@ class RarCompressedFilesFromPackageExtractor(PackageExtractor):
             Class to allow consumption of buffer in a lazy way.
             """
 
-            def mount(self: PackageExtractor.ContentBuffer) -> None:
+            def mount_compressed_object(self: PackageExtractor.ContentBuffer) -> None:
+                """
+                Method to initialize the compressed file from the upstream package buffer.
+                """
+                # Instantiate the buffer of inner content
+                self.compressed_object: RarFile = self.compressor(
+                    file=self.source_file_object.content_as_buffer
+                )
+                
+            def mount_buffer(self: PackageExtractor.ContentBuffer) -> None:
                 """
                 Method to initiate the buffer object if not exists.
                 """
-                compressed: RarFile = self.compressor(
-                    file=self.source_file_object.content_as_buffer
-                )
-
-                self.buffer = compressed.open(name=self.filename)
-
+                if not self.compressed_object:
+                    self.mount_compressed_object()
+                
+                self.buffer = self.compressed_object.open(name=self.filename)
+                
+            def seekable(self) -> bool:
+                """
+                Method to verify if buffer is seekable.
+                This method override the default behavior for better performance to avoid extracting the self.filename.
+                """                
+                if not self.compressed_object:
+                    self.mount_compressed_object()
+                
+                return self.compressed_object.seekable()
+            
         return RarContentBuffer(
             file_object, cls.compressor_class, internal_file_name, mode, cls
         )
@@ -1003,22 +1076,39 @@ class SevenZipCompressedFilesFromPackageExtractor(PackageExtractor):
             Class to allow consumption of buffer in a lazy way.
             """
 
-            def mount(self: PackageExtractor.ContentBuffer) -> None:
+            def mount_compressed_object(self: PackageExtractor.ContentBuffer) -> None:
+                """
+                Method to initialize the compressed file from the upstream package buffer.
+                """
+                # Instantiate the buffer of inner content
+                self.compressed_object: SevenZipFile = self.compressor(
+                    file=self.source_file_object.content_as_buffer
+                )  # type: ignore
+            
+            def mount_buffer(self: PackageExtractor.ContentBuffer) -> None:
                 """
                 Method to initiate the buffer object if not exists.
                 """
-                # Instantiate the buffer of inner content
-                compressed: SevenZipFile = self.compressor(
-                    file=self.source_file_object.content_as_buffer
-                )  # type: ignore
+                if not self.compressed_object:
+                    self.mount_compressed_object()
 
                 # Case the packed file don't have content it will return None
-                content = compressed.read(targets=[self.filename])
+                content = self.compressed_object.read(targets=[self.filename])
 
                 if content is None:
                     self.buffer = BytesIO(b"")
                 else:
                     self.buffer = next(iter(content.values()))
+                    
+            def seekable(self) -> bool:
+                """
+                Method to verify if buffer is seekable.
+                This method override the default behavior for better performance to avoid extracting the self.filename.
+                """                
+                if not self.compressed_object:
+                    self.mount_compressed_object()
+                    
+                return self.compressed_object.fp.seekable()
 
         return SevenZipContentBuffer(
             file_object, cls.compressor_class, internal_file_name, mode, cls
@@ -1086,7 +1176,7 @@ class SevenZipCompressedFilesFromPackageExtractor(PackageExtractor):
 
             file_system: Type[StorageEngine] = file_object.storage
             file_class: Type[BaseFile] = file_object.__class__
-
+            
             # We don't need to reset the buffer before calling it, because it will be reset
             # if already cached. The next time property buffer is called it will reset again.
             with cls.compressor_class(
@@ -1094,10 +1184,10 @@ class SevenZipCompressedFilesFromPackageExtractor(PackageExtractor):
             ) as compressed_object:  # type: ignore
                 for internal_file in compressed_object.list():
                     # Skip directories
-                    if internal_file.is_directory:
+                    if internal_file.is_directory or internal_file.is_symlink:
                         continue
 
-                    # Skip inexisting filename if for some reason there is one.
+                    # Skip inexistent filename if for some reason there is one.
                     if not internal_file.filename:
                         continue
 
@@ -1107,7 +1197,7 @@ class SevenZipCompressedFilesFromPackageExtractor(PackageExtractor):
                     # Skip duplicate only if not choosing to override.
                     if filename in file_object._content_files and not overrider:
                         continue
-
+                    
                     # Create file object for internal file
                     internal_file_object = file_class(
                         path=file_system.join(file_object.save_to, filename),
