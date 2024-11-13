@@ -54,7 +54,7 @@ class WindowsFileSystem(StorageEngine):
     Class that standardized methods of file systems for Windows Operational System.
     """
 
-    temporary_folder: str = "C:\\temp\\Handler"
+    temporary_folder: str = "C:\\temp\\FileJacket"
     """
     Define the location of temporary content in filesystem.
     """
@@ -138,7 +138,7 @@ class LinuxFileSystem(StorageEngine):
     Class that standardized methods of file systems for Linux Operational System.
     """
 
-    temporary_folder: str = "/tmp/Handler"
+    temporary_folder: str = "/tmp/FileJacket"
     """
     Define the location of temporary content in filesystem.
     """
