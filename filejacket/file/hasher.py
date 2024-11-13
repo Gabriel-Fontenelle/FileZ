@@ -219,9 +219,7 @@ class FileHashes:
 
         for hex_value, hash_file, processor in self._cache.values():
             if hash_file._actions.save:
-                if hash_file.meta.checksum:
-                    # If file is CHECKSUM.<hasher_name> we not allow to overwrite.
-                    hash_file.save(overwrite=False, allow_update=overwrite)
-                else:
-                    hash_file.save(overwrite=overwrite, allow_update=overwrite)
-    
+                # If file is CHECKSUM.<hasher_name> we not allow to overwrite.
+                hash_file._option.allow_overwrite=False if hash_file.meta.checksum else overwrite
+                hash_file._option.allow_update=overwrite
+                hash_file.save()
