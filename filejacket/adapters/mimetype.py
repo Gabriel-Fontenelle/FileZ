@@ -27,10 +27,14 @@ from typing import TYPE_CHECKING
 
 import mimetypes
 from os.path import dirname, realpath, join, exists
+import re
 
 from ..engines.mimetype import MimeTypeEngine
 
+if TYPE_CHECKING:
+    from typing import Pattern
 
+    
 __all__ = [
     'LibraryMimeTyper',
     'APIMimeTyper'
@@ -47,6 +51,7 @@ class LibraryMimeTyper(MimeTypeEngine):
     """
     Path of file `mime.types` to be loaded of known mimetypes.
     """
+    _pattern_split_package: Pattern = re.compile(r"^[rz][0-9]+$", flags=re.IGNORECASE)
 
     def __init__(self) -> None:
         """
@@ -217,6 +222,14 @@ class LibraryMimeTyper(MimeTypeEngine):
         """
         Method to get registered mimetype for given extension.
         """
+        # Fix for partial file
+        if self._pattern_split_package.match(extension):
+            match extension[0]:
+                case "r":
+                    extension = "rar"
+                case "z":
+                    extension = "zip"
+        
         return mimetypes.types_map.get(f".{self.sanitize_extension(extension)}", None)
 
     def get_type(self, mimetype: str | None = None, extension: str | None = None) -> None | str:
