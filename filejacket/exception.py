@@ -23,12 +23,14 @@ Should there be a need for contact the electronic mail
 from __future__ import annotations
 
 
-__all__ = [
+__all__: list[str] = [
+    'CacheContentNotSeekableError',
 	'EmptyContentError',
 	'ImproperlyConfiguredFile',
 	'ImproperlyConfiguredPipeline',
 	'NoInternalContentError',
 	'OperationNotAllowed',
+ 	'PipelineError',
 	'ValidationError',
 	'ReservedFilenameError',
 	'RenderError',
@@ -72,6 +74,10 @@ class OperationNotAllowed(Exception):
 	Exception that defines error for when a operation is not allowed for file.
 	"""
 
+class CacheContentNotSeekableError(Exception):
+    """
+    Exception that defines error for when a cached content results in a buffer not seekable.
+    """
 
 class ValidationError(Exception):
 	"""
