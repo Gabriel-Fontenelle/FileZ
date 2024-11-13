@@ -23,6 +23,8 @@ Should there be a need for contact the electronic mail
 # first-party
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import mimetypes
 from os.path import dirname, realpath, join, exists
 

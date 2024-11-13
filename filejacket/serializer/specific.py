@@ -36,9 +36,10 @@ from ..pipelines import Pipeline
 
 if TYPE_CHECKING:
     from ..file import BaseFile
+    from ..file.content import BufferBytes, BufferStr
 
 
-__all__ = [
+__all__: list[str] = [
     # Transmuters
     'BaseTransmuter',
     'TransmuterClass',
@@ -134,7 +135,7 @@ class TransmuterObjectClass(BaseTransmuter):
         """
         return f"{value.__class__.__module__}.{value.__class__.__name__}"
 
-    def to_data(self, value: str, reference: BaseFile) -> object:
+    def to_data(self, value: str, reference: BaseFile) -> Any:
         """
         Method to reverse the conversion at `from_data`.
         """
@@ -202,7 +203,7 @@ class TransmuterAttribute(BaseTransmuter):
     Transmuter class to handle attribute that are objects from classes. 
     """
     
-    def from_data(self, value: object) -> dict[str, Any]:
+    def from_data(self, value: Any) -> dict[str, Any]:
         """
         Method to convert `value` to dict for serialization.
         """
@@ -412,7 +413,7 @@ class TransmuterContentFiles(BaseTransmuter):
     Transmuter class to handle the FilePacket object. 
     """
     
-    def from_data(self, value: FilePacket) -> dict[str, Any]:
+    def from_data(self, value: FilePacket) -> dict[str, str | dict | list]:
         """
         Method to convert `value` to dict for serialization.
         The history attribute of FilePacket will not be serialized. 
@@ -453,7 +454,7 @@ class TransmuterContent(BaseTransmuter):
     Transmuter class to handle the FileContent object. 
     """
     
-    def from_data(self, value: FileContent) -> dict[str, Any] | None:
+    def from_data(self, value: FileContent) -> dict[str, str] | None:
         """
         Method to convert `value`source to dict for serialization.
         """        

@@ -30,6 +30,7 @@ from typing import Any, Type, TYPE_CHECKING
 
 import pytz
 from dill import dumps, loads, HIGHEST_PROTOCOL
+from filejacket.file import BaseFile
 
 from ..adapters.storage import LinuxFileSystem
 
@@ -329,7 +330,7 @@ class JSONSerializer:
         from json_tricks import loads as json_loads
 
         # Prepare content to be parsed
-        deserialized_object: dict = json_loads(source, preserve_order=False, extra_obj_pairs_hooks=(
+        deserialized_object: BaseFile = json_loads(source, preserve_order=False, extra_obj_pairs_hooks=(
             json_date_time_hook, json_class_hook, json_buffer_hook, json_object_hook
         ))
 

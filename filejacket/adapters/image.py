@@ -31,7 +31,8 @@ from ..engines.image import ImageEngine
 from ..utils import LazyImportClass
 
 if TYPE_CHECKING:
-    from PIL import Image as PillowImageClass
+    from PIL import Image as PillowImageModule
+    from PIL.Image import Image as PillowImageClass
     from numpy import ndarray
 
 
@@ -208,7 +209,7 @@ class PillowImage(ImageEngine):
     Class that standardized methods of Pillow library.
     """
 
-    class_image: Type[PillowImageClass] = LazyImportClass('Image', from_module='PIL')
+    class_image: PillowImageModule = LazyImportClass('Image', from_module='PIL')
     """
     Attribute used to store the class reference responsible to create an image.
     """
@@ -227,7 +228,7 @@ class PillowImage(ImageEngine):
             optimize=False,
         )
 
-        self.image = self.class_image.open(fp=output)
+        self.image: PillowImageClass = self.class_image.open(fp=output)
 
     def append_to_sequence(self, images: list[Any], **kwargs: Any) -> None:
         """
