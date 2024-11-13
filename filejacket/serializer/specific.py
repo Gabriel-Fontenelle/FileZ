@@ -650,6 +650,11 @@ class FileDictionarySerializer:
     has a custom class based on BaseFile.
     The content attribute will not be serialized.
     """
+    
+    transmuter: set[str]
+    """
+    Attribute used by __set_name__ to indicate the transmuters in use by the serializer.
+    """
 
     # Datetime serializer/deserializer
     create_date = TransmuterDatetime()

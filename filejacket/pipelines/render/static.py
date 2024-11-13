@@ -268,7 +268,7 @@ class VideoRender(BaseStaticRender):
                                                                                   encode_format=defaults.format)))
 
         image.resize(defaults.width, defaults.height, keep_ratio=defaults.keep_ratio)
-
+        
         # Set static file for current file_object.
         file_object._thumbnail._static_file = cls.create_file(
             file_object,
