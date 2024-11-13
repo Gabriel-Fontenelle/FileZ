@@ -26,19 +26,22 @@ from base64 import b64encode
 from io import StringIO, BytesIO
 from typing import Iterator, Any, TYPE_CHECKING, IO
 
-from ..exception import SerializerError, EmptyContentError, ImproperlyConfiguredFile
+from ..adapters.storage import LinuxFileSystem
+from ..exception import CacheContentNotSeekableError, OperationNotAllowed, SerializerError, EmptyContentError, ImproperlyConfiguredFile
 from ..pipelines import Pipeline
 from ..pipelines.extractor.package import PackageExtractor
-from ..pipelines.renamer import UniqueRenamer
 
 if TYPE_CHECKING:
     from . import BaseFile
-    from ..pipelines.renamer import BaseRenamer
+    from ..engines.storage import StorageEngine
 
 
 __all__ = [
     "FileContent",
     "FilePacket",
+    "CacheInFile",
+    "CacheInMemory",
+    "NonCache"
 ]
 
 
@@ -108,22 +111,208 @@ class BufferBytes:
         return cls.buffer_class(value)
 
 
+class CacheInFile:
+    """
+    Class to abstract use of cache in FileContent.
+    This class abstract the caching of content in a temporary file (the file is not deleted though). 
+    """
+    
+    cached = False
+    """
+    """
+    storage: type[StorageEngine] = LinuxFileSystem
+    """
+    Storage for local filesystem to create the temporary file for caching. 
+    """
+    
+    cached_file: str 
+    """
+    Complete path for temporary file used as cache.
+    """
+    
+    def __init__(self: CacheInFile, buffer_helper: BufferStr | BufferBytes) -> None:
+        """
+        """
+        self.cached_file = self.storage.get_unique_temp_file()
+        self.buffer_helper = buffer_helper
+    
+    @property
+    def content(self):
+        """
+        """
+        return self.load_from_cache()
+    
+    @content.setter
+    def content(self, value):
+        """
+        """
+        self.save_and_return(value)
+    
+    def save_and_return(self: CacheInFile, content: str | bytes):
+        """
+        
+        """
+        # Open file, append block to file and close file.
+        self.storage.write_to_file(self.cached_file, content, file_mode='a', write_mode=self.buffer_helper.write_mode)
+        
+        return content
+    
+    def load_from_cache(self: CacheInFile) -> str | bytes:
+        """
+        
+        """
+        buffer = self.storage.open_file(self.cached_file, mode=self.buffer_helper.read_mode)
+        content = buffer.read()
+        self.storage.close_file(buffer)
+        
+        if not content:
+            raise EmptyContentError("No content stored in `{self.cached_file}`.")
+        
+        return content
+    
+    def load_buffer_from_cache(self: CacheInFile) -> BytesIO | StringIO:
+        """
+        
+        """
+        # Buffer receive stream from file
+        return self.storage.open_file(self.cached_file, mode=self.buffer_helper.read_mode)
+
+    def consume(self: CacheInFile, iterator: Iterator) -> None:
+        """
+        
+        """
+                
+        # Consume content if not loaded and cache it
+        if not self.cached:    
+            while True:
+                try:
+                    next(iterator)
+                except StopIteration:
+                    break
+    
+    def set_cached(self: CacheInFile):
+        """
+        """
+        self.cached = True
+
+
+class CacheInMemory:
+    """
+    Class to abstract use of cache in FileContent.
+    This class abstract the caching of content in memory. 
+    """
+    
+    cached = False
+    """
+    """
+    content = None
+    """
+    """
+    
+    def __init__(self: CacheInMemory, buffer_helper: BufferStr | BufferBytes) -> None:
+        """
+        """
+        self.buffer_helper = buffer_helper
+    
+    def save_and_return(self: CacheInMemory, content: bytes | str):
+        """
+        
+        """
+        if self.content is None:
+            self.content = content
+        else:
+            self.content += content
+        
+        return content
+    
+    def load_from_cache(self: CacheInMemory) -> str | bytes:
+        """
+        
+        """
+        if self.content is None:
+            raise EmptyContentError("No content stored in memory.")
+        
+        return self.content
+        
+    def load_buffer_from_cache(self: CacheInMemory) -> BytesIO | StringIO:
+        """
+        
+        """
+        return self.buffer_helper.to_buffer(self.content)
+
+    def consume(self: CacheInMemory, iterator: Iterator) -> None:
+        """
+        
+        """
+                
+        # Consume content if not loaded and cache it
+        if not self.cached:    
+            while True:
+                try:
+                    next(iterator)
+                except StopIteration:
+                    break
+    
+    def set_cached(self: CacheInMemory):
+        """
+        """
+        self.cached = True
+
+
+class NonCache:
+    """
+    Class to abstract use of cache in FileContent.
+    This class abstract the absence of caching. For the overall abstractions of loading and caching file to work in
+    FileContent this class was created allow use of no cache at all.   
+    """
+    
+    cached = False
+    """
+    """
+    content = None
+    """
+    """
+    
+    def __init__(self: CacheInMemory, buffer_helper: BufferStr | BufferBytes) -> None:
+        """
+        """
+        ...
+    
+    def save_and_return(self: NonCache, content: str | bytes):
+        """
+        
+        """
+        return content
+    
+    def load_from_cache(self: NonCache) -> str | bytes:
+        """
+        
+        """
+        raise OperationNotAllowed("Class for cache, `NonCache`, does not store content and thus not allow `load_from_cache`.")
+    
+    def load_buffer_from_cache(self: NonCache):
+        """
+        
+        """
+        raise OperationNotAllowed("Class for cache, `NonCache`, does not store content and thus not allow `load_buffer_from_cache`.")         
+    
+    def consume(self: NonCache, iterator: Iterator) -> None:
+        """
+        
+        """
+        raise OperationNotAllowed("Class for cache, `NonCache`, does not store content and thus not allow `consume`.")
+
+    def set_cached(self: NonCache):
+        """
+        """
+        ...
+
+
 class FileContent:
     """
     Class that store file instance content.
     """
-
-    # Buffer handles
-    buffer: BytesIO | StringIO | IO
-    buffer = None
-    """
-    Stream for file`s content.
-    """
-    buffer_helper: BufferStr | BufferBytes
-    buffer_helper = None
-    """
-    Helper to facilitate conversion of stream for saving and loading the file`s content.
-    """
+    
     related_file_object: BaseFile
     related_file_object = None
     """
@@ -142,36 +331,30 @@ class FileContent:
     Indicate whether the method next is currently being used to consume the buffer.
     """
 
+    # Buffer handles
+    buffer: BytesIO | StringIO | IO
+    buffer = None
+    """
+    Stream for file`s content.
+    """
+    buffer_helper: BufferStr | BufferBytes
+    buffer_helper = None
+    """
+    Helper to facilitate conversion of stream for saving and loading the file`s content.
+    """
+    
     # Cache handles
-    cache_content: bool = False
+    cache_helper: type[CacheInFile] | type[CacheInMemory] | type[NonCache]
+    cache_helper = None
     """
-    Whether the content should be cached.
+    Helper to facilitate caching of content. It defines which type of caching is performed with file`s content. 
+    This helper can be replaced with a class that saves data in a external repository like redis. To use any class the few requirements 
+    are to implement the method `save_and_return` and `load_from_cache`.
     """
-    cache_in_memory: bool = True
-    """
-    Whether the cache will be made in memory.
-    """
-    cache_in_file: bool = False
-    """
-    Whether the cache will be made in filesystem.
-    """
-    cached: bool = False
-    """
-    Whether the content as whole was cached. Being True the current buffer will point to a stream
-    of `_cached_content`.
-    """
-    cache_in_file_renamer: type[BaseRenamer] = UniqueRenamer
-    """
-    Class that handle the renaming of a file when using the cache in file option.
-    """
-    _cached_content: str | bytes
+    _cached_content: CacheInFile | CacheInMemory | NonCache
     _cached_content = None
     """
-    Stream for file`s content cached.
-    """
-    _cached_path: str | None = None
-    """
-    Complete path for temporary file used as cache.
+    File`s content cached stored through the cache abstraction instantiated from cache_helper.
     """
     
     @classmethod
@@ -188,7 +371,7 @@ class FileContent:
 
     def __init__(
         self,
-        raw_value: str | bytes | BytesIO | StringIO | PackageExtractor.ContentBuffer,
+        raw_value: str | bytes | BytesIO | StringIO | PackageExtractor.ContentBuffer | None = None,
         force: bool = False,
         **kwargs: Any
     ) -> None:
@@ -247,10 +430,12 @@ class FileContent:
         if hasattr(raw_value, "encoding"):
             self.buffer_helper.encoding = raw_value.encoding
 
+        if self.cache_helper is None:
+            self.cache_helper = NonCache
+        
         # Set content to be cached.
         if not self.buffer.seekable() or force:
-            self.cache_content = True
-            self.cached = False
+            self.cache_helper = CacheInMemory
 
     def __iter__(self) -> Iterator[bytes | str | None]:
         """
@@ -265,67 +450,34 @@ class FileContent:
         This method has the potential to double the memory size of current object storing
         the whole buffer in memory.
 
-        This method will cache content in file or in memory depending on value of `cache_content`, `cache_in_memory` and
-        `cache_in_file`. For caching in file, it will generate a unique filename in a temporary directory.
+        This method will cache content in file, or in memory depending on the class of the `cache_helper`.
         """
         # Flag to avoid calling this method with self.read()
         self._iterable_in_use = True
 
         block: str | bytes | None = self.buffer.read(self._block_size)
-
-        # This end the loop if block is None, b'' or ''.
-        # TODO: Check mypy in this block.
+        
         if not block and block != 0:
-            # Change buffer to be cached content
-            if self.cache_content and not self.cached:
-                if self.cache_in_memory:
-                    self.buffer = self.buffer_helper.to_buffer(self._cached_content)
-                    self.cached = True
-                elif self.cache_in_file:
-                    if not self._cached_path:
-                        raise ImproperlyConfiguredFile("The attribute `file.content._cached_path` is missing.")
-
-                    # Buffer receive stream from file
-                    self.buffer = self.related_file_object.storage.open_file(self._cached_path, mode=self.buffer_helper.read_mode)
-                    self.cached = True
-
+            if not self.cached:
+                # Change buffer to be cached content
+                try:
+                    self.buffer = self._cached_content.load_buffer_from_cache()
+                    self._cached_content.set_cached()
+                    
+                except OperationNotAllowed:
+                    # Do nothing case operation is not allowed.
+                    ...
+            
             # Reset buffer to begin from first position
             self.reset()
 
             self._iterable_in_use = False
 
             raise StopIteration()
-
-        # Cache content
-        if self.cache_content and not self.cached:
-            # Cache content in memory only
-            if self.cache_in_memory:
-                if self._cached_content is None:
-                    self._cached_content = block
-                else:
-                    self._cached_content += block
-            # Cache content in temporary file
-            elif self.cache_in_file:
-                if not self._cached_path:
-                    # Create new temporary file using renamer pipeline to obtain
-                    # a unique filename for temporary file. The parameter filename is not really used
-                    # so it can be str(None) that it will not affect the result.
-                    temp = self.related_file_object.storage.get_temp_directory()
-                    filename, extension = self.cache_in_file_renamer.get_name(
-                        directory_path=temp,
-                        filename=str(self.related_file_object.filename),
-                        extension=self.related_file_object.extension
-                    )
-                    formatted_extension = f'.{extension}' if extension else ''
-                    if temp[-1] != self.related_file_object.storage.sep:
-                        temp += self.related_file_object.storage.sep
-
-                    self._cached_path = temp + filename + formatted_extension
-
-                # Open file, append block to file and close file.
-                self.related_file_object.storage.save_file(self._cached_path, block, file_mode='a',
-                                                           write_mode=self.buffer_helper.write_mode)
-
+        
+        if not self.cached:
+            block = self._cached_content.save_and_return(block)
+        
         return block
     
     @property
@@ -336,15 +488,12 @@ class FileContent:
         attributes = {
             "buffer",
             "buffer_helper",
+            "cache_helper",
             "related_file_object",
             "_block_size",
             "_buffer_encoding",
-            "cache_content",
-            "cache_in_memory",
-            "cache_in_file",
             "cached",
             "_cached_content",
-            "_cached_path",
         }
 
         return {key: getattr(self, key) for key in attributes}
@@ -352,10 +501,22 @@ class FileContent:
     @property
     def should_load_to_memory(self) -> bool:
         """
-        Method to indicate whether the current buffer is seekable or not. Not seekable object should
+        Method to indicate whether the current buffer is seekable or not. Not seekable object should be loaded to cache.
         """
-        return not self.buffer.seekable() and not self.cached
+        seekable = self.buffer.seekable()
+        
+        if not seekable and self.cached:
+            raise CacheContentNotSeekableError(f"The cache helper `{self.cache_helper.__name__}` does not produced a seekable buffer")
 
+        return not seekable and not self.cached
+
+    @property
+    def cached(self):
+        """
+        Method to verify if content was cached based on the attribute `cached` in `_cached_content`. 
+        """
+        return self._cached_content and self._cached_content.cached
+    
     @property
     def content(self) -> bytes | str | None:
         """
@@ -363,45 +524,25 @@ class FileContent:
         This method uses the buffer cached, if the file wasn't cached before this method will cache it, and load
         the data in memory from the cache returning the content.
 
-        This method will not cache the content in memory if `self.cache_content` is `False`.
+        This method will not cache the content in memory if `self.cache_helper` is `NonCache`.
         """
-        old_cache_in_memory = self.cache_in_memory
-        old_cache_in_file = self.cache_in_file
-
-        # Set cache to load in memory
-        if not (self.cache_in_memory or self.cache_in_file):
-            self.cache_in_memory = True
-            self.cache_in_file = False
-
-        if self._cached_content is None or self._cached_path is None:
-            # Consume content if not loaded and cache it
-            while True:
-                try:
-                    next(self)
-                except StopIteration:
-                    break
-
-        if self._cached_content is None and not self.cache_content:
+        if self._cached_content is None:
+            self._cached_content = self.cache_helper(buffer_helper=self.buffer_helper)
+        
+        try:
+            # Consume content passing the iterator to the cache class. 
+            # The `NonCache` class will not, and should not, perform any action on the iterator.
+            self._cached_content.consume(iterator=self)
+            
+            return self._cached_content.load_from_cache()
+        
+        except OperationNotAllowed as e:
             raise ImproperlyConfiguredFile(
                 f"The file {self.related_file_object} is not set-up to load to memory its content. "
                 "You should call `_content.content_as_buffer` instead of `_content.content`"
-            )
-        elif self._cached_content is None:
-            raise EmptyContentError(f"No content was loaded for file {self.related_file_object.complete_filename}")
-
-        # Content in case that it was loaded in memory. If not, it will be None and override below.
-        content: str | bytes = self._cached_content
-
-        # Override `content` with content from file.
-        if self.cache_in_file and self._cached_path:
-            buffer = self.related_file_object.storage.open_file(self._cached_path, mode=self.buffer_helper.read_mode)
-            content = buffer.read()
-            self.related_file_object.storage.close_file(buffer)
-
-        self.cache_in_memory = old_cache_in_memory
-        self.cache_in_file = old_cache_in_file
-
-        return content
+            ) from e
+        except EmptyContentError as e:
+            raise EmptyContentError(f"No content was loaded for file {self.related_file_object.complete_filename}") from e
 
     @property
     def content_as_buffer(self) -> BytesIO | StringIO:
@@ -411,7 +552,16 @@ class FileContent:
         if self.should_load_to_memory:
             # We should load the current buffer to memory before using it.
             # Load content to memory with `self.content` and return the adequate buffer.
-            return self.buffer_helper.to_buffer(self.content)
+            try:
+                return self.buffer_helper.to_buffer(self.content)
+            except ImproperlyConfiguredFile:
+                # Change cache to load from memory because the current `cache_helper` does not consume the content 
+                # and save it in a cache.  
+                self._cached_content = CacheInMemory()
+                self._cached_content.consume(iterator=self)
+                
+                return self._cached_content.load_buffer_from_cache()
+        
         else:
             # Should not reach here if object is not seekable, but
             # to avoid problems with override of `should_load_to_memory` property
@@ -436,11 +586,16 @@ class FileContent:
         TODO: Change the code to work with BaseIO to avoid loading all content to memory for larger files.
         """
         try:
+            # Load content and convert to base64
             return self.buffer_helper.to_base64(self.content)
         except (EmptyContentError, ImproperlyConfiguredFile):
-            if not self.cache_content:
-                # load content from buffer
-                return self.buffer_helper.to_base64(self.content_as_buffer.read())
+            ...
+            
+        try:
+            # No content found, try again with buffer loading the whole buffer in memory.
+            return self.buffer_helper.to_base64(self.content_as_buffer.read())
+        except OperationNotAllowed:
+            ...
         
         return None
 
