@@ -38,7 +38,6 @@ from ...exception import ValidationError
 from ...utils import LazyImportClass
 
 if TYPE_CHECKING:
-
     from ...file import BaseFile
     from ...engines.storage import StorageEngine
     from psd_tools import PSDImage
@@ -110,6 +109,11 @@ class PackageExtractor(BaseExtractor):
         reference_class = None
         """
         Attribute to allow serialization of this  class as local class.
+        """
+        
+        buffer: Any
+        """
+        Attribute to store the current initialized buffer.
         """
 
         def __init__(
