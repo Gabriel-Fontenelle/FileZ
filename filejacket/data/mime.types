@@ -1904,6 +1904,7 @@ text/n3				n3
 # text/parameters
 # text/parityfec
 text/plain				conf def in list log pl text txt ini url
+text/vobsub-index-file  idx
 # text/provenance-notation
 # text/prs.fallenstein.rst
 text/prs.lines.tag				dsc
