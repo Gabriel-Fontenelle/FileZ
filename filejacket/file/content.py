@@ -23,6 +23,7 @@ Should there be a need for contact the electronic mail
 from __future__ import annotations
 
 from base64 import b64encode
+from collections import deque
 from io import StringIO, BytesIO
 from typing import Iterator, Any, TYPE_CHECKING, IO
 
@@ -121,12 +122,12 @@ class CacheInFile:
 
     cached = False
     """
+    Indicate whether the cache of content was completed. 
     """
     storage: type[StorageEngine] = LinuxFileSystem
     """
     Storage for local filesystem to create the temporary file for caching. 
     """
-
     cached_file: str
     """
     Complete path for temporary file used as cache.
@@ -203,34 +204,142 @@ class CacheInMemory:
 
     cached = False
     """
+    Indicate whether the cache of content was completed. 
     """
+    content: CacheInMemory.BufferMemory
     content = None
     """
     """
+    
+    class BufferMemory:
+        
+        def __init__(self, buffer_helper: BufferStr | BufferBytes) -> None:
+            self._content = deque()
+            self._buffer_helper = buffer_helper
+            self._block_size = []
+            self._seek = 0
+            self._length_content = 0
+        
+        def read(self, position: int = None) -> str | bytes:
+            """
+            
+            To keep compatibility with StringIO or BytesIO the behavior of this method will emulate them.
+            """
+            if position < 0:
+                raise ValueError("Read position cannot be negative on method BufferMemory.read.")
+            
+            if self._seek == self._length_content or position == 0:
+                return None
+            
+            initial_value = b'' if self._buffer_helper.binary else ''
+            
+            if position is None:
+                position = self._length_content
+                last_position = self._length_content
+                final_index = len(self._content) - 1
+                last_word_index = self._length_content
+            else:
+                last_position = min(self._seek + position, self._length_content)
+                final_index = None
+                last_word_index = None
+                
+            blocks = 0
+            initial_index = None
+            first_word_index = None
+            
+            # Fix this to identify the correct text.
+            for index, block_size in enumerate(self._block_size):
+                blocks += block_size
+                
+                if blocks >= self._seek and initial_index is None:
+                    initial_index = index
+                    first_word_index = self._seek - (blocks - block_size)
+                    
+                if blocks >= last_position and final_index is None:
+                    final_index = index
+                    # (last_position - blocks) % block_size will be greater than zero if blocks greater than last_position
+                    last_word_index = ( last_position - blocks ) % block_size or block_size
+                
+                if initial_index and final_index:
+                    break
+            
+            read_content = deque()
+
+            if initial_index == final_index:
+                read_content.append(self._content[initial_index][first_word_index:last_word_index])
+            else:
+                # Get the first part of the content considering the possibility of partial content.
+                read_content.append(self._content[initial_index][first_word_index:])
+                # Get the middle part of content (only if initial_index + 1 is less than final_index else range will return an empty list)
+                for index in range(initial_index + 1, final_index):
+                    read_content.append(self._content[index])
+                # Get the last part of the content considering the possibility of partial content.
+                read_content.append(self._content[final_index][:last_word_index])
+            
+            result_content = initial_value.join(read_content)
+            if result_content == initial_value:
+                return None
+                        
+            self.seek(last_position)
+            
+            return result_content
+        
+        def write(self, value: str | bytes) -> None:
+            self._length_content += len(value)
+            self._block_size.append(len(value))
+            self._content.append(value)
+        
+        def close(self) -> None:
+            return
+        
+        def seek(self, position: int) -> int:
+            if position < 0:
+                raise ValueError("Seek position cannot be negative on method BufferMemory.seek.")
+            
+            self._seek = position
+            
+            if position > self._length_content:
+                self._seek = self._length_content
+            
+            return position
+        
+        def seekable(self):
+            return True
+        
+        def readable(self):
+            return True
+
 
     def __init__(self: CacheInMemory, buffer_helper: BufferStr | BufferBytes) -> None:
         """ """
         self.buffer_helper = buffer_helper
+        self.content = self.BufferMemory(buffer_helper=buffer_helper)
+        
 
     def save_and_return(self: CacheInMemory, content: bytes | str):
         """ """
-        if self.content is None:
-            self.content = content
-        else:
-            self.content += content
-
+        self.content.write(content)
+        
         return content
 
     def load_from_cache(self: CacheInMemory) -> str | bytes:
-        """ """
-        if self.content is None:
+        """ 
+        """
+        seek = self.content._seek
+        
+        self.content.seek(0)
+        content = self.content.read()
+        
+        self.content.seek(seek)
+        
+        if content is None:
             raise EmptyContentError("No content stored in memory.")
 
-        return self.content
+        return content
 
     def load_buffer_from_cache(self: CacheInMemory) -> BytesIO | StringIO:
         """ """
-        return self.buffer_helper.to_buffer(self.content)
+        return self.content
 
     def consume(self: CacheInMemory, iterator: Iterator) -> None:
         """ """
