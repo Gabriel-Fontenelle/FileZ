@@ -219,6 +219,9 @@ class CacheInMemory:
             self._block_size = []
             self._seek = 0
             self._length_content = 0
+            self._initial_index = 0
+            self._first_word_index = 0 
+            self._sum_block_size = 0
         
         def read(self, position: int = None) -> str | bytes:
             """
@@ -228,59 +231,55 @@ class CacheInMemory:
             if position < 0:
                 raise ValueError("Read position cannot be negative on method BufferMemory.read.")
             
-            if self._seek == self._length_content or position == 0:
+            if self._seek == self._length_content or position == 0 or not self._block_size:
                 return None
             
             initial_value = b'' if self._buffer_helper.binary else ''
-            
+
             if position is None:
                 position = self._length_content
                 last_position = self._length_content
-                final_index = len(self._content) - 1
                 last_word_index = self._length_content
+                final_index = len(self._content) - 1
+            
             else:
                 last_position = min(self._seek + position, self._length_content)
-                final_index = None
-                last_word_index = None
+                blocks = self._sum_block_size
                 
-            blocks = 0
-            initial_index = None
-            first_word_index = None
-            
-            # Fix this to identify the correct text.
-            for index, block_size in enumerate(self._block_size):
-                blocks += block_size
-                
-                if blocks >= self._seek and initial_index is None:
-                    initial_index = index
-                    first_word_index = self._seek - (blocks - block_size)
+                # Recalculate final_index and last_word_index
+                for index, block_size in enumerate(self._block_size[self._initial_index:]):
                     
-                if blocks >= last_position and final_index is None:
-                    final_index = index
-                    # (last_position - blocks) % block_size will be greater than zero if blocks greater than last_position
-                    last_word_index = ( last_position - blocks ) % block_size or block_size
-                
-                if initial_index and final_index:
-                    break
-            
+                    if blocks + block_size >= last_position:
+                        final_index = index + self._initial_index
+                        # (last_position - blocks) % block_size will be greater than zero if blocks greater than last_position
+                        last_word_index = ( last_position - ( blocks + block_size ) ) % block_size or block_size
+                        break
+                    
+                    blocks += block_size
+                    
+                self._sum_block_size = blocks
+
             read_content = deque()
 
-            if initial_index == final_index:
-                read_content.append(self._content[initial_index][first_word_index:last_word_index])
+            if self._initial_index == final_index:
+                result_content = self._content[self._initial_index][self._first_word_index:last_word_index]
             else:
                 # Get the first part of the content considering the possibility of partial content.
-                read_content.append(self._content[initial_index][first_word_index:])
+                read_content.append(self._content[self._initial_index][self._first_word_index:])
                 # Get the middle part of content (only if initial_index + 1 is less than final_index else range will return an empty list)
-                for index in range(initial_index + 1, final_index):
+                for index in range(self._initial_index + 1, final_index):
                     read_content.append(self._content[index])
                 # Get the last part of the content considering the possibility of partial content.
                 read_content.append(self._content[final_index][:last_word_index])
             
-            result_content = initial_value.join(read_content)
+                result_content = initial_value.join(read_content)
+                
             if result_content == initial_value:
                 return None
-                        
-            self.seek(last_position)
+            
+            self._initial_index = final_index
+            self._first_word_index = last_word_index
+            self._seek = last_position
             
             return result_content
         
@@ -296,13 +295,35 @@ class CacheInMemory:
             if position < 0:
                 raise ValueError("Seek position cannot be negative on method BufferMemory.seek.")
             
-            self._seek = position
+            self._seek = min(position, self._length_content)
             
-            if position > self._length_content:
-                self._seek = self._length_content
+            if not self._block_size:
+                return self._seek
             
-            return position
+            # Find init index
+            self._find_first_index()
+            
+            return self._seek
         
+        def _find_first_index(self):
+            """
+            """
+            blocks = 0
+            initial_index = None
+            first_word_index = None
+            
+            for index, block_size in enumerate(self._block_size):
+                if blocks + block_size >= self._seek and initial_index is None:
+                    initial_index = index
+                    first_word_index = self._seek - blocks
+                    break
+                
+                blocks += block_size
+            
+            self._initial_index = initial_index or 0
+            self._first_word_index = first_word_index or 0
+            self._sum_block_size = blocks
+            
         def seekable(self):
             return True
         
@@ -366,6 +387,7 @@ class NonCache:
 
     cached = False
     """
+    Indicate whether the cache of content was completed. 
     """
     content = None
     """
