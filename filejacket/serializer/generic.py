@@ -30,13 +30,13 @@ from typing import Any, Type, TYPE_CHECKING
 
 import pytz
 from dill import dumps, loads, HIGHEST_PROTOCOL
-from filejacket.file import BaseFile
 
 from ..adapters.storage import LinuxFileSystem
 
 if TYPE_CHECKING:
     from .storage import Storage
     from json_tricks import hashodict
+    from filejacket.file import BaseFile
 
 
 __all__ = ["PickleSerializer", "JSONSerializer"]
