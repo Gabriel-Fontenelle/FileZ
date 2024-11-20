@@ -298,16 +298,17 @@ class StorageEngine:
 
     @classmethod
     def move(
-        cls, file_path_origin: str, file_path_destination: str, force: bool = False
+        cls, file_path_origin: str, file_path_destination: str, delete: bool = True, force: bool = False,
     ) -> bool:
         """
         Method used to move a file from origin to destination.
         This method do use copy_file to first copy the file and after send file to trash.
-        The file only will be sent to trash if no exception was raised on copy.
+        The file only will be sent to trash if no exception was raised on copy. If `delete` is True the file will be deleted instead of 
+        being sent to trash.
         Override this method if that’s not appropriate for your storage.
         """
         if cls.copy(file_path_origin, file_path_destination, force):
-            cls.delete(file_path_origin)
+            cls.delete(file_path_origin, force=delete)
             return True
 
         return False
