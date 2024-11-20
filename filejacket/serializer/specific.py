@@ -489,6 +489,7 @@ class TransmuterContentFiles(BaseTransmuter):
             "unpack_data_pipeline": transmuter_pipeline.from_data(
                 content_files["unpack_data_pipeline"]
             ),
+            "length": content_files["length"]
         }
 
     def to_data(self, value: dict[str, Any], reference: BaseFile) -> FilePacket:
@@ -507,6 +508,7 @@ class TransmuterContentFiles(BaseTransmuter):
             unpack_data_pipeline=transmuter_pipeline.to_data(
                 value["unpack_data_pipeline"], reference=reference
             ),
+            length=value["length"]
         )
 
 

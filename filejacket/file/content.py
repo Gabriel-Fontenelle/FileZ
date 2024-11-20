@@ -654,19 +654,24 @@ class FileContent:
 class FilePacket:
     """
     Class that store internal files from file instance content.
+    TODO: Reduce memory usage for listing File from buffer.
     """
-
-    _internal_files: dict[str, Any]
+    
+    _internal_files: dict[str, tuple[BaseFile, int]]
     """
     Dictionary used for storing the internal files data. Each file is reserved through its <directory>/<name> inside
     the package.
     This must be instantiated at `__init__` method.
     """
-
+    
     history: list
     history = None
     """
     Storage internal files to allow browsing old ones for current BaseFile.
+    """
+    length: int = 0
+    """
+    Size of file content unpacked.
     """
 
     # Pipelines
@@ -680,12 +685,13 @@ class FilePacket:
     Pipeline to extract data from multiple sources. For it to work, its classes should implement stopper as True.
     """
 
-    def __init__(self, **kwargs: Any) -> None:
+    def __init__(self: FilePacket, **kwargs: Any) -> None:
         """
         Method to create the current object using the keyword arguments.
         """
         # Set class dict attribute
         self._internal_files = {}
+        self.length = 0
 
         for key, value in kwargs.items():
             if hasattr(self, key):
@@ -695,7 +701,7 @@ class FilePacket:
                     f"Class {self.__class__.__name__} doesn't have an attribute called {key}."
                 )
 
-    def __getitem__(self, item: int | str) -> BaseFile:
+    def __getitem__(self: FilePacket, item: int | str) -> tuple[BaseFile, int]:
         """
         Method to serve as shortcut to allow return of item in _internal_files in instance of FilePacket.
         This method will try to retrieve an element from the dictionary by index if item is numeric.
@@ -705,13 +711,13 @@ class FilePacket:
 
         return self._internal_files[item]
 
-    def __contains__(self, item: str) -> bool:
+    def __contains__(self: FilePacket, item: str) -> bool:
         """
         Method to serve as shortcut to allow verification if item contains in _internal_files in instance of FilePacket.
         """
         return item in self._internal_files
 
-    def __setitem__(self, key: str, value: BaseFile) -> None:
+    def __setitem__(self: FilePacket, key: str, value: BaseFile) -> None:
         """
         Method to serve as shortcut to allow adding an item in _internal_files in instance of FilePacket.
         """
@@ -721,17 +727,18 @@ class FilePacket:
             raise ValueError(
                 "Parameter key to __setitem__ in class FilePacket cannot be numeric."
             )
+        length = len(value)
+        self.length += length
+        self._internal_files[key] = value, length
 
-        self._internal_files[key] = value
-
-    def __len__(self) -> int:
+    def __len__(self: FilePacket) -> int:
         """
         Method that defines the size of current object. We will consider the size as being the same of
         `_internal_files`
         """
         return len(self._internal_files)
 
-    def __iter__(self) -> Iterator:
+    def __iter__(self: FilePacket) -> Iterator[tuple[BaseFile, int]]:
         """
         Method to return current object as iterator. As it already implements __next__ we just return the current
         object.
@@ -739,34 +746,40 @@ class FilePacket:
         return iter(self._internal_files.items())
 
     @property
-    def __serialize__(self) -> dict[str, Any]:
+    def __serialize__(self: FilePacket) -> dict[str, Any]:
         """
         Method to allow dir and vars to work with the class simplifying the serialization of object.
         """
-        attributes = {"_internal_files", "unpack_data_pipeline", "history"}
+        attributes = {"_internal_files", "unpack_data_pipeline", "history", "length"}
 
         return {key: getattr(self, key) for key in attributes}
 
-    def clean_history(self) -> None:
+    def clean_history(self: FilePacket) -> None:
         """
         Method to clean the history of internal_files.
         The data will still be in memory while the Garbage Collector don't remove it.
         """
         self.history = []
 
-    def files(self) -> list[BaseFile]:
+    def files(self: FilePacket) -> list[BaseFile]:
         """
         Method to obtain the list of objects File stored at `_internal_files`.
         """
-        return list(self._internal_files.values())
-
-    def names(self) -> list[str]:
+        return [i[0] for i in self._internal_files.values()]
+    
+    def files_length(self: FilePacket) -> list[int]:
+        """
+        Method to obtain the list of length of File stored at `_internal_files`.
+        """
+        return [i[1] for i in self._internal_files.values()]
+    
+    def names(self: FilePacket) -> list[str]:
         """
         Method to obtain the list of names of internal files stored at `_internal_files`.
         """
         return list(self._internal_files.keys())
 
-    def reset(self) -> None:
+    def reset(self: FilePacket) -> None:
         """
         Method to clean the internal files keeping a history of changes.
         """
