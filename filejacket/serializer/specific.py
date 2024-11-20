@@ -232,7 +232,7 @@ class TransmuterAttribute(BaseTransmuter):
         """
         Method to reverse the conversion at `from_data`.
         """
-        transmuter_object_class = TransmuterObjectClass()
+        transmuter_object_class = TransmuterClass()
         transmuter_object_class.serializer = self.serializer
 
         attribute_object = transmuter_object_class.to_data(
@@ -421,7 +421,7 @@ class TransmuterHashes(BaseTransmuter):
             if "content" in hash_tuple[1]:
                 hash_file: BaseFile = cache_file_class(path=hash_tuple[1]["path"])
                 hash_file._content = (
-                    self.serializer._content.to_data(hash_tuple[1]["content"])
+                    self.serializer._content.to_data(hash_tuple[1]["content"], reference=hash_file)
                     if hash_tuple[1]["content"]
                     else None
                 )
@@ -625,7 +625,8 @@ class TransmuterContent(BaseTransmuter):
             related_file_object=reference,
             buffer=buffered,
             buffer_helper=buffer_helper_object,
-            cache_helper=cache_helper_class**value,
+            cache_helper=cache_helper_class,
+            **value,
         )
 
 
