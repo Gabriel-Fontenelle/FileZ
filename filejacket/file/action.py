@@ -181,8 +181,22 @@ class FileActions:
         """
         self.rename = False
         self.was_renamed = True
-
-    def to_hash(self) -> None:
+        
+    def to_move(self: FileActions) -> None:
+        """
+        Method to set up the action of move, copy file.
+        """
+        self.move = True
+        self.was_moved = False
+        
+    def moved(self: FileActions) -> None:
+        """
+        Method to change the status of `to move` to `moved` file.
+        """
+        self.move = False
+        self.was_moved = True
+        
+    def to_hash(self: FileActions) -> None:
         """
         Method to set up the action of generate hash for file.
         """
