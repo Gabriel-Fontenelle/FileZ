@@ -102,7 +102,7 @@ class FileActions:
     Indicate whether an object has successfully generate its thumbnail image.
     """
 
-    def __init__(self, **kwargs: Any) -> None:
+    def __init__(self: FileActions, **kwargs: dict[str, bool]) -> None:
         """
         Method to create the current object using the keyword arguments.
         """
@@ -115,19 +115,27 @@ class FileActions:
                 )
 
     @property
-    def __serialize__(self) -> dict[str, bool]:
+    def __serialize__(self: FileActions) -> dict[str, bool]:
         """
         Method to allow dir and vars to work with the class simplifying the serialization of object.
         """
         attributes: set[str] = {
             "extract",
             "hash",
+            "list",
+            "move",
+            "preview",
             "rename",
             "save",
+            "thumbnail",
             "was_extracted",
             "was_hashed",
+            "was_listed",
+            "was_moved",
+            "was_previewed",
             "was_renamed",
             "was_saved",
+            "was_thumbnailed"
         }
 
         return {key: getattr(self, key) for key in attributes}
