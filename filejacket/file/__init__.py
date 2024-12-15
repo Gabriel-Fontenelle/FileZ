@@ -805,7 +805,7 @@ class BaseFile:
             )
 
     @property
-    def sanitize_path(self) -> str:
+    def sanitize_path(self: BaseFile) -> str:
         """
         Method to return as attribute full sanitized path of file.
         """
@@ -816,7 +816,7 @@ class BaseFile:
         return self.storage.join(save_to, relative_path, complete_filename)
 
     @property
-    def thumbnail(self) -> BaseFile:
+    def thumbnail(self: BaseFile) -> BaseFile:
         """
         Method to return as attribute the file object for the thumbnail representation of current content.
         """
@@ -826,7 +826,7 @@ class BaseFile:
         return self._thumbnail.thumbnail
 
     @property
-    def preview(self) -> BaseFile:
+    def preview(self: BaseFile) -> BaseFile:
         """
         Method to return as attribute the file object for the animated preview of current content.
         """
@@ -836,7 +836,7 @@ class BaseFile:
         return self._thumbnail.preview
 
     def _get_kwargs_for_pipeline(
-        self, pipeline_name: str | None = None
+        self: BaseFile, pipeline_name: str | None = None
     ) -> dict[str, Any]:
         """
         Method to return the parameters for overriding of pipeline arguments.
@@ -869,7 +869,7 @@ class BaseFile:
         )
 
     def add_valid_filename(
-        self, complete_filename: str, enforce_mimetype: bool = False
+        self: BaseFile, complete_filename: str, enforce_mimetype: bool = False
     ) -> bool:
         """
         Method to add filename and extension to file only if it has a valid extension.
@@ -933,7 +933,7 @@ class BaseFile:
 
         return False
 
-    def compare_to(self, *files: BaseFile) -> bool:
+    def compare_to(self: BaseFile, *files: BaseFile) -> bool:
         """
         Method to run the pipeline, for comparing files.
         This method set-up for current file object with others.
@@ -962,7 +962,7 @@ class BaseFile:
         return result
 
     def extract(
-        self, destination: str | None = None, force: bool = False
+        self: BaseFile, destination: str | None = None, force: bool = False
     ) -> bool | None:
         """
         Method to extract the content of the file, only if object is packed and extractable.
@@ -995,7 +995,7 @@ class BaseFile:
 
         return None
 
-    def generate_hashes(self, force: bool = False) -> None:
+    def generate_hashes(self: BaseFile, force: bool = False) -> None:
         """
         Method to run the pipeline, to generate hashes, set-up for the file.
         The parameter `force` will make the pipeline always generate hash from content instead of trying to
@@ -1018,7 +1018,7 @@ class BaseFile:
 
             self._actions.hashed()
 
-    def get_content(self, item: int | str) -> BaseFile:
+    def get_content(self: BaseFile, item: int | str) -> BaseFile:
         """
         Method to return an internal content by index or filename.
         """
@@ -1037,7 +1037,7 @@ class BaseFile:
 
         return self._content_files[item]
 
-    def refresh_from_disk(self) -> None:
+    def refresh_from_disk(self: BaseFile) -> None:
         """
         This method will reset all attributes, calling the pipeline to extract data again from disk.
         Both the content and metadata will be reloaded from disk.
@@ -1059,7 +1059,7 @@ class BaseFile:
         # Set up its processing state to False
         self._state.processing = False
 
-    def refresh_from_pipeline(self) -> None:
+    def refresh_from_pipeline(self: BaseFile) -> None:
         """
         This method will load all attributes, calling the pipeline to extract data. By default, this method will
         not overwrite data already loaded.
@@ -1074,7 +1074,7 @@ class BaseFile:
         # Set up its processing state to False
         self._state.processing = False
 
-    def save(self) -> None:
+    def save(self: BaseFile) -> None:
         """
         Method to save file to file system. In this method we do some validation and verify if file can be saved
         following some options informed through parameter `options`.
