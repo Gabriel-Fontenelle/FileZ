@@ -364,15 +364,21 @@ class BaseFile:
         # and option run_extractor should not be false.
         if not version and run_extractor:
             self.refresh_from_pipeline()
+            
+    def __str__(self: BaseFile) -> str:
+        """
+        Method to return the string representation of the BaseFile object.
+        """
+        return f"{self.__class__} {self.complete_filename} ({self.length}, {self.type})"
 
-    def __len__(self) -> int:
+    def __len__(self: BaseFile) -> int:
         """
         Method to inform function `len()` where to extract the information of length from.
         When calling `len(BaseFile())` it will return the size of file in bytes.
         """
         return self.length
 
-    def __lt__(self, other_instance: BaseFile) -> bool:
+    def __lt__(self: BaseFile, other_instance: BaseFile) -> bool:
         """
         Method to allow comparison < to work between BaseFiles.
         TODO: Compare metadata resolution for when type is image, video and bitrate when type
@@ -381,13 +387,13 @@ class BaseFile:
         # Check if size is lower than.
         return len(self) < len(other_instance)
 
-    def __le__(self, other_instance: BaseFile) -> bool:
+    def __le__(self: BaseFile, other_instance: BaseFile) -> bool:
         """
         Method to allow comparison <= to work between BaseFiles.
         """
         return self.__lt__(other_instance) or self.__eq__(other_instance)
 
-    def __eq__(self, other_instance: object) -> bool:
+    def __eq__(self: BaseFile, other_instance: object) -> bool:
         """
         Method to allow comparison == to work between BaseFiles.
         `other_instance` can be an object or a list of objects to be compared.
@@ -404,7 +410,7 @@ class BaseFile:
         except ValueError:
             return False
 
-    def __ne__(self, other_instance: object) -> bool:
+    def __ne__(self: BaseFile, other_instance: object) -> bool:
         """
         Method to allow comparison not equal to work between BaseFiles.
         """
@@ -415,7 +421,7 @@ class BaseFile:
 
         return not self.__eq__(other_instance)
 
-    def __gt__(self, other_instance: BaseFile) -> bool:
+    def __gt__(self: BaseFile, other_instance: BaseFile) -> bool:
         """
         Method to allow comparison > to work between BaseFiles.
         TODO: Compare metadata resolution for when type is image, video and bitrate when type
@@ -424,13 +430,13 @@ class BaseFile:
         # Check if size is greater than.
         return len(self) > len(other_instance)
 
-    def __ge__(self, other_instance: BaseFile) -> bool:
+    def __ge__(self: BaseFile, other_instance: BaseFile) -> bool:
         """
         Method to allow comparison >= to work between BaseFiles.
         """
         return self.__gt__(other_instance) or self.__eq__(other_instance)
 
-    def __bool__(self):
+    def __bool__(self: BaseFile):
         """
         Method to allow evaluation of BaseFile to return True.
         Without this method `if BaseFile` will return False.
@@ -438,7 +444,7 @@ class BaseFile:
         return True
 
     @property
-    def __version__(self) -> str:
+    def __version__(self: BaseFile) -> str:
         """
         Method to indicate the current version of BaseFile in order to allow changes between serialization
         to be handled by `__init__()`
@@ -446,7 +452,7 @@ class BaseFile:
         return "1"
 
     @property
-    def __serialize__(self) -> dict[str, Any]:
+    def __serialize__(self: BaseFile) -> dict[str, Any]:
         """
         Method to allow dir and vars to work with the class simplifying the serialization of object.
         """
@@ -485,7 +491,7 @@ class BaseFile:
         return {key: getattr(self, key) for key in attributes}
 
     @property
-    def complete_filename(self) -> str:
+    def complete_filename(self: BaseFile) -> str:
         """
         Method to return as attribute the complete filename from file.
         """
@@ -496,14 +502,14 @@ class BaseFile:
         )
 
     @property
-    def complete_filename_as_tuple(self) -> tuple[str, str | None]:
+    def complete_filename_as_tuple(self: BaseFile) -> tuple[str, str | None]:
         """
         Method to return as attribute the complete filename from file in tuple format.
         """
         return (self.filename or "", self.extension)
 
     @complete_filename_as_tuple.setter
-    def complete_filename_as_tuple(self, value: tuple[str, str | None]) -> None:
+    def complete_filename_as_tuple(self: BaseFile, value: tuple[str, str | None]) -> None:
         """
         Method to set complete_filename attribute. For this method
         to work value must be a tuple of <filename, extension>.
@@ -531,7 +537,7 @@ class BaseFile:
             self._actions.to_rename()
 
     @property
-    def content(self) -> str | bytes | None:
+    def content(self: BaseFile) -> str | bytes | None:
         """
         Method to return as attribute the content that can be previous loaded from content,
         or a stream_content or need to be load from file system.
@@ -543,7 +549,7 @@ class BaseFile:
         return self._content.content
 
     @content.setter
-    def content(self, value: str | bytes) -> None:
+    def content(self: BaseFile, value: str | bytes) -> None:
         """
         Method to set content attribute. This method can be override in child class.
         This method can receive value as string, bytes or buffer.
@@ -580,7 +586,7 @@ class BaseFile:
             self._actions.to_list()
 
     @property
-    def content_as_iterator(self) -> Iterator[Sequence[bytes | str]] | None:
+    def content_as_iterator(self: BaseFile) -> Iterator[Sequence[bytes | str]] | None:
         """
         Method to return as an attribute the content that was previous loaded as a buffer.
         """
@@ -591,7 +597,7 @@ class BaseFile:
 
     @property
     def content_as_buffer(
-        self,
+        self: BaseFile,
     ) -> BytesIO | StringIO | PackageExtractor.ContentBuffer | None:
         """
         Method to return the current content as buffer to be used for extraction or other code
@@ -604,7 +610,7 @@ class BaseFile:
 
     @content_as_buffer.setter
     def content_as_buffer(
-        self, value: BytesIO | StringIO | PackageExtractor.ContentBuffer
+        self: BaseFile, value: BytesIO | StringIO | PackageExtractor.ContentBuffer
     ) -> None:
         if isinstance(value, (str, bytes)):
             raise ValueError(
@@ -638,7 +644,7 @@ class BaseFile:
             self._actions.to_list()
 
     @property
-    def content_as_base64(self) -> bytes | None:
+    def content_as_base64(self: BaseFile) -> bytes | None:
         """
         Method to return the current content as string of base64.
         This method will load the content to memory before trying to convert to base64.
@@ -649,7 +655,7 @@ class BaseFile:
         return self._content.content_as_base64
 
     @property
-    def files(self) -> set[BaseFile]:
+    def files(self: BaseFile) -> set[BaseFile]:
         """
         Method to return as attribute the internal files that can be present in content.
         This method can be override in child class, and it should always return a generator.
@@ -668,7 +674,7 @@ class BaseFile:
         return self._content_files.files()
 
     @property
-    def is_binary(self) -> bool | None:
+    def is_binary(self: BaseFile) -> bool | None:
         """
         Method to return as attribute if file is binary or not. This information is obtained from `is_binary` from
         `FileContent` that should be set-up when data is loaded to content.
@@ -681,7 +687,7 @@ class BaseFile:
             return None
 
     @property
-    def is_content_wholesome(self) -> bool | None:
+    def is_content_wholesome(self: BaseFile) -> bool | None:
         """
         Method to check the integrity of file content given priority to hashes loaded from external source instead of
         generated one. If no hash was loaded from external source, this method will generate new hashes and compare it
@@ -697,21 +703,21 @@ class BaseFile:
         return True
 
     @property
-    def meta(self) -> FileMetadata:
+    def meta(self: BaseFile) -> FileMetadata:
         """
         Method to return as attribute the file`s metadata class.
         """
         return self._meta
 
     @property
-    def path(self) -> str | None:
+    def path(self: BaseFile) -> str | None:
         """
         Method to return as attribute full path of file.
         """
         return self._path
 
     @path.setter
-    def path(self, value: str | None) -> None:
+    def path(self: BaseFile, value: str | None) -> None:
         """
         Method to set property attribute path. This method check whether path is a directory before setting, as we only
         allow path to files to be set-up.
@@ -728,7 +734,7 @@ class BaseFile:
             )
 
     @property
-    def pipelines(self) -> list[tuple[str, Pipeline]]:
+    def pipelines(self: BaseFile) -> list[tuple[str, Pipeline]]:
         """
         Method to return a list of Pipelines available to the current object. Pipelines are instances that inherent
         from Pipeline class.
@@ -762,7 +768,7 @@ class BaseFile:
         return recursively_get_pipelines_from_serializer(self.__serialize__)
 
     @property
-    def pipelines_errors(self) -> list[tuple[str, list[Exception]]]:
+    def pipelines_errors(self: BaseFile) -> list[tuple[str, list[Exception]]]:
         """
         Method to return the list of errors that occurred in all pipelines availables.
         """
@@ -773,14 +779,14 @@ class BaseFile:
         ]
 
     @property
-    def save_to(self) -> str | None:
+    def save_to(self: BaseFile) -> str | None:
         """
         Method to return as attribute directory where the file should be saved.
         """
         return self._save_to
 
     @save_to.setter
-    def save_to(self, value: str) -> None:
+    def save_to(self: BaseFile, value: str) -> None:
         """
         Method to set property all attributes related to path.
         """
@@ -791,16 +797,15 @@ class BaseFile:
         )
 
         # Validate if path is really a directory. `is_dir` will convert the path to its absolute form before checking
-        # it to avoid a bug where `~/` is not interpreted as existing.
-        if not self.storage.is_dir(self._save_to) and self.storage.exists(
-            self._save_to
-        ):
+        # to avoid a bug where `~/` is not interpreted as existing.
+        # This is verify implicitly if directory exists.
+        if not self.storage.is_dir(self._save_to):
             raise ValueError(
-                "Attribute `save_to` informed for File must be a directory."
+                "Attribute `save_to` informed for File must be an existing directory."
             )
 
     @property
-    def sanitize_path(self) -> str:
+    def sanitize_path(self: BaseFile) -> str:
         """
         Method to return as attribute full sanitized path of file.
         """
@@ -811,7 +816,7 @@ class BaseFile:
         return self.storage.join(save_to, relative_path, complete_filename)
 
     @property
-    def thumbnail(self) -> BaseFile:
+    def thumbnail(self: BaseFile) -> BaseFile:
         """
         Method to return as attribute the file object for the thumbnail representation of current content.
         """
@@ -821,7 +826,7 @@ class BaseFile:
         return self._thumbnail.thumbnail
 
     @property
-    def preview(self) -> BaseFile:
+    def preview(self: BaseFile) -> BaseFile:
         """
         Method to return as attribute the file object for the animated preview of current content.
         """
@@ -831,7 +836,7 @@ class BaseFile:
         return self._thumbnail.preview
 
     def _get_kwargs_for_pipeline(
-        self, pipeline_name: str | None = None
+        self: BaseFile, pipeline_name: str | None = None
     ) -> dict[str, Any]:
         """
         Method to return the parameters for overriding of pipeline arguments.
@@ -864,7 +869,7 @@ class BaseFile:
         )
 
     def add_valid_filename(
-        self, complete_filename: str, enforce_mimetype: bool = False
+        self: BaseFile, complete_filename: str, enforce_mimetype: bool = False
     ) -> bool:
         """
         Method to add filename and extension to file only if it has a valid extension.
@@ -878,7 +883,7 @@ class BaseFile:
 
         TODO: we could change add_valid_filename to also search for extension
          in mime_type of file, case there is any, for more efficient search
-         (currently the search in LibraryMimeTyper() regards of checking extension for mimetype or checking extension
+         (currently the search in LibraryMimeTyper() regardless of checking extension for mimetype or checking extension
          in all extensions is similar in complexity).
         """
         # Check if there is known extension in complete_filename.
@@ -928,7 +933,7 @@ class BaseFile:
 
         return False
 
-    def compare_to(self, *files: BaseFile) -> bool:
+    def compare_to(self: BaseFile, *files: BaseFile) -> bool:
         """
         Method to run the pipeline, for comparing files.
         This method set-up for current file object with others.
@@ -957,7 +962,7 @@ class BaseFile:
         return result
 
     def extract(
-        self, destination: str | None = None, force: bool = False
+        self: BaseFile, destination: str | None = None, force: bool = False
     ) -> bool | None:
         """
         Method to extract the content of the file, only if object is packed and extractable.
@@ -990,7 +995,7 @@ class BaseFile:
 
         return None
 
-    def generate_hashes(self, force: bool = False) -> None:
+    def generate_hashes(self: BaseFile, force: bool = False) -> None:
         """
         Method to run the pipeline, to generate hashes, set-up for the file.
         The parameter `force` will make the pipeline always generate hash from content instead of trying to
@@ -1013,7 +1018,7 @@ class BaseFile:
 
             self._actions.hashed()
 
-    def get_content(self, item: int | str) -> BaseFile:
+    def get_content(self: BaseFile, item: int | str) -> BaseFile:
         """
         Method to return an internal content by index or filename.
         """
@@ -1032,7 +1037,7 @@ class BaseFile:
 
         return self._content_files[item]
 
-    def refresh_from_disk(self) -> None:
+    def refresh_from_disk(self: BaseFile) -> None:
         """
         This method will reset all attributes, calling the pipeline to extract data again from disk.
         Both the content and metadata will be reloaded from disk.
@@ -1054,7 +1059,7 @@ class BaseFile:
         # Set up its processing state to False
         self._state.processing = False
 
-    def refresh_from_pipeline(self) -> None:
+    def refresh_from_pipeline(self: BaseFile) -> None:
         """
         This method will load all attributes, calling the pipeline to extract data. By default, this method will
         not overwrite data already loaded.
@@ -1069,7 +1074,7 @@ class BaseFile:
         # Set up its processing state to False
         self._state.processing = False
 
-    def save(self) -> None:
+    def save(self: BaseFile) -> None:
         """
         Method to save file to file system. In this method we do some validation and verify if file can be saved
         following some options informed through parameter `options`.
@@ -1152,6 +1157,7 @@ class BaseFile:
         if self._state.renaming:
             self._naming.on_conflict_rename = allow_rename
             self._naming.rename()
+            self._actions.renamed()
 
         # Copy current file to be .bak before updating content.
         if self._state.changing and create_backup:
@@ -1174,19 +1180,19 @@ class BaseFile:
 
         # Update BaseFile internal status and controllers.
         self._actions.saved()
-        self._actions.renamed()
         self._state.adding = False
         self._state.changing = False
         self._state.renaming = False
+        self._state.moving = False
         self._naming.previous_saved_extension = self.extension
 
-    def serialize(self) -> str:
+    def serialize(self: BaseFile) -> str:
         """
         Method to serialize the current object using the serializer declared in attribute `serializer`.
         """
         return self.serializer.serialize(source=self)
 
-    def validate(self) -> None:
+    def validate(self: BaseFile) -> None:
         """
         Method to validate if minimum attributes of file were set to allow saving.
         TODO: This method should be changed to allow more easy override similar to how Django do with `clean`.
@@ -1221,7 +1227,7 @@ class BaseFile:
                 "file!"
             )
 
-    def write_content(self, path: str) -> None:
+    def write_content(self: BaseFile, path: str) -> None:
         """
         Method to write content to a given path.
         This method will truncate the file before saving content to it.

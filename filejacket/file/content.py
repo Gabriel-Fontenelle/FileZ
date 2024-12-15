@@ -23,7 +23,6 @@ Should there be a need for contact the electronic mail
 from __future__ import annotations
 
 from base64 import b64encode
-from collections import deque
 from io import StringIO, BytesIO
 from typing import Iterator, Any, TYPE_CHECKING, IO
 
@@ -57,6 +56,7 @@ class BufferStr:
     buffer_class: type = StringIO
     binary: bool = False
     encoding: str = "utf-8"
+    newline: str | None = ""
 
     @classmethod
     def to_bytes(cls, value: str) -> bytes:
@@ -91,6 +91,7 @@ class BufferBytes:
     buffer_class: type = BytesIO
     binary: bool = True
     encoding: str = "utf-8"
+    newline: str | None = None
 
     @classmethod
     def to_bytes(cls, value: bytes) -> bytes:
@@ -206,157 +207,25 @@ class CacheInMemory:
     """
     Indicate whether the cache of content was completed. 
     """
-    content: CacheInMemory.BufferMemory
+    content: BytesIO | StringIO
     content = None
     """
     """
-    
-    class BufferMemory:
-        
-        def __init__(self, buffer_helper: BufferStr | BufferBytes) -> None:
-            self._content = deque()
-            self._buffer_helper = buffer_helper
-            self._block_size = []
-            self._seek = 0
-            self._length_content = 0
-            self._initial_index = 0
-            self._first_word_index = 0 
-            self._sum_block_size = 0
-        
-        def read(self, position: int = None) -> str | bytes:
-            """
-            
-            To keep compatibility with StringIO or BytesIO the behavior of this method will emulate them.
-            """
-            if position < 0:
-                raise ValueError("Read position cannot be negative on method BufferMemory.read.")
-            
-            if self._seek == self._length_content or position == 0 or not self._block_size:
-                return None
-            
-            initial_value = b'' if self._buffer_helper.binary else ''
-
-            if position is None:
-                position = self._length_content
-                last_position = self._length_content
-                last_word_index = self._length_content
-                final_index = len(self._content) - 1
-            
-            else:
-                last_position = min(self._seek + position, self._length_content)
-                blocks = self._sum_block_size
-                
-                # Recalculate final_index and last_word_index
-                for index, block_size in enumerate(self._block_size[self._initial_index:]):
-                    
-                    if blocks + block_size >= last_position:
-                        final_index = index + self._initial_index
-                        # (last_position - blocks) % block_size will be greater than zero if blocks greater than last_position
-                        last_word_index = ( last_position - ( blocks + block_size ) ) % block_size or block_size
-                        break
-                    
-                    blocks += block_size
-                    
-                self._sum_block_size = blocks
-
-            read_content = deque()
-
-            if self._initial_index == final_index:
-                result_content = self._content[self._initial_index][self._first_word_index:last_word_index]
-            else:
-                # Get the first part of the content considering the possibility of partial content.
-                read_content.append(self._content[self._initial_index][self._first_word_index:])
-                # Get the middle part of content (only if initial_index + 1 is less than final_index else range will return an empty list)
-                for index in range(self._initial_index + 1, final_index):
-                    read_content.append(self._content[index])
-                # Get the last part of the content considering the possibility of partial content.
-                read_content.append(self._content[final_index][:last_word_index])
-            
-                result_content = initial_value.join(read_content)
-                
-            if result_content == initial_value:
-                return None
-            
-            self._initial_index = final_index
-            self._first_word_index = last_word_index
-            self._seek = last_position
-            
-            return result_content
-        
-        def write(self, value: str | bytes) -> None:
-            self._length_content += len(value)
-            self._block_size.append(len(value))
-            self._content.append(value)
-        
-        def close(self) -> None:
-            return
-        
-        def seek(self, position: int) -> int:
-            if position < 0:
-                raise ValueError("Seek position cannot be negative on method BufferMemory.seek.")
-            
-            self._seek = min(position, self._length_content)
-            
-            if not self._block_size:
-                return self._seek
-            
-            # Find init index
-            self._find_first_index()
-            
-            return self._seek
-        
-        def _find_first_index(self):
-            """
-            """
-            blocks = 0
-            initial_index = None
-            first_word_index = None
-            
-            for index, block_size in enumerate(self._block_size):
-                if blocks + block_size >= self._seek and initial_index is None:
-                    initial_index = index
-                    first_word_index = self._seek - blocks
-                    break
-                
-                blocks += block_size
-            
-            self._initial_index = initial_index or 0
-            self._first_word_index = first_word_index or 0
-            self._sum_block_size = blocks
-            
-        def seekable(self):
-            return True
-        
-        def readable(self):
-            return True
-
 
     def __init__(self: CacheInMemory, buffer_helper: BufferStr | BufferBytes) -> None:
         """ """
-        self.buffer_helper = buffer_helper
-        self.content = self.BufferMemory(buffer_helper=buffer_helper)
-        
+        self.content = buffer_helper(newline=buffer_helper.newline)
 
     def save_and_return(self: CacheInMemory, content: bytes | str):
         """ """
         self.content.write(content)
-        
         return content
 
     def load_from_cache(self: CacheInMemory) -> str | bytes:
         """ 
         """
-        seek = self.content._seek
-        
         self.content.seek(0)
-        content = self.content.read()
-        
-        self.content.seek(seek)
-        
-        if content is None:
-            raise EmptyContentError("No content stored in memory.")
-
-        return content
+        return self.content.read()
 
     def load_buffer_from_cache(self: CacheInMemory) -> BytesIO | StringIO:
         """ """
@@ -569,6 +438,9 @@ class FileContent:
         Method to return current object as iterator. As it already implements __next__ we just return the current
         object.
         """
+        if self._cached_content is None:
+            self._cached_content = self.cache_helper(buffer_helper=self.buffer_helper)
+        
         return self
 
     def __next__(self) -> bytes | str:
@@ -784,19 +656,24 @@ class FileContent:
 class FilePacket:
     """
     Class that store internal files from file instance content.
+    TODO: Reduce memory usage for listing File from buffer.
     """
-
-    _internal_files: dict[str, Any]
+    
+    _internal_files: dict[str, tuple[BaseFile, int]]
     """
     Dictionary used for storing the internal files data. Each file is reserved through its <directory>/<name> inside
     the package.
     This must be instantiated at `__init__` method.
     """
-
+    
     history: list
     history = None
     """
     Storage internal files to allow browsing old ones for current BaseFile.
+    """
+    length: int = 0
+    """
+    Size of file content unpacked.
     """
 
     # Pipelines
@@ -810,12 +687,13 @@ class FilePacket:
     Pipeline to extract data from multiple sources. For it to work, its classes should implement stopper as True.
     """
 
-    def __init__(self, **kwargs: Any) -> None:
+    def __init__(self: FilePacket, **kwargs: Any) -> None:
         """
         Method to create the current object using the keyword arguments.
         """
         # Set class dict attribute
         self._internal_files = {}
+        self.length = 0
 
         for key, value in kwargs.items():
             if hasattr(self, key):
@@ -825,7 +703,7 @@ class FilePacket:
                     f"Class {self.__class__.__name__} doesn't have an attribute called {key}."
                 )
 
-    def __getitem__(self, item: int | str) -> BaseFile:
+    def __getitem__(self: FilePacket, item: int | str) -> tuple[BaseFile, int]:
         """
         Method to serve as shortcut to allow return of item in _internal_files in instance of FilePacket.
         This method will try to retrieve an element from the dictionary by index if item is numeric.
@@ -835,13 +713,13 @@ class FilePacket:
 
         return self._internal_files[item]
 
-    def __contains__(self, item: str) -> bool:
+    def __contains__(self: FilePacket, item: str) -> bool:
         """
         Method to serve as shortcut to allow verification if item contains in _internal_files in instance of FilePacket.
         """
         return item in self._internal_files
 
-    def __setitem__(self, key: str, value: BaseFile) -> None:
+    def __setitem__(self: FilePacket, key: str, value: BaseFile) -> None:
         """
         Method to serve as shortcut to allow adding an item in _internal_files in instance of FilePacket.
         """
@@ -851,17 +729,18 @@ class FilePacket:
             raise ValueError(
                 "Parameter key to __setitem__ in class FilePacket cannot be numeric."
             )
+        length = len(value)
+        self.length += length
+        self._internal_files[key] = value, length
 
-        self._internal_files[key] = value
-
-    def __len__(self) -> int:
+    def __len__(self: FilePacket) -> int:
         """
         Method that defines the size of current object. We will consider the size as being the same of
         `_internal_files`
         """
         return len(self._internal_files)
 
-    def __iter__(self) -> Iterator:
+    def __iter__(self: FilePacket) -> Iterator[tuple[BaseFile, int]]:
         """
         Method to return current object as iterator. As it already implements __next__ we just return the current
         object.
@@ -869,34 +748,40 @@ class FilePacket:
         return iter(self._internal_files.items())
 
     @property
-    def __serialize__(self) -> dict[str, Any]:
+    def __serialize__(self: FilePacket) -> dict[str, Any]:
         """
         Method to allow dir and vars to work with the class simplifying the serialization of object.
         """
-        attributes = {"_internal_files", "unpack_data_pipeline", "history"}
+        attributes = {"_internal_files", "unpack_data_pipeline", "history", "length"}
 
         return {key: getattr(self, key) for key in attributes}
 
-    def clean_history(self) -> None:
+    def clean_history(self: FilePacket) -> None:
         """
         Method to clean the history of internal_files.
         The data will still be in memory while the Garbage Collector don't remove it.
         """
         self.history = []
 
-    def files(self) -> list[BaseFile]:
+    def files(self: FilePacket) -> list[BaseFile]:
         """
         Method to obtain the list of objects File stored at `_internal_files`.
         """
-        return list(self._internal_files.values())
-
-    def names(self) -> list[str]:
+        return [i[0] for i in self._internal_files.values()]
+    
+    def files_length(self: FilePacket) -> list[int]:
+        """
+        Method to obtain the list of length of File stored at `_internal_files`.
+        """
+        return [i[1] for i in self._internal_files.values()]
+    
+    def names(self: FilePacket) -> list[str]:
         """
         Method to obtain the list of names of internal files stored at `_internal_files`.
         """
         return list(self._internal_files.keys())
 
-    def reset(self) -> None:
+    def reset(self: FilePacket) -> None:
         """
         Method to clean the internal files keeping a history of changes.
         """

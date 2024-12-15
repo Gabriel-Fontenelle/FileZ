@@ -41,7 +41,7 @@ if TYPE_CHECKING:
     from ...file import BaseFile
     from ...engines.storage import StorageEngine
     from psd_tools import PSDImage
-    from py7zr import SevenZipFile
+    from py7zr import SevenZipFile, FileInfo
 
 __all__ = [
     "PackageExtractor",
@@ -1182,9 +1182,11 @@ class SevenZipCompressedFilesFromPackageExtractor(PackageExtractor):
             with cls.compressor_class(
                 file=file_object.content_as_buffer
             ) as compressed_object:  # type: ignore
+                compressed_object: FileInfo
+                
                 for internal_file in compressed_object.list():
                     # Skip directories
-                    if internal_file.is_directory or internal_file.is_symlink:
+                    if internal_file.is_directory:
                         continue
 
                     # Skip inexistent filename if for some reason there is one.
