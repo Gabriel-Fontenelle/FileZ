@@ -883,7 +883,7 @@ class BaseFile:
 
         TODO: we could change add_valid_filename to also search for extension
          in mime_type of file, case there is any, for more efficient search
-         (currently the search in LibraryMimeTyper() regards of checking extension for mimetype or checking extension
+         (currently the search in LibraryMimeTyper() regardless of checking extension for mimetype or checking extension
          in all extensions is similar in complexity).
         """
         # Check if there is known extension in complete_filename.
