@@ -1186,13 +1186,13 @@ class BaseFile:
         self._state.moving = False
         self._naming.previous_saved_extension = self.extension
 
-    def serialize(self) -> str:
+    def serialize(self: BaseFile) -> str:
         """
         Method to serialize the current object using the serializer declared in attribute `serializer`.
         """
         return self.serializer.serialize(source=self)
 
-    def validate(self) -> None:
+    def validate(self: BaseFile) -> None:
         """
         Method to validate if minimum attributes of file were set to allow saving.
         TODO: This method should be changed to allow more easy override similar to how Django do with `clean`.
@@ -1227,7 +1227,7 @@ class BaseFile:
                 "file!"
             )
 
-    def write_content(self, path: str) -> None:
+    def write_content(self: BaseFile, path: str) -> None:
         """
         Method to write content to a given path.
         This method will truncate the file before saving content to it.
