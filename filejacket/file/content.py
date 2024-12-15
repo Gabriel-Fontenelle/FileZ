@@ -439,6 +439,9 @@ class FileContent:
         Method to return current object as iterator. As it already implements __next__ we just return the current
         object.
         """
+        if self._cached_content is None:
+            self._cached_content = self.cache_helper(buffer_helper=self.buffer_helper)
+        
         return self
 
     def __next__(self) -> bytes | str:
