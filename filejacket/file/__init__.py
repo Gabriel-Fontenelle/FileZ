@@ -1183,6 +1183,7 @@ class BaseFile:
         self._state.adding = False
         self._state.changing = False
         self._state.renaming = False
+        self._state.moving = False
         self._naming.previous_saved_extension = self.extension
 
     def serialize(self) -> str:
