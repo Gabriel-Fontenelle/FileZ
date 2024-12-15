@@ -20,6 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 Should there be a need for contact the electronic mail
 `filejacket <at> gabrielfontenelle.com` can be used.
 """
+from __future__ import annotations
 from typing import Any
 
 from ..exception import SerializerError
@@ -46,6 +47,10 @@ class FileActions:
     rename: bool = False
     """
     Indicate whether an object should be renamed or not.
+    """
+    move: bool = False
+    """
+    Indicate whether an object should be moved, copied or not.
     """
     hash: bool = False
     """
@@ -75,6 +80,10 @@ class FileActions:
     was_renamed: bool = False
     """
     Indicate whether an object was successfully renamed.
+    """
+    was_moved: bool = False
+    """
+    Indicate wether an object was successfully moved or copied.
     """
     was_hashed: bool = False
     """
