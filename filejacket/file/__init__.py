@@ -797,12 +797,11 @@ class BaseFile:
         )
 
         # Validate if path is really a directory. `is_dir` will convert the path to its absolute form before checking
-        # it to avoid a bug where `~/` is not interpreted as existing.
-        if not self.storage.is_dir(self._save_to) and self.storage.exists(
-            self._save_to
-        ):
+        # to avoid a bug where `~/` is not interpreted as existing.
+        # This is verify implicitly if directory exists.
+        if not self.storage.is_dir(self._save_to):
             raise ValueError(
-                "Attribute `save_to` informed for File must be a directory."
+                "Attribute `save_to` informed for File must be an existing directory."
             )
 
     @property
