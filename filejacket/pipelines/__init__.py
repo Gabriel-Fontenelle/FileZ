@@ -26,17 +26,19 @@ from importlib import import_module
 from inspect import isclass
 from typing import Any, TYPE_CHECKING, Iterator, Type
 
-from ..exception import ImproperlyConfiguredPipeline, ValidationError, PipelineError, ImproperlyConfiguredFile
+from ..exception import (
+    ImproperlyConfiguredPipeline,
+    ValidationError,
+    PipelineError,
+    ImproperlyConfiguredFile,
+)
 from ..file.option import FileOption
 
 if TYPE_CHECKING:
     from ..file import BaseFile
 
 
-__all__ = [
-    'Processor',
-    'Pipeline'
-]
+__all__ = ["Processor", "Pipeline"]
 
 
 class Processor:
@@ -52,13 +54,15 @@ class Processor:
         Method to obtain and import the processor`s class from the path informed at `dotted_path`.
         """
         try:
-            module_path, class_name = dotted_path.rsplit('.', 1)
+            module_path, class_name = dotted_path.rsplit(".", 1)
             module = import_module(module_path)
             return getattr(module, class_name)
 
         except (ValueError, AttributeError):
-            raise ImportError(f"Was not possible to import processor {dotted_path}. Make sure that "
-                              f"{dotted_path} is a python string with dotted path to a processor class.")
+            raise ImportError(
+                f"Was not possible to import processor {dotted_path}. Make sure that "
+                f"{dotted_path} is a python string with dotted path to a processor class."
+            )
 
     @classmethod
     def instantiate(self, processor: object, parameters: dict[str, Any]) -> object:
@@ -68,10 +72,9 @@ class Processor:
         """
         # Add parameters to processor for the pipeline to work: stopper, stop_value.
         # Don`t have stop value, so we consider the default `True`.
-        processor = self._set_default_attributes(object_to_set=processor, attributes={
-            'stopper': False,
-            'stop_value': True
-        })
+        processor = self._set_default_attributes(
+            object_to_set=processor, attributes={"stopper": False, "stop_value": True}
+        )
         return processor
 
     @classmethod
@@ -80,25 +83,31 @@ class Processor:
         Method to validate if the processor object has the necessary attributes to allow the pipeline to be run.
         """
         # Check if processor has stop_value, stopper, process
-        if not hasattr(processor, 'stop_value') or not isinstance(processor.stop_value, (bool, list, tuple, set)):
+        if not hasattr(processor, "stop_value") or not isinstance(
+            processor.stop_value, (bool, list, tuple, set)
+        ):
             raise ValidationError(
                 f"Class {processor.__class__.__name__} should implement the attribute `stop_value` and it should be "
                 "of type bool, list, tuple or set."
             )
 
-        if not hasattr(processor, 'stopper') or not isinstance(processor.stopper, bool):
+        if not hasattr(processor, "stopper") or not isinstance(processor.stopper, bool):
             raise ValidationError(
                 f"Class {processor.__class__.__name__} should implement the attribute `stopper` and it should be "
                 "of type bool."
             )
 
         # Validate if processor has the method `process` to allow it to be used in pipeline.
-        if not hasattr(processor, 'process'):
-            raise ValidationError(f"Class {processor.__class__.__name__} should implement the method `process` to be a "
-                                  f"valid processor class.")
+        if not hasattr(processor, "process"):
+            raise ValidationError(
+                f"Class {processor.__class__.__name__} should implement the method `process` to be a "
+                f"valid processor class."
+            )
 
     @staticmethod
-    def _set_default_attributes(object_to_set: object, attributes: dict[str, Any]) -> object:
+    def _set_default_attributes(
+        object_to_set: object, attributes: dict[str, Any]
+    ) -> object:
         """
         Static method to set attributes for object. Only attributes that don`t exists are set-up.
         This method returns the object as a design choice, as it could just changing its attributes through reference.
@@ -115,6 +124,7 @@ class Pipeline:
     Class to initiate a pipelines with given processors to be run.
     The processors to be run will only be evaluated at running time when `__serialize__` or `run` are called.
     """
+
     processor: Type[Processor] = Processor
 
     def __init__(self, *processors_candidate: Any, **kwargs: Any) -> None:
@@ -131,7 +141,9 @@ class Pipeline:
             )
         """
         if not processors_candidate and "processors_candidate" not in kwargs:
-            raise ValueError("A processor candidate must be informed for pipeline to be initialized")
+            raise ValueError(
+                "A processor candidate must be informed for pipeline to be initialized"
+            )
 
         self.processors_ran: int = 0
         """
@@ -149,7 +161,9 @@ class Pipeline:
         """
         Variable to register the errors found by processors for the current pipeline object.
         """
-        self.processors_candidate = kwargs.get("processors_candidate", processors_candidate)
+        self.processors_candidate = kwargs.get(
+            "processors_candidate", processors_candidate
+        )
         """
         Variable to register the original input that instantiate the Pipeline`s object.
         """
@@ -187,7 +201,7 @@ class Pipeline:
 
         return {
             "processor": self.processor,
-            "processors_candidate": self.processors_candidate
+            "processors_candidate": self.processors_candidate,
         }
 
     def load_processor_candidates(self):
@@ -205,9 +219,11 @@ class Pipeline:
             # Get parameters if there is any besides processor in list or tuple.
             if isinstance(candidate, (tuple, list)):
                 if len(candidate) > 2:
-                    raise ImproperlyConfiguredPipeline(f"Invalid processor candidate {candidate}. "
-                                                       "The processor candidate should not have more than two position"
-                                                       " element.")
+                    raise ImproperlyConfiguredPipeline(
+                        f"Invalid processor candidate {candidate}. "
+                        "The processor candidate should not have more than two position"
+                        " element."
+                    )
 
                 parameters_to_override, candidate_path = candidate[1], candidate[0]
             else:
@@ -221,7 +237,9 @@ class Pipeline:
                 candidate_class = processor.import_class(candidate_path)
 
             # Add additional attributes with option to override some parameters.
-            processor_object = processor.instantiate(candidate_class, parameters=parameters_to_override)
+            processor_object = processor.instantiate(
+                candidate_class, parameters=parameters_to_override
+            )
 
             # Validate that all attributes and methods required for `run` exist in the class.
             # A ValidationError will be raised if there is a problem.
@@ -241,9 +259,13 @@ class Pipeline:
         This method evaluate the processors.
         """
 
-        if not hasattr(object_to_process, '_option') or not issubclass(object_to_process._option.__class__, FileOption):
-            raise ImproperlyConfiguredFile(f"Object {type(object_to_process)} don`t have a option attribute of instance"
-                                           "FileOption to allow the pipeline to run properly.")
+        if not hasattr(object_to_process, "_option") or not issubclass(
+            object_to_process._option.__class__, FileOption
+        ):
+            raise ImproperlyConfiguredFile(
+                f"Object {type(object_to_process)} don`t have a option attribute of instance"
+                "FileOption to allow the pipeline to run properly."
+            )
 
         pipeline_raises_exception = object_to_process._option.pipeline_raises_exception
 
@@ -258,7 +280,9 @@ class Pipeline:
         # Using iter here allow for override of __iter__ to affect the running process.
         for processor in self.__iter__():
             try:
-                result = processor.process(object_to_process=object_to_process, **parameters)
+                result = processor.process(
+                    object_to_process=object_to_process, **parameters
+                )
                 ran += 1
 
                 if processor.stopper:
@@ -276,10 +300,11 @@ class Pipeline:
 
                     if should_stop:
                         break
-
             except Exception as e:
                 if pipeline_raises_exception:
-                    raise PipelineError(f"An error ocurred while running process {type(processor)}: {e}") from e
+                    raise PipelineError(
+                        f"An error ocurred while running process {type(processor)}: {e}"
+                    ) from e
 
                 errors_found.append(e)
 

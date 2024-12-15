@@ -30,6 +30,7 @@ from .exception import (
 )
 from .file import BaseFile
 from .handler import System, URI
+
 # Module with engines for adapters
 from .engines.storage import StorageEngine
 from .engines.image import ImageEngine
@@ -40,17 +41,20 @@ from .adapters.mimetype import LibraryMimeTyper, APIMimeTyper
 from .adapters.image import OpenCVImage, PillowImage, WandImage
 from .adapters.video import MoviePyVideo
 from .adapters.storage import WindowsFileSystem, LinuxFileSystem
+
 # Module with classes that define the pipelines and its processors classes.
 # A Pipeline is a sequence that loop processors to be run.
 from .pipelines import Processor, Pipeline
+
 # Module with base classes for pipeline classes.
 from .pipelines.base import (
     BaseComparer,
     BaseExtractor,
     BaseHasher,
     BaseRenamer,
-    BaseRender
+    BaseRender,
 )
+
 # Module with pipeline classes for comparing Files.
 from .pipelines.comparer import (
     BinaryCompare,
@@ -60,8 +64,9 @@ from .pipelines.comparer import (
     MimeTypeCompare,
     NameCompare,
     SizeCompare,
-    TypeCompare
+    TypeCompare,
 )
+
 # Module with pipeline classes for extracting data for files from multiple sources.
 from .pipelines.extractor import (
     PackageExtractor,
@@ -77,12 +82,15 @@ from .pipelines.extractor import (
     AudioMetadataFromContentExtractor,
     RarCompressedFilesFromPackageExtractor,
     ZipCompressedFilesFromPackageExtractor,
-    MimeTypeFromContentExtractor
+    MimeTypeFromContentExtractor,
 )
+
 # Module with pipeline classes for generating or extracting hashed data related to file.
 from .pipelines.hasher import CRC32Hasher, MD5Hasher, SHA256Hasher
+
 # Module with pipeline classes for renaming files.
 from .pipelines.renamer import WindowsRenamer, LinuxRenamer, UniqueRenamer
+
 # module with pipeline classes for render content representation.
 from .pipelines.render import (
     BaseAnimatedRender,
@@ -92,29 +100,82 @@ from .pipelines.render import (
     ImageRender,
     PSDRender,
     StaticAnimatedRender,
-    VideoRender
+    VideoRender,
 )
+
 # Module with classes for serializing/deserializing objects.
 from .serializer import PickleSerializer, JSONSerializer, FileJsonSerializer
 
 
 __all__ = [
-    'APIMimeTyper', 'AudioMetadataFromContentExtractor', 'BaseFile', 'BinaryCompare',
-    'BaseComparer', 'PackageExtractor', 'ContentFile', 'CRC32Hasher', 'DataCompare',
-    'BaseExtractor', 'File', 'FileSystemDataExtractor', 'FilenameAndExtensionFromPathExtractor',
-    'FilenameFromMetadataExtractor', 'FilenameFromURLExtractor', 'HashCompare', 'HashFileExtractor',
-    'BaseHasher', 'ImageEngine', 'ImproperlyConfiguredFile', 'JSONSerializer', 'LibraryMimeTyper',
-    'LinuxFileSystem',  'LinuxRenamer', 'LousyNameCompare', 'MD5Hasher', 'MetadataExtractor', 
-    'MimeTypeCompare', 'MimeTypeFromContentExtractor', 'MimeTypeFromFilenameExtractor', 
-    'NameCompare', 'NoInternalContentError', 'OpenCVImage', 'OperationNotAllowed',
-    'PathFromURLExtractor', 'PickleSerializer', 'PillowImage', 'Pipeline', 'Processor',
-    'RarCompressedFilesFromPackageExtractor', 'BaseRenamer', 'BaseRender', 'BaseAnimatedRender',
-    'BaseStaticRender', 'DocumentFirstPageRender', 'ImageAnimatedRender', 'ImageRender', 
-    'PSDRender', 'StaticAnimatedRender', 'VideoRender', 'ReservedFilenameError', 'SHA256Hasher',
-    'SevenZipCompressedFilesFromPackageExtractor', 'SizeCompare', 'StorageEngine', 'StreamFile',
-    'System', 'TypeCompare', 'URI', 'UniqueRenamer', 'ValidationError', 'MoviePyVideo', 'WandImage', 
-    'WindowsFileSystem', 'WindowsRenamer', 'ZipCompressedFilesFromPackageExtractor', 'VideoEngine',
-    'FileJsonSerializer'
+    "APIMimeTyper",
+    "AudioMetadataFromContentExtractor",
+    "BaseFile",
+    "BinaryCompare",
+    "BaseComparer",
+    "PackageExtractor",
+    "ContentFile",
+    "CRC32Hasher",
+    "DataCompare",
+    "BaseExtractor",
+    "File",
+    "FileSystemDataExtractor",
+    "FilenameAndExtensionFromPathExtractor",
+    "FilenameFromMetadataExtractor",
+    "FilenameFromURLExtractor",
+    "HashCompare",
+    "HashFileExtractor",
+    "BaseHasher",
+    "ImageEngine",
+    "ImproperlyConfiguredFile",
+    "JSONSerializer",
+    "LibraryMimeTyper",
+    "LinuxFileSystem",
+    "LinuxRenamer",
+    "LousyNameCompare",
+    "MD5Hasher",
+    "MetadataExtractor",
+    "MimeTypeCompare",
+    "MimeTypeFromContentExtractor",
+    "MimeTypeFromFilenameExtractor",
+    "NameCompare",
+    "NoInternalContentError",
+    "OpenCVImage",
+    "OperationNotAllowed",
+    "PathFromURLExtractor",
+    "PickleSerializer",
+    "PillowImage",
+    "Pipeline",
+    "Processor",
+    "RarCompressedFilesFromPackageExtractor",
+    "BaseRenamer",
+    "BaseRender",
+    "BaseAnimatedRender",
+    "BaseStaticRender",
+    "DocumentFirstPageRender",
+    "ImageAnimatedRender",
+    "ImageRender",
+    "PSDRender",
+    "StaticAnimatedRender",
+    "VideoRender",
+    "ReservedFilenameError",
+    "SHA256Hasher",
+    "SevenZipCompressedFilesFromPackageExtractor",
+    "SizeCompare",
+    "StorageEngine",
+    "StreamFile",
+    "System",
+    "TypeCompare",
+    "URI",
+    "UniqueRenamer",
+    "ValidationError",
+    "MoviePyVideo",
+    "WandImage",
+    "WindowsFileSystem",
+    "WindowsRenamer",
+    "ZipCompressedFilesFromPackageExtractor",
+    "VideoEngine",
+    "FileJsonSerializer",
 ]
 
 
@@ -127,9 +188,9 @@ class ContentFile(BaseFile):
     """
 
     extract_data_pipeline: Pipeline = Pipeline(
-        'filejacket.pipelines.extractor.FilenameFromMetadataExtractor',
-        'filejacket.pipelines.extractor.MimeTypeFromFilenameExtractor',
-        'filejacket.pipelines.extractor.MimeTypeFromContentExtractor',
+        "filejacket.pipelines.extractor.FilenameFromMetadataExtractor",
+        "filejacket.pipelines.extractor.MimeTypeFromFilenameExtractor",
+        "filejacket.pipelines.extractor.MimeTypeFromContentExtractor",
     )
     """
     Pipeline to extract data from multiple sources.
@@ -142,11 +203,11 @@ class StreamFile(BaseFile):
     """
 
     extract_data_pipeline: Pipeline = Pipeline(
-        'filejacket.pipelines.extractor.FilenameFromMetadataExtractor',
-        'filejacket.pipelines.extractor.FilenameFromURLExtractor',
-        'filejacket.pipelines.extractor.MimeTypeFromFilenameExtractor',
-        'filejacket.pipelines.extractor.MimeTypeFromContentExtractor',
-        'filejacket.pipelines.extractor.MetadataExtractor'
+        "filejacket.pipelines.extractor.FilenameFromMetadataExtractor",
+        "filejacket.pipelines.extractor.FilenameFromURLExtractor",
+        "filejacket.pipelines.extractor.MimeTypeFromFilenameExtractor",
+        "filejacket.pipelines.extractor.MimeTypeFromContentExtractor",
+        "filejacket.pipelines.extractor.MetadataExtractor",
     )
     """
     Pipeline to extract data from multiple sources.
@@ -161,10 +222,10 @@ class File(BaseFile):
     """
 
     extract_data_pipeline: Pipeline = Pipeline(
-        'filejacket.pipelines.extractor.FilenameAndExtensionFromPathExtractor',
-        'filejacket.pipelines.extractor.MimeTypeFromFilenameExtractor',
-        'filejacket.pipelines.extractor.FileSystemDataExtractor',
-        'filejacket.pipelines.extractor.HashFileExtractor',
+        "filejacket.pipelines.extractor.FilenameAndExtensionFromPathExtractor",
+        "filejacket.pipelines.extractor.MimeTypeFromFilenameExtractor",
+        "filejacket.pipelines.extractor.FileSystemDataExtractor",
+        "filejacket.pipelines.extractor.HashFileExtractor",
     )
     """
     Pipeline to extract data from multiple sources.

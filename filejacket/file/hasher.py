@@ -30,9 +30,7 @@ if TYPE_CHECKING:
     from . import BaseFile
     from ..pipelines.hasher import BaseHasher
 
-__all__ = [
-    "FileHashes"
-]
+__all__ = ["FileHashes"]
 
 
 class FileHashes:
@@ -57,6 +55,12 @@ class FileHashes:
     Variable to work as shortcut for the current related object for the hashes.
     """
 
+    history: dict[str, list]
+    history = None
+    """
+    Storage hashes validation results for current BaseFile.
+    """
+
     def __init__(self, **kwargs: Any) -> None:
         """
         Method to create the current object using the keyword arguments.
@@ -69,9 +73,13 @@ class FileHashes:
             if hasattr(self, key):
                 setattr(self, key, value)
             else:
-                raise SerializerError(f"Class {self.__class__.__name__} doesn't have an attribute called {key}.")
+                raise SerializerError(
+                    f"Class {self.__class__.__name__} doesn't have an attribute called {key}."
+                )
 
-    def __setitem__(self, hasher_name: str, value: tuple[str, BaseFile, Type[BaseHasher]]) -> None:
+    def __setitem__(
+        self, hasher_name: str, value: tuple[str, BaseFile, Type[BaseHasher]]
+    ) -> None:
         """
         Method to set up values for file hash as dict item.
         This method expects a tuple as value to set up the hash hexadecimal value and hash file related
@@ -80,9 +88,13 @@ class FileHashes:
         hex_value, hash_file, processor = value
 
         # Instead of using isinstance, we check for the class name to avoid circular import.
-        if "BaseFile" not in [hash_class.__name__ for hash_class in hash_file.__class__.__mro__]:
-            raise ImproperlyConfiguredFile("Tuple for hashes must be the Hexadecimal value and a File Object for the "
-                                           "hash.")
+        if "BaseFile" not in [
+            hash_class.__name__ for hash_class in hash_file.__class__.__mro__
+        ]:
+            raise ImproperlyConfiguredFile(
+                "Tuple for hashes must be the Hexadecimal value and a File Object for the "
+                "hash."
+            )
 
         self._cache[hasher_name] = hex_value, hash_file, processor
 
@@ -116,6 +128,13 @@ class FileHashes:
         attributes: set = {"_cache", "_loaded", "related_file_object"}
 
         return {key: getattr(self, key) for key in attributes}
+
+    def clean_history(self) -> None:
+        """
+        Method to clean the history of validation results.
+        The data will still be in memory while the Garbage Collector don't remove it.
+        """
+        self.history: dict[str, list[str]] = {}
 
     def keys(self) -> set:
         """
@@ -151,7 +170,7 @@ class FileHashes:
                 # Change file`s filename inside content of hash file.
                 content = content.replace(
                     f"{hash_file.filename}.{hasher_name}".encode("uft-8"),
-                    f"{new_filename}.{hasher_name}".encode("uft-8")
+                    f"{new_filename}.{hasher_name}".encode("uft-8"),
                 )
             else:
                 content = ""
@@ -161,44 +180,65 @@ class FileHashes:
                     content += block
 
                 # Change file`s filename inside content of hash file.
-                content = content.replace(f"{hash_file.filename}.{hasher_name}", f"{new_filename}.{hasher_name}")
+                content = content.replace(
+                    f"{hash_file.filename}.{hasher_name}",
+                    f"{new_filename}.{hasher_name}",
+                )
 
             # Set-up new content after renaming and specify that hash_file was not saved yet.
             hash_file.content = content
             hash_file._actions.to_save()
 
-    def validate(self, force: bool=False) -> None:
+    def validate(self, force: bool = False) -> None:
         """
         Method to validate the integrity of file comparing hashes`s hex value with file content.
         This method will only check the first hex value from files loaded, or any cached hash if no hash loaded from
         external source is available, for efficient sake. If desire to check all hashes in loaded set `force` to True.
         """
         if not (self._loaded or self._cache):
-            raise ValueError(f"There is no hash available to compare for file {self.related_file_object}.")
+            raise ValueError(
+                f"There is no hash available to compare for file {self.related_file_object}."
+            )
 
         for hash_name in self._loaded or self._cache.keys():
             hex_value, hash_file, processor = self._cache[hash_name]
             # Compare content with hex_value
-            result = processor.check_hash(object_to_process=self.related_file_object, compare_to_hex=hex_value)
+            result = processor.check_hash(
+                object_to_process=self.related_file_object, compare_to_hex=hex_value
+            )
+
+            # Add result to history.
+            if self.history is None:
+                self.clean_history()
+
+            if hash_name not in self.history:
+                self.history[hash_name] = [result]
+            else:
+                self.history[hash_name].append(result)
 
             if result is False:
-                raise ValidationError(f"File {self.related_file_object} don`t pass the integrity check with "
-                                      f"{hash_name}!")
+                raise ValidationError(
+                    f"File {self.related_file_object} don`t pass the integrity check with "
+                    f"{hash_name}!"
+                )
 
             if not force:
                 break
 
-    def save(self, overwrite: bool=False) -> None:
+    def save(self, overwrite: bool = False) -> None:
         """
         Method to save all hashes files if it was not saved already.
         """
         if self.related_file_object is None:
-            raise ImproperlyConfiguredFile("A related file object must be specified for hashes before saving.")
+            raise ImproperlyConfiguredFile(
+                "A related file object must be specified for hashes before saving."
+            )
 
         for hex_value, hash_file, processor in self._cache.values():
             if hash_file._actions.save:
-                if hash_file.meta.checksum:
-                    # If file is CHECKSUM.<hasher_name> we not allow to overwrite.
-                    hash_file.save(overwrite=False, allow_update=overwrite)
-                else:
-                    hash_file.save(overwrite=overwrite, allow_update=overwrite)
+                # If file is CHECKSUM.<hasher_name> we not allow to overwrite.
+                hash_file._option.allow_overwrite = (
+                    False if hash_file.meta.checksum else overwrite
+                )
+                hash_file._option.allow_update = overwrite
+                hash_file.save()

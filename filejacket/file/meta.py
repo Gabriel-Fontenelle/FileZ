@@ -26,9 +26,7 @@ from typing import Any
 
 from ..exception import SerializerError
 
-__all__ = [
-    "FileMetadata"
-]
+__all__ = ["FileMetadata"]
 
 
 class FileMetadata:
@@ -94,7 +92,9 @@ class FileMetadata:
             if hasattr(self, key) or key in {"checksum", "loaded", "thumbnail"}:
                 setattr(self, key, value)
             else:
-                raise SerializerError(f"Class {self.__class__.__name__} doesn't have an attribute called {key}.")
+                raise SerializerError(
+                    f"Class {self.__class__.__name__} doesn't have an attribute called {key}."
+                )
 
     def __setattr__(self, name: str, value: Any) -> None:
         """
@@ -106,9 +106,9 @@ class FileMetadata:
             return
 
         if self.extra_data is None:
-            self.__dict__['extra_data'] = {}
+            self.__dict__["extra_data"] = {}
 
-        self.__dict__['extra_data'][name] = value
+        self.__dict__["extra_data"][name] = value
 
     def __getattr__(self, name: str) -> Any:
         """
@@ -117,10 +117,13 @@ class FileMetadata:
         try:
             return self.__getattribute__(name)
         except AttributeError:
-            if 'extra_data' not in self.__dict__ or name not in self.__dict__['extra_data']:
+            if (
+                "extra_data" not in self.__dict__
+                or name not in self.__dict__["extra_data"]
+            ):
                 raise AttributeError(f"{name} is not an attribute of {self}.")
 
-            return self.__dict__['extra_data'][name]
+            return self.__dict__["extra_data"][name]
 
     @property
     def __serialize__(self) -> dict[str, bool | dict]:
@@ -128,13 +131,7 @@ class FileMetadata:
         Method to allow dir and vars to work with the class simplifying the serialization of object.
         """
 
-        attributes = {
-            "packed",
-            "compressed",
-            "lossless",
-            "hashable",
-            "extra_data"
-        }
+        attributes = {"packed", "compressed", "lossless", "hashable", "extra_data"}
         optional_attributes = {
             "checksum",
             "loaded",

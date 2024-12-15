@@ -35,6 +35,7 @@ application/atomsvc+xml				atomsvc
 # application/batch-smtp
 # application/batch-SMTP
 application/beep+xml				xml
+application/compound-file-binary-format    db
 # application/calendar+json
 # application/calendar+xml
 # application/call-completion
@@ -1718,6 +1719,7 @@ audio/x-pn-realaudio-plugin				rmp
 audio/x-wav				wav
 audio/xm				xm
 #binary/octet-stream				jpg
+application/binary-data            dat
 chemical/x-cdx				cdx
 chemical/x-cif				cif
 chemical/x-cmdf				cmdf
@@ -1901,7 +1903,8 @@ text/x-javascript				js
 text/n3				n3
 # text/parameters
 # text/parityfec
-text/plain				conf def in list log pl text txt
+text/plain				conf def in list log pl text txt ini url
+text/vobsub-index-file  idx
 # text/provenance-notation
 # text/prs.fallenstein.rst
 text/prs.lines.tag				dsc
@@ -1916,6 +1919,7 @@ text/rtf				rtf
 # text/rtploopback
 # text/rtx
 text/sgml				sgm sgml
+text/sub-station-alpha   ssa
 # text/SGML
 # text/t140
 text/tab-separated-values				tsv
@@ -2005,7 +2009,7 @@ video/mpeg				m1v m2v mpe mpeg mpg
 # video/mpeg4-generic
 # video/mpv
 # video/nv
-video/ogg				ogv
+video/ogg				ogv ogm
 # video/parityfec
 # video/pointer
 video/quicktime				mov mqv qt

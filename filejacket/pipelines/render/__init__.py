@@ -21,7 +21,13 @@ Should there be a need for contact the electronic mail
 `filejacket <at> gabrielfontenelle.com` can be used.
 """
 from .animated import BaseAnimatedRender, StaticAnimatedRender, ImageAnimatedRender
-from .static import BaseStaticRender, DocumentFirstPageRender, ImageRender, PSDRender, VideoRender
+from .static import (
+    BaseStaticRender,
+    DocumentFirstPageRender,
+    ImageRender,
+    PSDRender,
+    VideoRender,
+)
 
 __all__ = [
     # Static

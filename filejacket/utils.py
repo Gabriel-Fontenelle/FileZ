@@ -25,7 +25,7 @@ from __future__ import annotations
 from importlib import import_module
 from typing import Any
 
-__all__ = ["LazyImportClass"]
+__all__: list[str] = ["LazyImportClass"]
 
 
 class LazyImportClass:
@@ -33,24 +33,29 @@ class LazyImportClass:
     Class to facilitate the lazy import of modules and attributes from modules.
 
     """
-    def __init__(self, class_name: str, from_module: str | None = None) -> None:
+
+    def __init__(
+        self: LazyImportClass, class_name: str, from_module: str | None = None
+    ) -> None:
         """
         Method to set up the information about the module that should be imported later.
         """
         self.class_name = class_name
         self.from_module = from_module
-        self.imported_class = None
+        self.imported_class: type | None = None
 
-    def load_imported_class(self):
+    def load_imported_class(self: LazyImportClass) -> None:
         """
         Method to import the module or attribute of the module.
         """
         if self.from_module:
-            self.imported_class = getattr(import_module(self.from_module), self.class_name)
+            self.imported_class = getattr(
+                import_module(self.from_module), self.class_name
+            )
         else:
             self.imported_class = import_module(self.class_name)
 
-    def __getattr__(self, value: str) -> Any:
+    def __getattr__(self: LazyImportClass, value: str) -> Any:
         """
         Method to interface the attribute from the imported module or imported module`s attribute.
         It will evaluate the import in order to retrieve its attribute.
@@ -60,7 +65,7 @@ class LazyImportClass:
 
         return getattr(self.imported_class, value)
 
-    def __call__(self, *args: Any, **kwargs: Any) -> Any:
+    def __call__(self: LazyImportClass, *args: Any, **kwargs: Any) -> object:
         """
         Method to interface a call from the imported module or imported module`s attribute.
         It will evaluate the import in order to retrieve its attribute.

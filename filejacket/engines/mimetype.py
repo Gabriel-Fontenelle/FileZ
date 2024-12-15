@@ -24,9 +24,7 @@ Should there be a need for contact the electronic mail
 from __future__ import annotations
 
 
-__all__ = [
-    "MimeTypeEngine"
-]
+__all__ = ["MimeTypeEngine"]
 
 
 class MimeTypeEngine:
@@ -42,7 +40,9 @@ class MimeTypeEngine:
         Method to return as attribute the mimetypes that are for lossless encoding.
         This method should be override in child class.
         """
-        raise NotImplementedError("lossless_mimetypes() method must be overwritten on child class.")
+        raise NotImplementedError(
+            "lossless_mimetypes() method must be overwritten on child class."
+        )
 
     @property
     def lossless_extensions(self) -> list[str]:
@@ -50,7 +50,9 @@ class MimeTypeEngine:
         Method to return as attribute the extensions that are for lossless encoding.
         This method should be override in child class.
         """
-        raise NotImplementedError("lossless_extensions() method must be overwritten on child class.")
+        raise NotImplementedError(
+            "lossless_extensions() method must be overwritten on child class."
+        )
 
     @property
     def compressed_mimetypes(self) -> list[str]:
@@ -58,7 +60,9 @@ class MimeTypeEngine:
         Method to return as attribute the mimetypes that are for containers of compression.
         This method should be override in child class.
         """
-        raise NotImplementedError("compressed_mimetypes() method must be overwritten on child class.")
+        raise NotImplementedError(
+            "compressed_mimetypes() method must be overwritten on child class."
+        )
 
     @property
     def compressed_extensions(self) -> list[str]:
@@ -66,7 +70,9 @@ class MimeTypeEngine:
         Method to return as attribute the extensions that are for containers of compression.
         This method should be override in child class.
         """
-        raise NotImplementedError("compressed_extensions() method must be overwritten on child class.")
+        raise NotImplementedError(
+            "compressed_extensions() method must be overwritten on child class."
+        )
 
     @property
     def packed_extensions(self) -> list[str]:
@@ -74,28 +80,45 @@ class MimeTypeEngine:
         Method to return as attribute the extensions that are for containers of compression.
         This method should be override in child class.
         """
-        raise NotImplementedError("packed_extensions() method must be overwritten on child class.")
+        raise NotImplementedError(
+            "packed_extensions() method must be overwritten on child class."
+        )
+
+    @staticmethod
+    def sanitize_extension(extension: str):
+        """
+        Method to sanitize extension before using it.
+        """
+        return extension.lower()
 
     def get_extensions(self, mimetype: str) -> list[str]:
         """
         Method to get all registered extensions for given mimetype.
         This method should be override in child class.
         """
-        raise NotImplementedError("get_extensions() method must be overwritten on child class.")
+        raise NotImplementedError(
+            "get_extensions() method must be overwritten on child class."
+        )
 
     def get_mimetype(self, extension: str) -> str | None:
         """
         Method to get registered mimetype for given extension.
         This method should be override in child class.
         """
-        raise NotImplementedError("get_mimetype() method must be overwritten on child class.")
+        raise NotImplementedError(
+            "get_mimetype() method must be overwritten on child class."
+        )
 
-    def get_type(self, mimetype: str | None = None, extension: str | None = None) -> None | str:
+    def get_type(
+        self, mimetype: str | None = None, extension: str | None = None
+    ) -> None | str:
         """
         Method to get the associated type for the given mimetype or extension.
         This method should be override in child class.
         """
-        raise NotImplementedError("get_mimetype() method must be overwritten on child class.")
+        raise NotImplementedError(
+            "get_mimetype() method must be overwritten on child class."
+        )
 
     def guess_extension_from_mimetype(self, mimetype: str) -> str | None:
         """
@@ -103,7 +126,9 @@ class MimeTypeEngine:
         available.
         This method should be override in child class.
         """
-        raise NotImplementedError("guess_extension() method must be overwritten on child class.")
+        raise NotImplementedError(
+            "guess_extension() method must be overwritten on child class."
+        )
 
     def guess_extension_from_filename(self, filename: str) -> str | None:
         """
@@ -111,14 +136,18 @@ class MimeTypeEngine:
         available using as base the filename that can or not have a registered extension in it.
         This method should be override in child class.
         """
-        raise NotImplementedError("guess_extension_and_mimetype() method must be overwritten on child class.")
+        raise NotImplementedError(
+            "guess_extension_and_mimetype() method must be overwritten on child class."
+        )
 
     def is_extension_registered(self, extension: str) -> bool:
         """
         Method to check if a extension is registered or not in list of mimetypes and extensions.
         This method should be override in child class.
         """
-        raise NotImplementedError("is_extension_registered() method must be overwritten on child class.")
+        raise NotImplementedError(
+            "is_extension_registered() method must be overwritten on child class."
+        )
 
     def is_extension_lossless(self, extension: str) -> bool:
         """

@@ -51,7 +51,9 @@ class BaseStaticRender(BaseRender):
     """
 
     @classmethod
-    def create_file(cls, object_to_process: BaseFile, content: str | bytes | BytesIO | StringIO) -> BaseFile:
+    def create_file(
+        cls, object_to_process: BaseFile, content: str | bytes | BytesIO | StringIO
+    ) -> BaseFile:
         """
         Method to create a file structured for the static image on same class as object_to_process.
         """
@@ -62,10 +64,10 @@ class BaseStaticRender(BaseRender):
         static_file: BaseFile = object_to_process.__class__(
             path=f"{object_to_process.sanitize_path}.{defaults.format_extension}",
             extract_data_pipeline=Pipeline(
-                'filejacket.pipelines.extractor.FilenameAndExtensionFromPathExtractor',
-                'filejacket.pipelines.extractor.MimeTypeFromFilenameExtractor',
+                "filejacket.pipelines.extractor.FilenameAndExtensionFromPathExtractor",
+                "filejacket.pipelines.extractor.MimeTypeFromFilenameExtractor",
             ),
-            file_system_handler=object_to_process.storage
+            file_system_handler=object_to_process.storage,
         )
 
         # Set content from buffer.
@@ -97,14 +99,16 @@ class DocumentFirstPageRender(BaseStaticRender):
         Method to render the image representation of the file_object.
         This method will only use the first page of the documents.
         """
-        image_engine: Type[ImageEngine] = kwargs.pop('image_engine')
+        image_engine: Type[ImageEngine] = kwargs.pop("image_engine")
 
         defaults: Type[ThumbnailDefaults] = file_object._thumbnail.static_defaults
 
         buffer_content = file_object.content_as_buffer
 
         if not buffer_content:
-            raise RenderError("There is no content in buffer format available to render.")
+            raise RenderError(
+                "There is no content in buffer format available to render."
+            )
 
         buffer: BytesIO = BytesIO()
 
@@ -119,7 +123,7 @@ class DocumentFirstPageRender(BaseStaticRender):
             filetype=file_object.extension,
             # width and height are only used for content that requires rendering of vectors as `epub`.
             width=defaults.width * 5,
-            height=defaults.height * 5
+            height=defaults.height * 5,
         )
         for page in doc:
             bitmap = page.get_pixmap(dpi=defaults.format_dpi)
@@ -139,8 +143,7 @@ class DocumentFirstPageRender(BaseStaticRender):
 
         # Set static file for current file_object.
         file_object._thumbnail._static_file = cls.create_file(
-            file_object,
-            content=image.get_buffer(encode_format=defaults.format)
+            file_object, content=image.get_buffer(encode_format=defaults.format)
         )
 
 
@@ -159,24 +162,25 @@ class ImageRender(BaseStaticRender):
         """
         Method to render the image representation of the file_object.
         """
-        image_engine: Type[ImageEngine] = kwargs.pop('image_engine')
+        image_engine: Type[ImageEngine] = kwargs.pop("image_engine")
 
         defaults: Type[ThumbnailDefaults] = file_object._thumbnail.static_defaults
 
-        buffer = file_object.content_as_buffer
+        buffer_content = file_object.content_as_buffer
 
-        if not buffer:
-            raise RenderError("There is no content in buffer format available to render.")
+        if not buffer_content:
+            raise RenderError(
+                "There is no content in buffer format available to render."
+            )
 
         # Resize image using the image_engine and default values.
-        image: ImageEngine = image_engine(buffer=buffer)
+        image: ImageEngine = image_engine(buffer=buffer_content)
 
         image.resize(defaults.width, defaults.height, keep_ratio=defaults.keep_ratio)
 
         # Set static file for current file_object.
         file_object._thumbnail._static_file = cls.create_file(
-            file_object,
-            content=image.get_buffer(encode_format=defaults.format)
+            file_object, content=image.get_buffer(encode_format=defaults.format)
         )
 
 
@@ -195,17 +199,20 @@ class PSDRender(BaseStaticRender):
         """
         Method to render the image representation of the file_object.
         """
-        image_engine: Type[ImageEngine] = kwargs.pop('image_engine')
+        image_engine: Type[ImageEngine] = kwargs.pop("image_engine")
 
         defaults: Type[ThumbnailDefaults] = file_object._thumbnail.static_defaults
 
         buffer_content = file_object.content_as_buffer
 
         if not buffer_content:
-            raise RenderError("There is no content in buffer format available to render.")
+            raise RenderError(
+                "There is no content in buffer format available to render."
+            )
 
         # Local import to avoid longer time to load FileJacket library.
         from psd_tools import PSDImage
+
         # Load PSD from buffer
         psd: PSDImage = PSDImage.open(fp=buffer_content)
 
@@ -223,8 +230,7 @@ class PSDRender(BaseStaticRender):
 
         # Set static file for current file_object.
         file_object._thumbnail._static_file = cls.create_file(
-            file_object,
-            content=image.get_buffer(encode_format=defaults.format)
+            file_object, content=image.get_buffer(encode_format=defaults.format)
         )
 
 
@@ -243,7 +249,7 @@ class VideoRender(BaseStaticRender):
         "flv",
         "wmv",
         "3gp",
-        "m2ts"
+        "m2ts",
     }
     """
     Attribute to store allowed extensions for use in `validator`.
@@ -255,8 +261,8 @@ class VideoRender(BaseStaticRender):
         Method to render the image representation of the file_object.
         This method will get the frame in 20% of the video.
         """
-        image_engine: Type[ImageEngine] = kwargs.pop('image_engine')
-        video_engine: Type[VideoEngine] = kwargs.pop('video_engine')
+        image_engine: Type[ImageEngine] = kwargs.pop("image_engine")
+        video_engine: Type[VideoEngine] = kwargs.pop("video_engine")
 
         defaults: Type[ThumbnailDefaults] = file_object._thumbnail.static_defaults
 
@@ -264,13 +270,17 @@ class VideoRender(BaseStaticRender):
 
         frame_to_select: int = video.get_frame_amount() * 20 // 100
 
-        image: ImageEngine = image_engine(buffer=BytesIO(video.get_frame_as_bytes(index=frame_to_select,
-                                                                                  encode_format=defaults.format)))
+        image: ImageEngine = image_engine(
+            buffer=BytesIO(
+                video.get_frame_as_bytes(
+                    index=frame_to_select, encode_format=defaults.format
+                )
+            )
+        )
 
         image.resize(defaults.width, defaults.height, keep_ratio=defaults.keep_ratio)
 
         # Set static file for current file_object.
         file_object._thumbnail._static_file = cls.create_file(
-            file_object,
-            content=image.get_buffer(encode_format=defaults.format)
+            file_object, content=image.get_buffer(encode_format=defaults.format)
         )

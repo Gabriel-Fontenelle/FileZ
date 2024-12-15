@@ -24,9 +24,7 @@ from typing import Any
 
 from ..exception import SerializerError
 
-__all__ = [
-    "FileState"
-]
+__all__ = ["FileState"]
 
 
 class FileState:
@@ -48,6 +46,10 @@ class FileState:
     Indicate whether an object has changed or not. If true, we will consider that the current content was
     changed but not saved yet.  
     """
+    moving: bool = False
+    """
+    Indicate whether an object is schedule to being moved or copied in the current file`s filesystem or between filesystems.
+    """
     processing: bool = True
     """
     Indicate whether an object has already run its pipeline of extraction or not. If true, we will consider 
@@ -62,13 +64,15 @@ class FileState:
             if hasattr(self, key):
                 setattr(self, key, value)
             else:
-                raise SerializerError(f"Class {self.__class__.__name__} doesn't have an attribute called {key}.")
+                raise SerializerError(
+                    f"Class {self.__class__.__name__} doesn't have an attribute called {key}."
+                )
 
     @property
     def __serialize__(self) -> dict[str, bool]:
         """
         Method to allow dir and vars to work with the class simplifying the serialization of object.
         """
-        attributes: set = {"adding", "renaming", "changing", "processing"}
+        attributes: set = {"adding", "renaming", "changing", "processing", "moving"}
 
         return {key: getattr(self, key) for key in attributes}

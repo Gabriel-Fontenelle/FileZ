@@ -31,7 +31,8 @@ from ..engines.image import ImageEngine
 from ..utils import LazyImportClass
 
 if TYPE_CHECKING:
-    from PIL import Image as PillowImageClass
+    from PIL import Image as PillowImageModule
+    from PIL.Image import Image as PillowImageClass
     from numpy import ndarray
 
 
@@ -42,10 +43,10 @@ __all__ = [
 ]
 
 
-cv2 = LazyImportClass('cv2')
+cv2 = LazyImportClass("cv2")
 """Lazy import of cv2 module"""
 
-np = LazyImportClass('numpy')
+np = LazyImportClass("numpy")
 """Lazy import of numpy module as alias np"""
 
 
@@ -72,7 +73,7 @@ class OpenCVImage(ImageEngine):
             "gray": cv2.COLOR_BGR2GRAY,
             "Lab": cv2.COLOR_BGR2LAB,
             "YCrCb": cv2.COLOR_BGR2YCrCb,
-            "HSV": cv2.COLOR_BGR2HSV
+            "HSV": cv2.COLOR_BGR2HSV,
         }
 
         self.image = cv2.cvtColor(self.image, colorscheme[colorspace])
@@ -84,7 +85,7 @@ class OpenCVImage(ImageEngine):
         cloned = self.__class__()
         cloned.image = self.image.copy()
         cloned.source_buffer = self.source_buffer
-        
+
         return cloned
 
     def crop(self, width: int, height: int, **kwargs: Any) -> None:
@@ -99,19 +100,19 @@ class OpenCVImage(ImageEngine):
         # Set `left` based on center gravity
         left: int = current_width // 2 - width // 2
 
-        self.image = self.image[top:top+height, left:left+width]
+        self.image = self.image[top : top + height, left : left + width]
 
     def get_bytes(self, encode_format: str = "jpeg") -> bytes | ndarray:
         """
         Method to obtain the bytes' representation for the content of the current image object.
         """
-        formats: dict[str, str] = {
-            "jpeg": ".jpg"
-        }
+        formats: dict[str, str] = {"jpeg": ".jpg"}
         success, buffer = cv2.imencode(formats[encode_format], self.image)
 
         if not success:
-            raise ValueError(f"Could not convert image to format {encode_format} in OpenCVImage.get_bytes_from_image.")
+            raise ValueError(
+                f"Could not convert image to format {encode_format} in OpenCVImage.get_bytes_from_image."
+            )
 
         return buffer
 
@@ -155,7 +156,9 @@ class OpenCVImage(ImageEngine):
         """
         Method to scale the current image object without implementing additional logic.
         """
-        self.image = cv2.resize(self.image, (width, height), interpolation=cv2.INTER_AREA)
+        self.image = cv2.resize(
+            self.image, (width, height), interpolation=cv2.INTER_AREA
+        )
 
     def show(self) -> None:
         """
@@ -191,15 +194,20 @@ class OpenCVImage(ImageEngine):
             bounding_border = cv2.boundingRect(splitted_channels[-1])
 
         else:
-            raise ValueError("Cannot trim image because no color was informed and no alpha channel exists in the "
-                             "current image.")
+            raise ValueError(
+                "Cannot trim image because no color was informed and no alpha channel exists in the "
+                "current image."
+            )
 
         if bounding_border:
             # bounding_border is equal to `x, y, w, h = bounding_border`
-            self.image = self.image[bounding_border[1]:bounding_border[3], bounding_border[0]:bounding_border[2]]
+            self.image = self.image[
+                bounding_border[1] : bounding_border[3],
+                bounding_border[0] : bounding_border[2],
+            ]
 
 
-PillowSequence = LazyImportClass('ImageSequence', from_module='PIL')
+PillowSequence = LazyImportClass("ImageSequence", from_module="PIL")
 """Lazy import of ImageSequence class as alias"""
 
 
@@ -208,7 +216,7 @@ class PillowImage(ImageEngine):
     Class that standardized methods of Pillow library.
     """
 
-    class_image: Type[PillowImageClass] = LazyImportClass('Image', from_module='PIL')
+    class_image: PillowImageModule = LazyImportClass("Image", from_module="PIL")
     """
     Attribute used to store the class reference responsible to create an image.
     """
@@ -227,7 +235,7 @@ class PillowImage(ImageEngine):
             optimize=False,
         )
 
-        self.image = self.class_image.open(fp=output)
+        self.image: PillowImageClass = self.class_image.open(fp=output)
 
     def append_to_sequence(self, images: list[Any], **kwargs: Any) -> None:
         """
@@ -245,15 +253,10 @@ class PillowImage(ImageEngine):
         encode_format: str = kwargs.pop("encode_format", "webp")
 
         # Convert to grey scale
-        colorscheme: dict[str, str] = {
-            "gray": "L",
-            "Lab": "",
-            "YCrCb": "",
-            "HSV": ""
-        }
+        colorscheme: dict[str, str] = {"gray": "L", "Lab": "", "YCrCb": "", "HSV": ""}
         if self.has_sequence():
-            def change_color_frame(image):
 
+            def change_color_frame(image):
                 return image.convert(colorscheme[colorspace])
 
             images = PillowSequence.all_frames(self.image, change_color_frame)
@@ -269,7 +272,7 @@ class PillowImage(ImageEngine):
         cloned = self.__class__()
         cloned.image = self.image.copy()
         cloned.source_buffer = self.source_buffer
-        
+
         return cloned
 
     def crop(self, width: int, height: int, **kwargs: Any) -> None:
@@ -286,6 +289,7 @@ class PillowImage(ImageEngine):
         left: int = current_width // 2 - width // 2
 
         if self.has_sequence():
+
             def crop_frame(image):
                 return image.crop((top, left, width, height))
 
@@ -324,7 +328,7 @@ class PillowImage(ImageEngine):
         """
         Method to verify if image has multiple frames, e.g `.gif`, or distinct sizes, e.g `.ico`.
         """
-        return hasattr(self.image, 'n_frames') and self.image.n_frames > 1
+        return hasattr(self.image, "n_frames") and self.image.n_frames > 1
 
     def has_transparency(self) -> bool:
         """
@@ -379,14 +383,19 @@ class PillowImage(ImageEngine):
         encode_format: str = kwargs.get("encode_format", "webp")
 
         if self.has_sequence():
+
             def resize_frame(image):
-                return image.resize((width, height), resample=self.class_image.Resampling.LANCZOS)
+                return image.resize(
+                    (width, height), resample=self.class_image.Resampling.LANCZOS
+                )
 
             images: list = PillowSequence.all_frames(self.image, resize_frame)
 
             self._set_image_sequence(images, encode_format)
         else:
-            self.image = self.image.resize((width, height), resample=self.class_image.Resampling.LANCZOS)
+            self.image = self.image.resize(
+                (width, height), resample=self.class_image.Resampling.LANCZOS
+            )
 
     def show(self) -> None:
         """
@@ -407,14 +416,18 @@ class PillowImage(ImageEngine):
         if color:
             from PIL import ImageChops
 
-            background = self.class_image.new(self.image.mode, self.image.size, color=color)
+            background = self.class_image.new(
+                self.image.mode, self.image.size, color=color
+            )
             bounding_border = ImageChops.difference(self.image, background).getbbox()
         elif self.has_transparency():
             # Trim transparency
             bounding_border = self.image.getchannel("A").getbbox()
         else:
-            raise ValueError("Cannot trim image because no color was informed and no alpha channel exists in the "
-                             "current image.")
+            raise ValueError(
+                "Cannot trim image because no color was informed and no alpha channel exists in the "
+                "current image."
+            )
 
         if bounding_border:
             self.image = self.image.crop(bounding_border)
@@ -449,7 +462,7 @@ class WandImage(ImageEngine):
             "gray": "gray",
             "Lab": "",
             "YCrCb": "",
-            "HSV": ""
+            "HSV": "",
         }
         # Convert to grey scale
         self.image.transform_colorspace(colorscheme[colorspace])
@@ -462,14 +475,14 @@ class WandImage(ImageEngine):
         cloned.image = self.image.clone()
         cloned.metadata = cloned.image.metadata
         cloned.source_buffer = self.source_buffer
-        
+
         return cloned
 
     def crop(self, width: int, height: int, **kwargs: Any) -> None:
         """
         Method to crop the current image object.
         """
-        self.image.crop(width=width, height=height, gravity='center')
+        self.image.crop(width=width, height=height, gravity="center")
 
     def get_bytes(self, encode_format: str = "jpeg") -> bytes:
         """
@@ -515,7 +528,9 @@ class WandImage(ImageEngine):
 
         steps: int = total_frames // int(total_frames / 100 * percentual)
 
-        for index in list(set(range(0, total_frames, 1)) - set(range(0, total_frames, steps)))[::-1]:
+        for index in list(
+            set(range(0, total_frames, 1)) - set(range(0, total_frames, steps))
+        )[::-1]:
             del self.image.sequence[index]
 
     def scale(self, width: int, height: int, **kwargs: Any) -> None:
@@ -529,7 +544,7 @@ class WandImage(ImageEngine):
         Method to display the image for debugging purposes.
         """
         from wand.display import display as wand_display
-    
+
         if self.has_sequence():
             for image in self.image.sequence:
                 wand_display(self.class_image(image))
@@ -549,10 +564,12 @@ class WandImage(ImageEngine):
 
         elif self.has_transparency():
             # Trim transparency
-            color = Color('rgba(0,0,0,0)')
+            color = Color("rgba(0,0,0,0)")
 
         else:
-            raise ValueError("Cannot trim image because no color was informed and no alpha channel exists in the "
-                             "current image.")
+            raise ValueError(
+                "Cannot trim image because no color was informed and no alpha channel exists in the "
+                "current image."
+            )
 
         self.image.trim(background_color=color, reset_coords=True)

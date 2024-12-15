@@ -12,7 +12,7 @@ from .external_data import (
     MetadataExtractor,
     MimeTypeFromFilenameExtractor,
     FilenameFromURLExtractor,
-    PathFromURLExtractor
+    PathFromURLExtractor,
 )
 from .package import (
     PackageExtractor,
@@ -45,5 +45,5 @@ __all__ = [
     "SevenZipCompressedFilesFromPackageExtractor",
     "RarCompressedFilesFromPackageExtractor",
     "TarCompressedFilesFromPackageExtractor",
-    "ZipCompressedFilesFromPackageExtractor"
+    "ZipCompressedFilesFromPackageExtractor",
 ]

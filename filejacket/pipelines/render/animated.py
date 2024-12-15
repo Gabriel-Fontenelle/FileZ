@@ -36,12 +36,12 @@ if TYPE_CHECKING:
     from ...engines.video import VideoEngine
 
 __all__ = [
-    'BaseAnimatedRender',
-    'DocumentAnimatedRender',
-    'ImageAnimatedRender',
-    'PSDAnimatedRender',
-    'StaticAnimatedRender',
-    'VideoAnimatedRender',
+    "BaseAnimatedRender",
+    "DocumentAnimatedRender",
+    "ImageAnimatedRender",
+    "PSDAnimatedRender",
+    "StaticAnimatedRender",
+    "VideoAnimatedRender",
 ]
 
 
@@ -51,7 +51,9 @@ class BaseAnimatedRender(BaseRender):
     """
 
     @classmethod
-    def create_file(cls, object_to_process: BaseFile, content: str | bytes | BytesIO | StringIO) -> BaseFile:
+    def create_file(
+        cls, object_to_process: BaseFile, content: str | bytes | BytesIO | StringIO
+    ) -> BaseFile:
         """
         Method to create a file structured for the animated image on same class as object_to_process.
         """
@@ -62,10 +64,10 @@ class BaseAnimatedRender(BaseRender):
         animated_file: BaseFile = object_to_process.__class__(
             path=f"{object_to_process.sanitize_path}.{defaults.format_extension}",
             extract_data_pipeline=Pipeline(
-                'filejacket.pipelines.extractor.FilenameAndExtensionFromPathExtractor',
-                'filejacket.pipelines.extractor.MimeTypeFromFilenameExtractor',
+                "filejacket.pipelines.extractor.FilenameAndExtensionFromPathExtractor",
+                "filejacket.pipelines.extractor.MimeTypeFromFilenameExtractor",
             ),
-            file_system_handler=object_to_process.storage
+            file_system_handler=object_to_process.storage,
         )
 
         # Set content from buffer.
@@ -98,24 +100,25 @@ class StaticAnimatedRender(BaseAnimatedRender):
         But because those extensions don`t need to be animated to represent the whole image,
         there is no need to animate it.
         """
-        image_engine: Type[ImageEngine] = kwargs.pop('image_engine')
+        image_engine: Type[ImageEngine] = kwargs.pop("image_engine")
 
         defaults: Type[PreviewDefaults] = file_object._thumbnail.animated_defaults
 
         # Resize image using the image_engine and default values.
-        buffer = file_object.content_as_buffer
+        buffer_content = file_object.content_as_buffer
 
-        if not buffer:
-            raise RenderError("There is no content in buffer format available to render.")
+        if not buffer_content:
+            raise RenderError(
+                "There is no content in buffer format available to render."
+            )
 
-        image: ImageEngine = image_engine(buffer=buffer)
+        image: ImageEngine = image_engine(buffer=buffer_content)
 
         image.resize(defaults.width, defaults.height, keep_ratio=defaults.keep_ratio)
 
         # Set static file for current file_object.
         file_object._thumbnail._animated_file = cls.create_file(
-            file_object,
-            content=image.get_buffer(encode_format=defaults.format)
+            file_object, content=image.get_buffer(encode_format=defaults.format)
         )
 
 
@@ -136,17 +139,19 @@ class ImageAnimatedRender(BaseAnimatedRender):
         """
         Method to render the animated representation of the file_object that has animation.
         """
-        image_engine: Type[ImageEngine] = kwargs.pop('image_engine')
+        image_engine: Type[ImageEngine] = kwargs.pop("image_engine")
 
         defaults: Type[PreviewDefaults] = file_object._thumbnail.animated_defaults
 
-        buffer = file_object.content_as_buffer
+        buffer_content = file_object.content_as_buffer
 
-        if not buffer:
-            raise RenderError("There is no content in buffer format available to render.")
+        if not buffer_content:
+            raise RenderError(
+                "There is no content in buffer format available to render."
+            )
 
         # Resize image using the image_engine and default values.
-        image: ImageEngine = image_engine(buffer=buffer)
+        image: ImageEngine = image_engine(buffer=buffer_content)
 
         image.resample(percentual=defaults.duration, encode_format=defaults.format)
 
@@ -154,8 +159,7 @@ class ImageAnimatedRender(BaseAnimatedRender):
 
         # Set animated file for current file_object.
         file_object._thumbnail._animated_file = cls.create_file(
-            file_object,
-            content=image.get_buffer(encode_format=defaults.format)
+            file_object, content=image.get_buffer(encode_format=defaults.format)
         )
 
 
@@ -175,14 +179,16 @@ class DocumentAnimatedRender(BaseAnimatedRender):
         """
         Method to render the animated representation of the file_object that has pages.
         """
-        image_engine: Type[ImageEngine] = kwargs.pop('image_engine')
+        image_engine: Type[ImageEngine] = kwargs.pop("image_engine")
 
         defaults: Type[PreviewDefaults] = file_object._thumbnail.animated_defaults
 
-        buffer = file_object.content_as_buffer
+        buffer_content = file_object.content_as_buffer
 
-        if not buffer:
-            raise RenderError("There is no content in buffer format available to render.")
+        if not buffer_content:
+            raise RenderError(
+                "There is no content in buffer format available to render."
+            )
 
         # Local import to avoid longer time to load FileJacket library.
         import fitz
@@ -191,11 +197,11 @@ class DocumentAnimatedRender(BaseAnimatedRender):
         # Because BufferedReader (default return for file_system.open) is not accept
         # we need to consume to get its bytes as bytes are accepted as stream.
         doc = fitz.open(
-            stream=buffer.read(),
+            stream=buffer_content.read(),
             filetype=file_object.extension,
             # width and height are only used for content that requires rendering of vectors as `epub`.
             width=defaults.width * 5,
-            height=defaults.height * 5
+            height=defaults.height * 5,
         )
 
         images: list[ImageEngine] = []
@@ -204,7 +210,7 @@ class DocumentAnimatedRender(BaseAnimatedRender):
         steps: int = total_frames // int(total_frames / 100 * defaults.duration)
 
         image: ImageEngine
-        
+
         for page in doc.pages(0, total_frames, steps):
             bitmap = page.get_pixmap(dpi=defaults.format_dpi)
 
@@ -219,19 +225,24 @@ class DocumentAnimatedRender(BaseAnimatedRender):
             image.trim(color=defaults.color_to_trim)
 
             # Resize image using the image_engine and default values.
-            image.resize(defaults.width, defaults.height, keep_ratio=defaults.keep_ratio)
+            image.resize(
+                defaults.width, defaults.height, keep_ratio=defaults.keep_ratio
+            )
 
             # Append buffers
             images.append(image)
 
         # Create sequence image.
         image_sequence = images[0].clone()
-        image_sequence.append_to_sequence(images=[engine.image for engine in images[1:]], encode_format=defaults.format)
+        image_sequence.append_to_sequence(
+            images=[engine.image for engine in images[1:]],
+            encode_format=defaults.format,
+        )
 
         # Set static file for current file_object.
         file_object._thumbnail._animated_file = cls.create_file(
             file_object,
-            content=image_sequence.get_buffer(encode_format=defaults.format)
+            content=image_sequence.get_buffer(encode_format=defaults.format),
         )
 
 
@@ -251,20 +262,22 @@ class PSDAnimatedRender(BaseAnimatedRender):
         """
         Method to render the animated representation of the file_object that has layers.
         """
-        image_engine: Type[ImageEngine] = kwargs.pop('image_engine')
+        image_engine: Type[ImageEngine] = kwargs.pop("image_engine")
 
         defaults: Type[PreviewDefaults] = file_object._thumbnail.animated_defaults
 
-        buffer = file_object.content_as_buffer
+        buffer_content = file_object.content_as_buffer
 
-        if not buffer:
-            raise RenderError("There is no content in buffer format available to render.")
+        if not buffer_content:
+            raise RenderError(
+                "There is no content in buffer format available to render."
+            )
 
         # Local import to avoid longer time to load FileJacket library.
         from psd_tools import PSDImage
 
         # Load PSD from buffer
-        psd: PSDImage = PSDImage.open(fp=buffer)
+        psd: PSDImage = PSDImage.open(fp=buffer_content)
 
         images: list[ImageEngine] = []
 
@@ -275,26 +288,33 @@ class PSDAnimatedRender(BaseAnimatedRender):
         # convert it to RGB to remove alpha channel before saving it to buffer.
         for index in set(range(0, total_frames, steps)):
             buffer = BytesIO()
-            psd.layers[index].composite().convert(mode="RGB").save(fp=buffer, format=defaults.format)
+            psd.layers[index].composite().convert(mode="RGB").save(
+                fp=buffer, format=defaults.format
+            )
 
             # Reset buffer to beginning before being loaded in image_engine.
             buffer.seek(0)
 
             image: ImageEngine = image_engine(buffer=buffer)
 
-            image.resize(defaults.width, defaults.height, keep_ratio=defaults.keep_ratio)
+            image.resize(
+                defaults.width, defaults.height, keep_ratio=defaults.keep_ratio
+            )
 
             # Append buffers
             images.append(image)
 
         # Create sequence image.
         image_sequence = images[0].clone()
-        image_sequence.append_to_sequence(images=[engine.image for engine in images[1:]], encode_format=defaults.format)
+        image_sequence.append_to_sequence(
+            images=[engine.image for engine in images[1:]],
+            encode_format=defaults.format,
+        )
 
         # Set static file for current file_object.
         file_object._thumbnail._animated_file = cls.create_file(
             file_object,
-            content=image_sequence.get_buffer(encode_format=defaults.format)
+            content=image_sequence.get_buffer(encode_format=defaults.format),
         )
 
 
@@ -304,7 +324,17 @@ class VideoAnimatedRender(BaseAnimatedRender):
     This class make use of sequences.
     """
 
-    extensions: set[str] = {"avi", "mkv", "mpg", "mpeg", "mp4", "flv", "3gp", "m4a", "m2ts"}
+    extensions: set[str] = {
+        "avi",
+        "mkv",
+        "mpg",
+        "mpeg",
+        "mp4",
+        "flv",
+        "3gp",
+        "m4a",
+        "m2ts",
+    }
     """
     Attribute to store allowed extensions for use in `validator`.
     """
@@ -314,40 +344,49 @@ class VideoAnimatedRender(BaseAnimatedRender):
         """
         Method to render the animated representation of the file_object that has frames.
         """
-        image_engine: Type[ImageEngine] = kwargs.pop('image_engine')
-        video_engine: Type[VideoEngine] = kwargs.pop('video_engine')
+        image_engine: Type[ImageEngine] = kwargs.pop("image_engine")
+        video_engine: Type[VideoEngine] = kwargs.pop("video_engine")
 
         defaults: Type[PreviewDefaults] = file_object._thumbnail.animated_defaults
 
-        buffer = file_object.content_as_buffer
+        buffer_content = file_object.content_as_buffer
 
-        if not buffer:
-            raise RenderError("There is no content in buffer format available to render.")
+        if not buffer_content:
+            raise RenderError(
+                "There is no content in buffer format available to render."
+            )
 
-        video: VideoEngine = video_engine(buffer=buffer)
+        video: VideoEngine = video_engine(buffer=buffer_content)
 
         total_frames: int = video.get_frame_amount()
-        
+
         steps: int = total_frames // int(total_frames / 100 * defaults.duration)
 
         images: list[ImageEngine] = []
 
         for index in set(range(0, total_frames, steps)):
             image: ImageEngine = image_engine(
-                buffer=BytesIO(video.get_frame_as_bytes(index=index, encode_format=defaults.format))
+                buffer=BytesIO(
+                    video.get_frame_as_bytes(index=index, encode_format=defaults.format)
+                )
             )
 
-            image.resize(defaults.width, defaults.height, keep_ratio=defaults.keep_ratio)
+            image.resize(
+                defaults.width, defaults.height, keep_ratio=defaults.keep_ratio
+            )
 
             # Append buffers
             images.append(image)
 
         # Create sequence image.
         image_sequence = images[0].clone()
-        image_sequence.append_to_sequence(images=[engine.image for engine in images[1:]], encode_format=defaults.format)
+        image_sequence.append_to_sequence(
+            images=[engine.image for engine in images[1:]],
+            encode_format=defaults.format,
+        )
 
         # Set static file for current file_object.
         file_object._thumbnail._animated_file = cls.create_file(
             file_object,
-            content=image_sequence.get_buffer(encode_format=defaults.format)
+            content=image_sequence.get_buffer(encode_format=defaults.format),
         )

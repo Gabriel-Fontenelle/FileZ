@@ -36,14 +36,14 @@ if TYPE_CHECKING:
     from ...handler import URI
 
 __all__ = [
-    'FileSystemDataExtractor',
-    'FilenameAndExtensionFromPathExtractor',
-    'FilenameFromMetadataExtractor',
-    'HashFileExtractor',
-    'MetadataExtractor',
-    'MimeTypeFromFilenameExtractor',
-    'FilenameFromURLExtractor',
-    'PathFromURLExtractor'
+    "FileSystemDataExtractor",
+    "FilenameAndExtensionFromPathExtractor",
+    "FilenameFromMetadataExtractor",
+    "HashFileExtractor",
+    "MetadataExtractor",
+    "MimeTypeFromFilenameExtractor",
+    "FilenameFromURLExtractor",
+    "PathFromURLExtractor",
 ]
 
 
@@ -83,21 +83,25 @@ class FilenameAndExtensionFromPathExtractor(BaseExtractor):
         file_system_handler: Type[StorageEngine] = file_object.storage
 
         # Set-up save_to and relative_path
-        file_object.save_to = file_system_handler.get_directory_from_path(file_object.path)
+        file_object.save_to = file_system_handler.get_directory_from_path(
+            file_object.path
+        )
 
         # Relative path is empty, because save_to is the whole directory
-        file_object.relative_path = ''
+        file_object.relative_path = ""
 
         # Get complete filename from path
         complete_filename = file_system_handler.get_filename_from_path(file_object.path)
 
         # Check if there is any extension in complete_filename and if there is known extension
-        if '.' in complete_filename and file_object.add_valid_filename(complete_filename):
+        if "." in complete_filename and file_object.add_valid_filename(
+            complete_filename
+        ):
             return
 
         # No extension registered found, so we set extension as empty.
         file_object.filename = complete_filename
-        file_object.extension = ''
+        file_object.extension = ""
 
 
 class FilenameFromMetadataExtractor(BaseExtractor):
@@ -124,7 +128,9 @@ class FilenameFromMetadataExtractor(BaseExtractor):
             return
 
         try:
-            content_disposition: list[str] = MetadataExtractor.get_content_disposition(kwargs['metadata'])
+            content_disposition: list[str] = MetadataExtractor.get_content_disposition(
+                kwargs["metadata"]
+            )
 
             if not content_disposition:
                 return
@@ -135,7 +141,7 @@ class FilenameFromMetadataExtractor(BaseExtractor):
             candidates = [
                 content.strip()
                 for content in content_disposition
-                if 'filename' in content
+                if "filename" in content
             ]
 
             if not candidates:
@@ -155,7 +161,9 @@ class FilenameFromMetadataExtractor(BaseExtractor):
                 complete_filename = candidate[begin:end]
 
                 # Check if filename has a valid extension
-                if '.' in complete_filename and file_object.add_valid_filename(complete_filename):
+                if "." in complete_filename and file_object.add_valid_filename(
+                    complete_filename
+                ):
                     return
 
                 if complete_filename:
@@ -165,15 +173,16 @@ class FilenameFromMetadataExtractor(BaseExtractor):
 
         except KeyError:
             # kwargs has no parameter metadata
-            raise ValueError('Parameter `metadata` must be informed as key argument for '
-                             '`FilenameFromMetadataExtractor.extract`.')
+            raise ValueError(
+                "Parameter `metadata` must be informed as key argument for "
+                "`FilenameFromMetadataExtractor.extract`."
+            )
         except IndexError:
             # filenames has no index 0, so extension was not set-up either, we just need to return.
             return
 
 
 class FileSystemDataExtractor(BaseExtractor):
-
     @classmethod
     def extract(cls, file_object: BaseFile, overrider: bool, **kwargs: Any) -> None:
         """
@@ -192,20 +201,28 @@ class FileSystemDataExtractor(BaseExtractor):
         """
 
         if not file_object.path:
-            raise ValueError("Attribute `path` must be settled before calling `FileSystemDataExtractor.extract`.")
+            raise ValueError(
+                "Attribute `path` must be settled before calling `FileSystemDataExtractor.extract`."
+            )
 
         if not file_object.type:
-            raise ValueError("Attribute `type` must be settled before calling `FileSystemDataExtractor.extract`.")
+            raise ValueError(
+                "Attribute `type` must be settled before calling `FileSystemDataExtractor.extract`."
+            )
 
         file_system_handler: Type[StorageEngine] = file_object.storage
 
         # Check if path exists
         if not file_system_handler.exists(file_object.path):
-            raise FileNotFoundError("There is no file following attribute `path` in the file system.")
+            raise FileNotFoundError(
+                "There is no file following attribute `path` in the file system."
+            )
 
         # Check if path is directory, it should not be
         if file_system_handler.is_dir(file_object.path):
-            raise ValueError("Attribute `path` in `file_object` must be a file not directory.")
+            raise ValueError(
+                "Attribute `path` in `file_object` must be a file not directory."
+            )
 
         # Get path id
         if not file_object.id or overrider:
@@ -216,23 +233,30 @@ class FileSystemDataExtractor(BaseExtractor):
 
         # Get created date
         if not file_object.create_date or overrider:
-            file_object.create_date = file_system_handler.get_created_date(file_object.path)
+            file_object.create_date = file_system_handler.get_created_date(
+                file_object.path
+            )
 
         # Get last modified date
         if not file_object.update_date or overrider:
-            file_object.update_date = file_system_handler.get_modified_date(file_object.path)
+            file_object.update_date = file_system_handler.get_modified_date(
+                file_object.path
+            )
 
         # Define mode from file type
-        mode: str = 'rb'
-        encoding = None
-        
-        if file_object.type == 'text':
+        mode: str = "rb"
+        encoding: str | None = None
+
+        if file_object.type == "text":
             # Find charset for non unicode files
             encoding = file_object.storage.get_charset(file_object.path)
-            mode = 'r'
+            mode = "r"
 
-        # Get buffer io
-        buffer: BytesIO | StringIO | IO = file_object.storage.open_file(file_object.path, mode=mode, encoding=encoding)
+        # Get buffer io with disable parse of newline. It is important to allow hash from text content to be the same
+        # as the saved file.
+        buffer: BytesIO | StringIO | IO = file_object.storage.open_file(
+            file_object.path, mode=mode, encoding=encoding, disable_newline_parse=True
+        )
 
         # Set content with buffer, as content is a property it will validate the buffer and
         # add it as a generator allowing to just loop through chunks of content.
@@ -265,18 +289,26 @@ class HashFileExtractor(BaseExtractor):
         This method make use of overrider.
         """
         if not file_object.path:
-            raise ValueError("Attribute `path` must be settled before calling `HashFileExtractor.extract`.")
+            raise ValueError(
+                "Attribute `path` must be settled before calling `HashFileExtractor.extract`."
+            )
 
-        full_check: bool = kwargs.pop('full_check', True)
+        full_check: bool = kwargs.pop("full_check", True)
 
         for processor in file_object.hasher_pipeline:
             hasher: str = processor.hasher_name
 
-            if hasher in file_object.hashes and file_object.hashes[hasher] and not overrider:
+            if (
+                hasher in file_object.hashes
+                and file_object.hashes[hasher]
+                and not overrider
+            ):
                 continue
 
             # Extract from hash file and save to hasher if hash file content found.
-            processor.process_from_file(object_to_process=file_object, full_check=full_check)
+            processor.process_from_file(
+                object_to_process=file_object, full_check=full_check
+            )
 
 
 class MimeTypeFromFilenameExtractor(BaseExtractor):
@@ -309,12 +341,16 @@ class MimeTypeFromFilenameExtractor(BaseExtractor):
             )
 
         # Save in file_object mimetype and type obtained from mime_type_handler.
-        file_object.mime_type = file_object.mime_type_handler.get_mimetype(file_object.extension)
-        file_object.type = file_object.mime_type_handler.get_type(file_object.mime_type, file_object.extension)
+        file_object.mime_type = file_object.mime_type_handler.get_mimetype(
+            file_object.extension
+        )
+        file_object.type = file_object.mime_type_handler.get_type(
+            file_object.mime_type, file_object.extension
+        )
 
         # Save additional metadata to file.
-        file_object.meta.compressed = file_object.mime_type_handler.is_extension_compressed(
-            file_object.extension
+        file_object.meta.compressed = (
+            file_object.mime_type_handler.is_extension_compressed(file_object.extension)
         )
         file_object.meta.lossless = file_object.mime_type_handler.is_extension_lossless(
             file_object.extension
@@ -337,7 +373,7 @@ class MetadataExtractor(BaseExtractor):
         https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Etag
         """
         try:
-            etag: str = metadata['ETag']
+            etag: str = metadata["ETag"]
 
             begin: int = etag.index('"') + 1
             end: int = etag[begin:].index('"')
@@ -353,7 +389,7 @@ class MetadataExtractor(BaseExtractor):
         https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type
         """
         try:
-            return metadata['Content-Type'].split(';')[0].strip()
+            return metadata["Content-Type"].split(";")[0].strip()
 
         except (KeyError, IndexError):
             return None
@@ -365,7 +401,7 @@ class MetadataExtractor(BaseExtractor):
         https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Length
         """
         try:
-            return int(metadata['Content-Length'])
+            return int(metadata["Content-Length"])
         except KeyError:
             return 0
 
@@ -377,7 +413,9 @@ class MetadataExtractor(BaseExtractor):
         This method is not making use of time zone `%z`.
         """
         try:
-            return datetime.fromtimestamp(mktime(strptime(metadata['Last-Modified'], "%a, %d %b %Y %H:%M:%S %z")))
+            return datetime.fromtimestamp(
+                mktime(strptime(metadata["Last-Modified"], "%a, %d %b %Y %H:%M:%S %z"))
+            )
         except KeyError:
             return None
 
@@ -392,7 +430,9 @@ class MetadataExtractor(BaseExtractor):
         last_modified: datetime | None = MetadataExtractor.get_last_modified(metadata)
 
         try:
-            date: datetime = datetime.fromtimestamp(mktime(strptime(metadata['Date'], "%a, %d %b %Y %H:%M:%S %z")))
+            date: datetime = datetime.fromtimestamp(
+                mktime(strptime(metadata["Date"], "%a, %d %b %Y %H:%M:%S %z"))
+            )
 
             # If Last-Modified is lower than Date return Last-Modified
             if last_modified and last_modified < date:
@@ -411,7 +451,7 @@ class MetadataExtractor(BaseExtractor):
         try:
             return [
                 content.strip()
-                for content in metadata['Content-Disposition'].split(';')
+                for content in metadata["Content-Disposition"].split(";")
             ]
         except KeyError:
             return []
@@ -423,7 +463,9 @@ class MetadataExtractor(BaseExtractor):
         https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Expires
         """
         try:
-            return datetime.fromtimestamp(mktime(strptime(metadata['Last-Modified'], "%a, %d %b %Y %H:%M:%S %z")))
+            return datetime.fromtimestamp(
+                mktime(strptime(metadata["Last-Modified"], "%a, %d %b %Y %H:%M:%S %z"))
+            )
         except KeyError:
             return None
 
@@ -435,8 +477,7 @@ class MetadataExtractor(BaseExtractor):
         """
         try:
             return [
-                content.strip()
-                for content in metadata['Content-Language'].split(',')
+                content.strip() for content in metadata["Content-Language"].split(",")
             ]
         except KeyError:
             return []
@@ -464,11 +505,13 @@ class MetadataExtractor(BaseExtractor):
         This method make use of overrider.
         """
         try:
-            meta: dict[str, str] = kwargs['metadata']
+            meta: dict[str, str] = kwargs["metadata"]
 
             if not meta:
-                raise ValueError('Parameter `metadata` must be have value to be extract at '
-                                 '`MetadataExtractor.extract`.')
+                raise ValueError(
+                    "Parameter `metadata` must be have value to be extract at "
+                    "`MetadataExtractor.extract`."
+                )
 
             # Set-up id from Etag
             etag: str = cls.get_etag(meta)
@@ -488,31 +531,45 @@ class MetadataExtractor(BaseExtractor):
                 # associated with stream), and if there is no one valid don't register one.
                 # In order to avoid wrong extension being settled is recommended to use an Extractor of
                 # `FilenameFromURLExtractor` and `FilenameFromMetadataExtractor` before this processor.
-                if 'stream' not in mimetype:
-                    possible_extension: str | None = file_object.mime_type_handler.guess_extension_from_mimetype(
-                        mimetype
+                if "stream" not in mimetype:
+                    possible_extension: str | None = (
+                        file_object.mime_type_handler.guess_extension_from_mimetype(
+                            mimetype
+                        )
                     )
 
                     if possible_extension:
                         file_object.extension = possible_extension
 
                         # Save additional metadata to file.
-                        file_object.meta.compressed = file_object.mime_type_handler.is_extension_compressed(
-                            file_object.extension
+                        file_object.meta.compressed = (
+                            file_object.mime_type_handler.is_extension_compressed(
+                                file_object.extension
+                            )
                         )
 
-                        file_object.meta.lossless = file_object.mime_type_handler.is_extension_lossless(
-                            file_object.extension
+                        file_object.meta.lossless = (
+                            file_object.mime_type_handler.is_extension_lossless(
+                                file_object.extension
+                            )
                         )
 
-                        file_object.meta.packed = file_object.mime_type_handler.is_extension_packed(
-                            file_object.extension
+                        file_object.meta.packed = (
+                            file_object.mime_type_handler.is_extension_packed(
+                                file_object.extension
+                            )
                         )
                         file_object._actions.to_list()
 
             # Set-up type from mimetype and extension
-            if file_object.mime_type and file_object.extension and (not file_object.type or overrider):
-                file_object.type = file_object.mime_type_handler.get_type(file_object.mime_type, file_object.extension)
+            if (
+                file_object.mime_type
+                and file_object.extension
+                and (not file_object.type or overrider)
+            ):
+                file_object.type = file_object.mime_type_handler.get_type(
+                    file_object.mime_type, file_object.extension
+                )
 
             # Set-up created date from metadata
             create_date = cls.get_date(meta)
@@ -531,17 +588,19 @@ class MetadataExtractor(BaseExtractor):
 
             # Set-up language metadata from metadata
             language = cls.get_language(meta)
-            if language and (not hasattr(file_object, 'language') or overrider):
+            if language and (not hasattr(file_object, "language") or overrider):
                 file_object.meta.language = language
 
             # Set-up expiration date
             expire_date = cls.get_expire(meta)
-            if expire_date and (not hasattr(file_object, 'expire') or overrider):
+            if expire_date and (not hasattr(file_object, "expire") or overrider):
                 file_object.meta.expire = expire_date
 
         except KeyError:
-            raise ValueError('Parameter `metadata` must be informed as key argument for '
-                             '`MetadataExtractor.extract`.')
+            raise ValueError(
+                "Parameter `metadata` must be informed as key argument for "
+                "`MetadataExtractor.extract`."
+            )
 
 
 class FilenameFromURLExtractor(BaseExtractor):
@@ -573,10 +632,12 @@ class FilenameFromURLExtractor(BaseExtractor):
             return
 
         try:
-            possible_urls: str = kwargs['url']
+            possible_urls: str = kwargs["url"]
             processed_uri: str = ""
 
-            filenames_from_url: list[URI.Filename] = file_object.uri_handler.get_filenames(
+            filenames_from_url: list[
+                URI.Filename
+            ] = file_object.uri_handler.get_filenames(
                 possible_urls, file_object.storage
             )
 
@@ -584,20 +645,17 @@ class FilenameFromURLExtractor(BaseExtractor):
                 return
 
             # Modify list to also include boolean value to enforce_mimetype or not.
-            results = [
-                (result, True)
-                for result in filenames_from_url
-            ] + [
-                (result, False)
-                for result in filenames_from_url
+            results = [(result, True) for result in filenames_from_url] + [
+                (result, False) for result in filenames_from_url
             ]
 
             # Loop through paths to use only the one with valid extension
             # The first part of the loop enforce mimetype, second not enforce mimetype.
             for result, enforce_mimetype in results:
                 # Check and set-up filename
-                if (result.filename and file_object.add_valid_filename(result.filename,
-                                                                       enforce_mimetype=enforce_mimetype)):
+                if result.filename and file_object.add_valid_filename(
+                    result.filename, enforce_mimetype=enforce_mimetype
+                ):
                     processed_uri = result.processed_uri
                     break
 
@@ -605,18 +663,24 @@ class FilenameFromURLExtractor(BaseExtractor):
                 # Filename without valid extension, so we
                 # set it as complete_filename the last one.
                 # There will be no additional metadata `compressed` and `lossless`.
-                file_object.complete_filename_as_tuple = filenames_from_url[-1].filename.rsplit('.', 1)
+                file_object.complete_filename_as_tuple = filenames_from_url[
+                    -1
+                ].filename.rsplit(".", 1)
                 processed_uri = filenames_from_url[-1].processed_uri
 
             # Set-up relative path
             if not file_object.relative_path or overrider:
-                cache: URI.Cache | None = file_object.uri_handler.get_processed_uri(processed_uri)
+                cache: URI.Cache | None = file_object.uri_handler.get_processed_uri(
+                    processed_uri
+                )
                 if cache:
                     file_object.relative_path = cache.directory
 
         except KeyError:
-            raise ValueError('Parameter `url` must be informed as key argument for '
-                             '`FilenameFromURLExtractor.extract`.')
+            raise ValueError(
+                "Parameter `url` must be informed as key argument for "
+                "`FilenameFromURLExtractor.extract`."
+            )
 
 
 class PathFromURLExtractor(BaseExtractor):
@@ -647,9 +711,11 @@ class PathFromURLExtractor(BaseExtractor):
             return
 
         try:
-            possible_urls: str = kwargs['url']
+            possible_urls: str = kwargs["url"]
 
-            paths: list[URI.Path] = file_object.uri_handler.get_paths(possible_urls, file_object.storage)
+            paths: list[URI.Path] = file_object.uri_handler.get_paths(
+                possible_urls, file_object.storage
+            )
 
             if not paths:
                 return
@@ -660,7 +726,9 @@ class PathFromURLExtractor(BaseExtractor):
                     file_object.relative_path = path.directory
 
                     if not file_object.filename:
-                        file_object.complete_filename_as_tuple = cache.filename.rsplit('.', 1)
+                        file_object.complete_filename_as_tuple = cache.filename.rsplit(
+                            ".", 1
+                        )
 
                     return
 
@@ -669,5 +737,7 @@ class PathFromURLExtractor(BaseExtractor):
             file_object.relative_path = paths[-1].directory
 
         except KeyError:
-            raise ValueError('Parameter `url` must be informed as key argument for '
-                             '`PathFromURLExtractor.extract`.')
+            raise ValueError(
+                "Parameter `url` must be informed as key argument for "
+                "`PathFromURLExtractor.extract`."
+            )

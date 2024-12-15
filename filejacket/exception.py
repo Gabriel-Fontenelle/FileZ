@@ -20,76 +20,92 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 Should there be a need for contact the electronic mail
 `filejacket <at> gabrielfontenelle.com` can be used.
 """
+from __future__ import annotations
 
-__all__ = [
-	'EmptyContentError',
-	'ImproperlyConfiguredFile',
-	'ImproperlyConfiguredPipeline',
-	'NoInternalContentError',
-	'OperationNotAllowed',
-	'ValidationError',
-	'ReservedFilenameError',
-	'RenderError',
-	'SerializerError'
+
+__all__: list[str] = [
+    "CacheContentNotSeekableError",
+    "EmptyContentError",
+    "ImproperlyConfiguredFile",
+    "ImproperlyConfiguredPipeline",
+    "NoInternalContentError",
+    "OperationNotAllowed",
+    "PipelineError",
+    "ValidationError",
+    "ReservedFilenameError",
+    "RenderError",
+    "SerializerError",
 ]
 
 
 class SerializerError(Exception):
-	"""
-	Exception that defines errors for when a serialization problem occur in file.
-	"""
+    """
+    Exception that defines errors for when a serialization problem occur in file.
+    """
 
 
 class NoInternalContentError(Exception):
-	"""
-	Exception that defines errors for when no internal content is found in file.
-	Meaning that the file is not a container or compacted file.
-	"""
+    """
+    Exception that defines errors for when no internal content is found in file.
+    Meaning that the file is not a container or compacted file.
+    """
 
 
 class EmptyContentError(Exception):
-	"""
-	Exception that defines errors for when a content was not loaded because its empty.
-	"""
+    """
+    Exception that defines errors for when a content was not loaded because its empty.
+    """
 
 
 class ImproperlyConfiguredFile(Exception):
-	"""
-	Exception that defines error for when a File has a missing configuration.
-	"""
+    """
+    Exception that defines error for when a File has a missing configuration.
+    """
 
 
 class ImproperlyConfiguredPipeline(Exception):
-	"""
-	Exception that defines error for when a Pipeline has a missing configuration or improper configured one.
-	"""
+    """
+    Exception that defines error for when a Pipeline has a missing configuration or improper configured one.
+    """
 
 
 class OperationNotAllowed(Exception):
-	"""
-	Exception that defines error for when a operation is not allowed for file.
-	"""
+    """
+    Exception that defines error for when a operation is not allowed for file.
+    """
+
+
+class CacheContentNotSeekableError(Exception):
+    """
+    Exception that defines error for when a cached content results in a buffer not seekable.
+    """
 
 
 class ValidationError(Exception):
-	"""
-	Exception that defines error for when a File was a missing attribute.
-	"""
+    """
+    Exception that defines error for when a File was a missing attribute.
+    """
 
 
 class ReservedFilenameError(Exception):
-	"""
-	Exception that defines error for when trying to rename a file to an already reserved one.
-	"""
+    """
+    Exception that defines error for when trying to rename a file to an already reserved one.
+    """
 
 
 class RenderError(Exception):
-	"""
-	Exception that defines error for when trying to render a file.
-	"""
+    """
+    Exception that defines error for when trying to render a file.
+    """
 
 
 class PipelineError(Exception):
-	"""
-	Exception that defines error for when trying to render a file.
-	"""
+    """
+    Exception that defines error for when trying to render a file.
+    """
+
+
+class MultipleFileExistError(Exception):
+    """
+    Exception that defines error for when multiple files are found instead of only one.
+    """
