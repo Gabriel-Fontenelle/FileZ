@@ -1157,6 +1157,7 @@ class BaseFile:
         if self._state.renaming:
             self._naming.on_conflict_rename = allow_rename
             self._naming.rename()
+            self._actions.renamed()
 
         # Copy current file to be .bak before updating content.
         if self._state.changing and create_backup:
@@ -1179,7 +1180,6 @@ class BaseFile:
 
         # Update BaseFile internal status and controllers.
         self._actions.saved()
-        self._actions.renamed()
         self._state.adding = False
         self._state.changing = False
         self._state.renaming = False
