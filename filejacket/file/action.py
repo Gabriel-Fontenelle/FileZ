@@ -21,7 +21,6 @@ Should there be a need for contact the electronic mail
 `filejacket <at> gabrielfontenelle.com` can be used.
 """
 from __future__ import annotations
-from typing import Any
 
 from ..exception import SerializerError
 

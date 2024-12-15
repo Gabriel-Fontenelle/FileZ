@@ -23,7 +23,6 @@ Should there be a need for contact the electronic mail
 from __future__ import annotations
 
 from base64 import b64encode
-from collections import deque
 from io import StringIO, BytesIO
 from typing import Iterator, Any, TYPE_CHECKING, IO
 
