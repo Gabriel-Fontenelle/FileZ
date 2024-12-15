@@ -140,42 +140,42 @@ class FileActions:
 
         return {key: getattr(self, key) for key in attributes}
 
-    def to_extract(self) -> None:
+    def to_extract(self: FileActions) -> None:
         """
         Method to set up the action of save file.
         """
         self.extract = True
         self.was_extracted = False
 
-    def extracted(self) -> None:
+    def extracted(self: FileActions) -> None:
         """
         Method to change the status of `to extract` to `extracted` file.
         """
         self.extract = False
         self.was_extracted = True
 
-    def to_save(self) -> None:
+    def to_save(self: FileActions) -> None:
         """
         Method to set up the action of save file.
         """
         self.save = True
         self.was_saved = False
 
-    def saved(self) -> None:
+    def saved(self: FileActions) -> None:
         """
         Method to change the status of `to save` to `saved` file.
         """
         self.save = False
         self.was_saved = True
 
-    def to_rename(self) -> None:
+    def to_rename(self: FileActions) -> None:
         """
         Method to set up the action of rename file.
         """
         self.rename = True
         self.was_renamed = False
 
-    def renamed(self) -> None:
+    def renamed(self: FileActions) -> None:
         """
         Method to change the status of `to rename` to `renamed` file.
         """
@@ -203,49 +203,49 @@ class FileActions:
         self.hash = True
         self.was_hashed = False
 
-    def hashed(self) -> None:
+    def hashed(self: FileActions) -> None:
         """
         Method to change the status of `to hash` to `hashed` file.
         """
         self.hash = False
         self.was_hashed = True
 
-    def to_list(self) -> None:
+    def to_list(self: FileActions) -> None:
         """
         Method to set up the action of generate hash for file.
         """
         self.list = True
         self.was_listed = False
 
-    def listed(self) -> None:
+    def listed(self: FileActions) -> None:
         """
         Method to change the status of `to hash` to `hashed` file.
         """
         self.list = False
         self.was_listed = True
 
-    def to_preview(self) -> None:
+    def to_preview(self: FileActions) -> None:
         """
         Method to set up the action of generate preview image for file.
         """
         self.preview = True
         self.was_previewed = False
 
-    def previewed(self) -> None:
+    def previewed(self: FileActions) -> None:
         """
         Method to change the satus of `to preview` to `previewed` file.
         """
         self.preview = False
         self.was_previewed = True
 
-    def to_thumbnail(self) -> None:
+    def to_thumbnail(self: FileActions) -> None:
         """
         Method to set up the action of generate thumbnail image for file.
         """
         self.thumbnail = True
         self.was_thumbnailed = False
 
-    def thumbnailed(self) -> None:
+    def thumbnailed(self: FileActions) -> None:
         """
         Method to change the satus of `to thumbnail` to `thumbnailed` file.
         """
