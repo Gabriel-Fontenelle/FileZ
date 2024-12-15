@@ -364,8 +364,14 @@ class BaseFile:
         # and option run_extractor should not be false.
         if not version and run_extractor:
             self.refresh_from_pipeline()
+            
+    def __str__(self: BaseFile) -> str:
+        """
+        Method to return the string representation of the BaseFile object.
+        """
+        return f"{self.__class__} {self.complete_filename} ({self.length}, {self.type})"
 
-    def __len__(self) -> int:
+    def __len__(self: BaseFile) -> int:
         """
         Method to inform function `len()` where to extract the information of length from.
         When calling `len(BaseFile())` it will return the size of file in bytes.
